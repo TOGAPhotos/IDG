@@ -1,0 +1,179 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model aircraft {
+  id        Int      @id @unique(map: "id") @default(autoincrement())
+  reg       String   @db.VarChar(20)
+  msn       String?  @db.VarChar(20)
+  ln        String?  @db.VarChar(20)
+  airline   String?  @db.VarChar(60)
+  air_type  String?  @db.VarChar(25)
+  remark    String?  @db.VarChar(256)
+  is_delete Boolean  @default(false)
+  airtype   airtype? @relation(fields: [air_type], references: [sub_type], map: "机型信息")
+
+  @@index([air_type], map: "机型信息")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model airline {
+  id              Int      @id @default(autoincrement())
+  airline_cn_name String?  @db.VarChar(255)
+  airline_en_name String?  @db.VarChar(255)
+  icao            String?  @db.VarChar(255)
+  iata            String?  @db.VarChar(255)
+  remark          String?  @db.VarChar(255)
+  wait_for_review Boolean  @default(true)
+  add_user        Int?
+  is_delete       Boolean? @default(false)
+}
+
+model airport {
+  id              Int      @id @default(autoincrement())
+  iata            String?  @db.VarChar(6)
+  icao            String?  @db.VarChar(6)
+  cn_name         String   @db.VarChar(30)
+  remark          String?  @db.VarChar(256)
+  wait_for_review Boolean? @default(true)
+  add_user        Int?
+  is_delete       Boolean  @default(false)
+  photo           photo[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model airtype {
+  manufacturer                 String?    @db.VarChar(100)
+  type                         String?    @db.VarChar(100)
+  sub_type                     String     @unique(map: "sub_type_uq") @db.VarChar(25)
+  is_delete                    Boolean    @default(false)
+  id                           Int        @id @default(autoincrement())
+  aircraft                     aircraft[]
+  photo_photo_airtypeToairtype photo[]    @relation("photo_airtypeToairtype")
+}
+
+model notam {
+  id          Int       @id @default(autoincrement())
+  title       String    @db.VarChar(255)
+  content     String    @db.Text
+  create_time DateTime? @default(now()) @db.Timestamp(0)
+  create_user Int
+  show        Boolean   @default(true)
+  is_delete   Boolean   @default(false)
+  user        user      @relation(fields: [create_user], references: [id], onUpdate: Restrict, map: "create_user")
+
+  @@index([create_user], map: "create_user")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model photo {
+  id                             Int           @id @unique(map: "id") @default(autoincrement())
+  uploader                       Int
+  in_upload_queue                Boolean       @default(true)
+  aircraft_info                  Int?
+  airport_info                   Int?
+  pic_type                       String?       @db.VarChar(255)
+  reg                            String        @db.VarChar(125)
+  msn                            String?       @db.VarChar(100)
+  airtype                        String?       @db.VarChar(125)
+  airline                        String?       @db.VarChar(125)
+  remark                         String?       @db.VarChar(256)
+  photo_url                      String?       @db.Text
+  allow_socialmedia              Boolean       @default(true)
+  upload_time                    BigInt
+  result                         Int           @default(0) @db.TinyInt
+  vote                           Int?
+  photo_time                     DateTime?     @db.Date
+  update_time                    DateTime      @default(now()) @db.DateTime(0)
+  is_delete                      Boolean       @default(false)
+  user                           user          @relation(fields: [uploader], references: [id], onUpdate: Restrict, map: "上传用户")
+  airport                        airport?      @relation(fields: [airport_info], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "机场信息")
+  airtype_photo_airtypeToairtype airtype?      @relation("photo_airtypeToairtype", fields: [airtype], references: [sub_type], map: "航空器型号信息")
+  upload_queue                   upload_queue?
+
+  @@index([uploader], map: "上传用户")
+  @@index([airport_info], map: "机场信息")
+  @@index([airtype], map: "航空器型号信息")
+  @@index([aircraft_info], map: "飞机信息")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model upload_queue {
+  id                                 Int      @id @unique(map: "id") @default(autoincrement())
+  queue                              String   @default("normal") @db.VarChar(10)
+  user_id                            Int
+  photo_id                           Int      @unique(map: "photo_id")
+  comment                            String?  @db.VarChar(256)
+  screener_1                         Int?
+  screener_2                         Int?
+  need_screener_2                    Int?     @default(1) @db.TinyInt
+  screening                          Boolean? @default(false)
+  screener                           Int?
+  last_screen_time                   BigInt?
+  reason                             String?  @db.VarChar(512)
+  result                             Int      @default(0) @db.TinyInt
+  screener_message                   String?  @db.VarChar(256)
+  upload_time                        DateTime @default(now()) @db.DateTime(0)
+  is_delete                          Boolean? @default(false)
+  user_upload_queue_screener_1Touser user?    @relation("upload_queue_screener_1Touser", fields: [screener_1], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "一审信息")
+  user_upload_queue_screener_2Touser user?    @relation("upload_queue_screener_2Touser", fields: [screener_2], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "二审信息")
+  photo                              photo    @relation(fields: [photo_id], references: [id], onUpdate: Restrict, map: "图片信息")
+
+  @@index([screener_1], map: "一审信息")
+  @@index([screener_2], map: "二审信息")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user {
+  id                                         Int              @id @unique(map: "id") @default(autoincrement())
+  user_email                                 String           @db.VarChar(120)
+  username                                   String           @db.VarChar(50)
+  password                                   String           @db.VarChar(256)
+  role                                       Int              @default(0) @db.TinyInt
+  passing_rate                               Int              @default(0) @db.TinyInt
+  total_queue                                Int              @default(5) @db.TinyInt
+  free_queue                                 Int              @default(5) @db.TinyInt
+  priority_queue                             Int              @default(0) @db.TinyInt
+  free_priority_queue                        Int              @default(0)
+  total_photo                                Int              @default(0)
+  create_time                                DateTime         @default(now()) @db.DateTime(0)
+  update_time                                DateTime         @default(now()) @db.DateTime(0)
+  status                                     Int              @default(0) @db.TinyInt
+  suspension_days                            Int?             @default(0)
+  email_verify                               Boolean          @default(false)
+  email_verify_token                         String?          @db.VarChar(150)
+  is_deleted                                 Boolean          @default(false)
+  notam                                      notam[]
+  photo                                      photo[]
+  upload_queue_upload_queue_screener_1Touser upload_queue[]   @relation("upload_queue_screener_1Touser")
+  upload_queue_upload_queue_screener_2Touser upload_queue[]   @relation("upload_queue_screener_2Touser")
+  vote_behaviour_vote_behaviour_userTouser   vote_behaviour[] @relation("vote_behaviour_userTouser")
+}
+
+model vote_behaviour {
+  id                             Int       @id @default(autoincrement())
+  user                           Int?
+  tally                          Float?    @db.Float
+  vote_event                     Int?
+  create_time                    DateTime? @default(now()) @db.DateTime(0)
+  is_delete                      Boolean?  @default(false)
+  user_vote_behaviour_userTouser user?     @relation("vote_behaviour_userTouser", fields: [user], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "vote_event_user_id_fk")
+
+  @@index([user], map: "vote_event_user_id_fk")
+}
+
+model vote_list {
+  id          Int       @id @default(autoincrement())
+  title       String?   @db.VarChar(255)
+  create_time DateTime? @default(now()) @db.DateTime(0)
+  user        Int?
+  status      String?   @db.VarChar(25)
+  tally       Float?    @db.Float
+  is_delete   Boolean?  @default(false)
+}
