@@ -96,6 +96,7 @@ model photo {
   airport                        airport?      @relation(fields: [airport_info], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "机场信息")
   airtype_photo_airtypeToairtype airtype?      @relation("photo_airtypeToairtype", fields: [airtype], references: [sub_type], map: "航空器型号信息")
   upload_queue                   upload_queue?
+  vote_list                      vote_list[]
 
   @@index([uploader], map: "上传用户")
   @@index([airport_info], map: "机场信息")
@@ -175,5 +176,9 @@ model vote_list {
   user        Int?
   status      String?   @db.VarChar(25)
   tally       Float?    @db.Float
+  photo_id    Int
   is_delete   Boolean?  @default(false)
+  photo       photo     @relation(fields: [photo_id], references: [id], onUpdate: Restrict, map: "photo_id_fk")
+
+  @@index([photo_id], map: "photo_id_fk")
 }

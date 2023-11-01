@@ -1,8 +1,9 @@
 declare namespace Express {
     export interface Request {
-        ip?:string,
+        userIp?:string,
         uuid?:string
         token?: { id:number } | null,
+        role?: number
     }
 }
 

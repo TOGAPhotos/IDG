@@ -3,7 +3,7 @@ import {PrismaClient} from "@prisma/client";
 import { emailRegex } from "../../components/regexp.js";
 import { error } from "console";
 import { md5 } from "../../components/crypto.js";
-import { CreateToken } from "../../components/auth.js"
+import { CreateToken } from "../../components/auth/token.js"
 
 const prisma = new PrismaClient();
 

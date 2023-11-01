@@ -1,7 +1,7 @@
 import { Request,Response } from "express";
 import {PrismaClient} from "@prisma/client";
 import { md5 } from "../../components/crypto.js";
-import { CreateToken } from "../../components/auth.js";
+import { CreateToken } from "../../components/auth/token.js";
 import { GetTimeStamp } from "../../components/time.js";
 import { TokenExpireTime } from "../../config.js";
 
@@ -22,17 +22,17 @@ export async function Login(req:Request,res:Response){
     })
 
     if(user.length === 0){
-        return res.status(406).json({message: '账户不存在'})
+        return res.status(HTTP_STATUS.BAD_REQUEST).json({message: '账户不存在'})
     }
 
     const userInfo = user[0];
 
     if(userInfo.password !== md5(password)){
-        return res.status(401).json({message: '密码错误'});
+        return res.status(HTTP_STATUS.UNAUTHORIZED).json({message: '密码错误'});
     }
 
     if(userInfo.status !== 0){
-        return res.status(401).json({message: '账户已被禁用'});
+        return res.status(HTTP_STATUS.FORBIDDEN).json({message: '账户已被禁用'});
     }
 
     return res.json({
@@ -41,6 +41,6 @@ export async function Login(req:Request,res:Response){
         expireTime:GetTimeStamp() + TokenExpireTime*1000,
         id:userInfo.id,
         username:userInfo.username,
-        premission:userInfo.role,
+        permission:userInfo.role,
     })
 }
