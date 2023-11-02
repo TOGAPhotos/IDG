@@ -1,6 +1,6 @@
 import { Logger } from "./loger.js"
 
-export function CheckPromisResult(PromisArry:PromiseSettledResult<any>[]):PromiseFulfilledResult<any>[]{
+export function CheckPromisResult(PromisArry:PromiseSettledResult<any>[]):any[]{
     
     return PromisArry.map(result => {
         if(result.status === 'rejected'){
