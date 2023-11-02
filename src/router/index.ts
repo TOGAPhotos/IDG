@@ -32,6 +32,12 @@ import { CreateAirline } from "../handler/info/airline/create.js";
 import { SearchAirline,GetAirlineList } from "../handler/info/airline/get.js";
 import { UpdateAirlineInfo } from "../handler/info/airline/update.js";
 import { DeleteAirline } from "../handler/info/airline/delete.js";
+
+import { CreateAircraftRecord } from "../handler/info/aircraft/create.js";
+import { SearchAircraft,GetAircraftList } from "../handler/info/aircraft/get.js";
+import { UpdateAircraftRecord } from "../handler/info/aircraft/update.js";
+import { DeleteAircraftRecord } from "../handler/info/aircraft/delete.js";
+
 const router = Router();
 
 router.get("/website",GetWebsiteInfo);
@@ -70,7 +76,7 @@ router.delete('/airlines/:id', IsLogin, IsScreener, DeleteAirline);
 // aircraft
 router.get('/aircraft/:reg', SearchAircraft)
 router.get('/aircrafts', IsLogin, GetAircraftList);
-router.post('/aircrafts', IsLogin, AddNewAircraftRecord);
+router.post('/aircrafts', IsLogin, CreateAircraftRecord);
 router.put('/aircraft/:id', IsLogin, UpdateAircraftRecord);
 router.delete('/aircraft/:id', IsLogin, IsScreener, DeleteAircraftRecord);
 
