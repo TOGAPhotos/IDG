@@ -1,6 +1,7 @@
 import nodeSchedule from "node-schedule";
-import {TimerRule_3M,TimerRule_5M} from './rule.js';
+import {TimerRule_3M,TimerRule_5M,TimeRule_1H} from './rule.js';
 import {GetRandomPhoto,GetStatisticalData,GetPhotoList,} from '../../handler/website/info.js'
+import { HourLimit } from "../email/send.js";
 
 export async function StartTimer(){
     await Promise.allSettled([
@@ -14,5 +15,5 @@ export async function StartTimer(){
     // nodeSchedule.scheduleJob(TimerRule_5M,GetUploadQueueCursor);
     // nodeSchedule.scheduleJob(TimerRule_5M,GetExcludeList);
     nodeSchedule.scheduleJob(TimerRule_5M,GetRandomPhoto);
-    // nodeSchedule.scheduleJob(TimeRule_1H,ResetEmailSendLimit);
+    nodeSchedule.scheduleJob(TimeRule_1H,HourLimit.reset);
 }

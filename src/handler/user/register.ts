@@ -1,11 +1,12 @@
 import { Request,Response } from "express";
-import {PrismaClient} from "@prisma/client";
+// import {PrismaClient} from "@prisma/client";
+import prisma from "./prisma.js";
 import { emailRegex } from "../../components/regexp.js";
 import { error } from "console";
 import { md5 } from "../../components/crypto.js";
 import { CreateToken } from "../../components/auth/token.js"
 
-const prisma = new PrismaClient();
+// const prisma = new PrismaClient();
 
 export async function Register(req:Request,res:Response){
     let {email,username,password,passwordR}:{email:string,username:string,password:string,passwordR:string} = req.body;
