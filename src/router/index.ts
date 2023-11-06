@@ -38,6 +38,13 @@ import { SearchAircraft,GetAircraftList } from "../handler/info/aircraft/get.js"
 import { UpdateAircraftRecord } from "../handler/info/aircraft/update.js";
 import { DeleteAircraftRecord } from "../handler/info/aircraft/delete.js";
 
+
+import { GetAirTypeList } from "../handler/info/airtype/get.js";
+import { CreateAirtype } from "../handler/info/airtype/create.js";
+import { UpdateAirtype } from "../handler/info/airtype/update.js";
+import { DeleteAirtype } from "../handler/info/airtype/delete.js";
+import { GetUploadQueue } from "../handler/queue/get.js";
+
 const router = Router();
 
 router.get("/website",GetWebsiteInfo);
@@ -52,11 +59,15 @@ router.get('/photo/:id', GetPhoto);
 router.get('/photos/full', GetFullList);
 router.get('/search', SearchPhoto);
 
+
+
 // queue
 router.get('/queue/top', IsLogin, IsScreener,GetQueueTop);
 router.get('/queue/photo/:id',IsLogin,IsScreener,GetScreenPhoto);
 router.put('/queue/photo/:id',IsLogin,IsScreener,SetQueueStatus);
 router.post('/queue/photo/:id',IsLogin,IsScreener,ProcessScreenResult);
+router.get('/queue/upload',IsLogin,GetUploadQueue)
+
 
 // airport
 router.get('/airports', GerAirportList);
@@ -82,7 +93,7 @@ router.delete('/aircraft/:id', IsLogin, IsScreener, DeleteAircraftRecord);
 
 // airtype
 router.get('/airtypes', IsLogin, GetAirTypeList);
-router.post('/airtypes', IsLogin, IsScreener, AddNewAirtype);
+router.post('/airtypes', IsLogin, IsScreener, CreateAirtype);
 router.put('/airtype/:sub_type', IsLogin, IsScreener, UpdateAirtype);
 router.delete('/airtype/:sub_type', IsLogin, IsScreener, DeleteAirtype);
 
