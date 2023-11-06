@@ -12,6 +12,7 @@ import { GetFullList } from "../handler/photo/list.js";
 
 import { GetQueueTop } from "../handler/screen/queue.js";
 import { GetScreenPhoto } from "../handler/screen/get.js";
+import { GetUploadQueue } from "../handler/queue/get.js";
 
 import { IsLogin,IsScreener,IsAdmin } from "../components/auth/permissions.js";
 
@@ -43,7 +44,9 @@ import { GetAirTypeList } from "../handler/info/airtype/get.js";
 import { CreateAirtype } from "../handler/info/airtype/create.js";
 import { UpdateAirtype } from "../handler/info/airtype/update.js";
 import { DeleteAirtype } from "../handler/info/airtype/delete.js";
-import { GetUploadQueue } from "../handler/queue/get.js";
+
+import { CreateNotam } from "../handler/notam/create.js";
+import {  GetNotam } from "../handler/notam/get.js";
 
 const router = Router();
 
@@ -96,6 +99,10 @@ router.get('/airtypes', IsLogin, GetAirTypeList);
 router.post('/airtypes', IsLogin, IsScreener, CreateAirtype);
 router.put('/airtype/:sub_type', IsLogin, IsScreener, UpdateAirtype);
 router.delete('/airtype/:sub_type', IsLogin, IsScreener, DeleteAirtype);
+
+// notam
+router.post('/notam',IsLogin,IsAdmin,CreateNotam)
+router.get('/notam',GetNotam)
 
 // vote
 router.post('/vote',IsLogin,CreateVote);
