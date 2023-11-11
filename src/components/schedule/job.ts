@@ -4,6 +4,7 @@ import {GetRandomPhoto,GetStatisticalData,GetPhotoList,} from '../../handler/web
 import { GetExcludeList } from "../../handler/queue/get.js";
 import { HourLimit } from "../email/send.js";
 import { RenewNotamCache } from "../../handler/notam/cache.js";
+import {updateQueueStatus} from "../../handler/queue/update.js";
 
 export async function StartTimer(){
     await Promise.allSettled([
@@ -13,7 +14,7 @@ export async function StartTimer(){
     GetPhotoList(),
     RenewNotamCache(),
     ])
-    // nodeSchedule.scheduleJob(TimerRule_5M,updateQueueStatus);
+    nodeSchedule.scheduleJob(TimerRule_3M,updateQueueStatus);
     nodeSchedule.scheduleJob(TimerRule_5M,GetPhotoList);
     nodeSchedule.scheduleJob(TimerRule_3M,GetStatisticalData);
     nodeSchedule.scheduleJob(TimeRule_1H,RenewNotamCache)

@@ -125,6 +125,7 @@ export async function DelPhoto(req:Request, res:Response) {
         ])
         Logger.info(`access_id:${req.uuid} user_id:${userId} username:${userInfo['username']} 删除了已入库的图片 photo_id:${photoId} `);
     }
+
     return res.json({message: '删除成功'});
 
 }
