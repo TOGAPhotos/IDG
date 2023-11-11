@@ -13,6 +13,7 @@ import { GetPhoto } from "../handler/photo/get.js";
 import { UploadHandler, UploadPreProcess, photoUpload } from "../handler/photo/upload.js";
 import { SearchPhoto } from "../handler/photo/search.js";
 import { GetFullList } from "../handler/photo/list.js";
+import { DelPhoto } from "../handler/photo/delete.js";
 
 import { GetQueueTop, GetRecentScreenedQueue, GetRejectQueue, GetScreenQueue } from "../handler/screen/queue.js";
 import { GetScreenPhoto } from "../handler/screen/get.js";
@@ -52,6 +53,7 @@ import { CreateNotam } from "../handler/notam/create.js";
 import {  GetNotam } from "../handler/notam/get.js";
 
 
+
 const router = Router();
 
 router.get("/website",GetWebsiteInfo);
@@ -69,6 +71,7 @@ router.get('/photo/:id', GetPhoto);
 router.get('/photos/full', GetFullList);
 router.get('/search', SearchPhoto);
 router.post('/photo',UploadPreProcess,photoUpload.array('file'),UploadHandler)
+router.delete('/photo/:id', IsLogin, DelPhoto);
 
 // queue
 router.get('/queue/top', IsLogin, IsScreener,GetQueueTop);
