@@ -1,5 +1,6 @@
 import gm from 'gm';
 import { photoBaseFolder } from '../config.js';
+import {Logger} from "./loger.js";
 
 // function CompressMinPhoto(url:string, w:number, h:number) {
 //     let min_h = Math.round((w * 9) / 16);
@@ -32,6 +33,9 @@ export function GetMinImage(url:string) {
 
     gm(photoBaseFolder + url)
     .size((err,size)=>{
+        if(err){
+            Logger.error(err)
+        }
         h = size.height
         w = size.width
     })
@@ -44,7 +48,7 @@ export function GetMinImage(url:string) {
     .resize(432, 243)
     .write(`${photoBaseFolder}/min${url}`, function (err) {
         if (err) {
-            console.log(err);
+            Logger.error(err);
         }
     });
 

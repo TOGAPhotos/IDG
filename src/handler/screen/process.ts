@@ -1,4 +1,4 @@
-import { CheckPromisResult } from "../../components/promise-check.js";
+import { CheckPromiseResult } from "../../components/promise-check.js";
 import prisma from "./prisma.js";
 import { Request,Response } from "express"
 import { GetMinImage } from "../../components/compress.js";
@@ -14,7 +14,7 @@ export async function ProcessScreenResult(req:Request, res:Response) {
         prisma.user.findUnique({where: {id: userId}}),
     ]);
 
-    const resultList = CheckPromisResult(jobList);
+    const resultList = CheckPromiseResult(jobList);
 
     const queuePhoto = resultList[0];
     const screenerInfo = resultList[1];
