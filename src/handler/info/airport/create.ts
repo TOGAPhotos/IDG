@@ -1,6 +1,6 @@
 import prisma from "../prisma.js";
 import { Request,Response } from "express"
-import { CheckPromisResult } from "../../../components/promise-check.js";
+import { CheckPromiseResult } from "../../../components/promise-check.js";
 
 export async function CreateAirport(req:Request, res:Response) {
     // 检查用户是否有其他待审核的记录
@@ -18,7 +18,7 @@ export async function CreateAirport(req:Request, res:Response) {
 
     ])
 
-    const resList = CheckPromisResult(jobList)
+    const resList = CheckPromiseResult(jobList)
     const preCheckResult = resList[0];
     const user = resList[1];
 

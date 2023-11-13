@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 
 
 import prisma from "./prisma.js";
-import {CheckPromisResult} from "../../components/promise-check.js";
+import {CheckPromiseResult} from "../../components/promise-check.js";
 import {Logger} from "../../components/loger.js";
 
 import {photoBaseFolder} from "../../config.js";
@@ -19,7 +19,7 @@ export async function DelPhoto(req:Request, res:Response) {
         prisma.photo.findUnique({where: {id: photoId}}),
     ]);
 
-    const resultArray = CheckPromisResult(jobList)
+    const resultArray = CheckPromiseResult(jobList)
 
     const userInfo = resultArray[0];
     const photoInfo = resultArray[1];
