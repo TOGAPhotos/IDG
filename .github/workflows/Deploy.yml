@@ -6,7 +6,7 @@ on:
   #   - main
   push:
     branches:
-      - main
+      - deploy
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,8 +19,9 @@ jobs:
         password: ${{ secrets.PASSWORD }}
         port: ${{ secrets.PORT }}
         script: |
-          cd /www/wwwroot/old_api.tp.794td.cn/TOGAPhotosBackend/
-          git pull
+          cd /www/wwwroot/api.tp.794td.cn
+          git pull origin deploy
+          git checkout deploy
           npm install
           export DATABASE_URL= ${{ secrets.DATABASE_URL }}
           npm run update-db
