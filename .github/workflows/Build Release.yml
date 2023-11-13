@@ -19,7 +19,7 @@ jobs:
         password: ${{ secrets.PASSWORD }}
         port: ${{ secrets.PORT }}
         script: |
-          cd /www/wwwroot/old_api.tp.794td.cn
+          cd /www/wwwroot/old_api.tp.794td.cn/TOGAPhotosBackend/
           git pull
           npm run update-db
           npm run build
