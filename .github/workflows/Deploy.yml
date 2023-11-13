@@ -23,6 +23,7 @@ jobs:
           git pull origin deploy
           git checkout deploy
           npm install
-          export DATABASE_URL= ${{ secrets.DATABASE_URL }}
-          npm run update-db
+          export DATABASE_URL=${{ secrets.DATABASE_URL }}
+          npx prisma db pull
+          npx prisma generate
           npm run build
