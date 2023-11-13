@@ -21,5 +21,7 @@ jobs:
         script: |
           cd /www/wwwroot/old_api.tp.794td.cn/TOGAPhotosBackend/
           git pull
+          npm install
+          export DATABASE_URL= ${{ secrets.DATABASE_URL }}
           npm run update-db
           npm run build
