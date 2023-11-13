@@ -6,6 +6,7 @@ import { Logger } from "./components/loger.js";
 import { randomUUID } from "crypto";
 import { VerifyToken} from './components/auth/token.js'
 import { StartTimer } from "./components/schedule/job.js";
+import bell from "./components/bell.js";
 const server = express();
 
 server.use(cors())
@@ -47,6 +48,7 @@ server.use((err:Error,req:Request,res:Response,next:NextFunction)=>{
 
 server.listen(3000,async()=>{
     await StartTimer();
+    await bell('TOGAPhotos后端服务器',`${new Date().toString()}服务器启动`);
     Logger.info('\n\n\n\nServer Start On 3000');
     console.log('Server Start On 3000');
 });
