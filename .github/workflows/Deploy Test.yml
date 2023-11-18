@@ -1,0 +1,29 @@
+name: Deploy Test
+
+on:
+  # pull_request:
+  #   branches:
+  #   - main
+  push:
+    branches:
+      - deploy
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: SSH Remote Commands
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.HOST }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.KEY }}
+        port: ${{ secrets.PORT }}
+        script: |
+          cd /www/wwwroot/test.api.tp.794td.cn
+          git pull origin deploy
+          git checkout deploy
+          cp ../.env ./
+          npm install
+          npx prisma db pull
+          npx prisma generate
+          npm run build
