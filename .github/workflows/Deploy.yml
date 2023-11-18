@@ -16,14 +16,14 @@ jobs:
       with:
         host: ${{ secrets.HOST }}
         username: ${{ secrets.USERNAME }}
-        password: ${{ secrets.PASSWORD }}
+        key: ${{ secrets.KEY }}
         port: ${{ secrets.PORT }}
         script: |
           cd /www/wwwroot/api.tp.794td.cn
+          cp ../.env ./
           git pull origin deploy
           git checkout deploy
           npm install
-          export DATABASE_URL=${{ secrets.DATABASE_URL }}
           npx prisma db pull
           npx prisma generate
           npm run build
