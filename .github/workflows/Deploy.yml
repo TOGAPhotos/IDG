@@ -27,3 +27,7 @@ jobs:
           npx prisma db pull
           npx prisma generate
           npm run build
+          cd ..
+          chmod +x ./restart_pm2.sh
+          ./restart_pm2.sh api.tp.794td.cn
+
