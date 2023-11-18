@@ -20,7 +20,7 @@ jobs:
         port: ${{ secrets.PORT }}
         script: |
           cd /www/wwwroot/api.tp.794td.cn
-          git pull origin deploy
+          git pull
           git checkout deploy
           cp ../.env ./
           npm install
