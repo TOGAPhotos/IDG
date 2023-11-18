@@ -20,9 +20,9 @@ jobs:
         port: ${{ secrets.PORT }}
         script: |
           cd /www/wwwroot/api.tp.794td.cn
-          cp ../.env ./
           git pull origin deploy
           git checkout deploy
+          cp ../.env ./
           npm install
           npx prisma db pull
           npx prisma generate
