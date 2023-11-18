@@ -1,55 +1,36 @@
 import gm from 'gm';
-import { photoBaseFolder } from '../config.js';
+import {photoBaseFolder} from '../config.js';
 import {Logger} from "./loger.js";
 
-// function CompressMinPhoto(url:string, w:number, h:number) {
-//     let min_h = Math.round((w * 9) / 16);
-//     let start_y = Math.round((h - 20 - min_h) / 2);
+export function GetMinImage(url: string) {
 
-//     gm(photoBaseFolder + url)
-//         .crop(w, min_h, 0, start_y)
-//         .resize(432, 243)
-//         .write(`${photoBaseFolder}/min${url}`, function (err) {
-//             if (err) {
-//                 console.log(err);
-//             }
-//         });
-// }
+    let w: number, h: number
+    let min_h: number, start_y: number;
 
-export function GetMinImage(url:string) {
-
-
-    // imageSize(photoBaseFolder + url, function (err, sizeInfo) {
-    //     if (err) {
-    //         return console.log(err);
-    //     }
-    //     CompressMinPhoto(url, sizeInfo.width, sizeInfo.height);
-    // });
-    // const imageSize = sizeOf(photoBaseFolder + url);
-
-    // const size = imageSize()
-
-    let w:number,h:number
-
-    gm(photoBaseFolder + url)
-    .size((err,size)=>{
-        if(err){
-            Logger.error(err)
-        }
-        h = size.height
-        w = size.width
-    })
-
-    let min_h = Math.round((w * 9) / 16);
-    let start_y = Math.round((h - 20 - min_h) / 2);
-
-    gm(photoBaseFolder + url)
-    .crop(w, min_h, 0, start_y)
-    .resize(432, 243)
-    .write(`${photoBaseFolder}/min${url}`, function (err) {
-        if (err) {
-            Logger.error(err);
-        }
-    });
+    new Promise<void>((resolve, rejects) => {
+        gm(photoBaseFolder + url)
+            .size((err, size) => {
+                if (err) {
+                    Logger.error(err)
+                    rejects()
+                }
+                h = size.height
+                w = size.width
+                resolve()
+            })
+        }).then(
+            () => {
+                min_h = Math.round((w * 9) / 16);
+                start_y = Math.round((h - 20 - min_h) / 2);
+                gm(photoBaseFolder + url)
+                    .crop(w, min_h, 0, start_y)
+                    .resize(432, 243)
+                    .write(`${photoBaseFolder}/min${url}`, function (err) {
+                        if (err) {
+                            Logger.error(err)
+                        }
+                    });
+            }
+        )
 
 }
