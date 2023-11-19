@@ -46,3 +46,31 @@ export async function GetUserInfo(req:Request, res:Response) {
         return res.status(HTTP_STATUS.BAD_REQUEST).json({message: '非法查询'});
     }
 }
+
+export async function GetUserList(req:Request, res:Response){
+
+    let limit = Number(req.query['recent']) || 200;
+
+    const dbResult = await prisma.$queryRawUnsafe(`
+        SELECT id,
+               username,
+               user_email,
+               role,
+               -- passing_rate,
+               total_queue,
+               free_queue,
+               priority_queue,
+               free_priority_queue,
+               total_photo,
+               status,
+               suspension_days
+               -- create_time
+        FROM user
+        WHERE is_deleted = 0
+        ORDER BY id
+                DESC
+        LIMIT ${limit}
+    `)
+
+    return res.json({message: '查询成功', data: dbResult});
+}

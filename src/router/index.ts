@@ -2,7 +2,7 @@ import { Router } from "express";
 
 import { Login } from "../handler/user/login.js";
 import { Register } from "../handler/user/register.js";
-import { GetUserInfo } from "../handler/user/get.js";
+import {GetUserInfo, GetUserList} from "../handler/user/get.js";
 import { SearchUser } from "../handler/user/search.js";
 import { UpdateUserInfo } from "../handler/user/update.js";
 import { DeleteUser } from "../handler/user/delete.js";
@@ -62,6 +62,7 @@ router.get("/website",GetWebsiteInfo);
 router.post("/user/login",Login)
 router.post("/user/register",Register)
 router.get('/user/:id',GetUserInfo)
+router.get('/users',IsLogin,IsAdmin,GetUserList)
 router.get('/user/search/:keyword', SearchUser)
 router.put('/user/:id', IsLogin, IsAdmin, UpdateUserInfo);
 router.delete('/user/:id',IsLogin,IsAdmin,DeleteUser)
