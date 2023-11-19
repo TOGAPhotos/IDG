@@ -20,12 +20,12 @@ jobs:
         port: ${{ secrets.PORT }}
         script: |
           cd /www/wwwroot/api.tp.794td.cn
-          git pull
           git checkout deploy
+          git pull
           cp ../.env ./
           npm install
           npx prisma db pull
           npx prisma generate
           npm run build
-          pm2 start togaserver.config.js
+          pm2 start togaserver.config.cjs
 
