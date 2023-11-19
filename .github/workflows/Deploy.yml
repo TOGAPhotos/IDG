@@ -27,5 +27,5 @@ jobs:
           npx prisma db pull
           npx prisma generate
           npm run build
-          pm2 start togaserver.config.cjs
+          pm2 restart togaserver.config.cjs
 
