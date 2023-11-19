@@ -11,7 +11,7 @@ export async function CreateVote(req:Request,res:Response) {
         return res.status(HTTP_STATUS.FORBIDDEN).json({message: "用户已注销"});
     }
     
-    if (userInfo.total_photo < 20 || userInfo.role <= 1) {
+    if ( !(userInfo.total_photo > 20 || userInfo.role >= USER_ROLE.screener) ) {
         return res.status(HTTP_STATUS.FORBIDDEN).json({message: "您暂时不能发起投票"});
     }
 
