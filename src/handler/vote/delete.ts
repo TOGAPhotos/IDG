@@ -18,5 +18,6 @@ export async function DeleteVote(req:Request, res:Response) {
         }
     });
 
-    res.json({message: '删除成功'})
+
+    return res.json({message: '删除成功'})
 }

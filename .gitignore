@@ -6,3 +6,4 @@ dist
 /Dockerfile
 /.dockerignore
 /投票系统接口.md
+/toga-server-image
