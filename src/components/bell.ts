@@ -1,6 +1,7 @@
 // import {bellUrl} from '../config.js'
 const bellUrl = process.env.BELL_URL;
 import { Logger } from './loger.js';
+import fetch from "node-fetch";
 
 async function bell(title:string,message=""){
     Logger.info(`
