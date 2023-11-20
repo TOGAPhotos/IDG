@@ -40,6 +40,7 @@ export async function CreateVote(req:Request,res:Response) {
             user:userInfo.id,
             photo_id:photoId,
             title:null,
+            tally:tally,
         }
     })
 
