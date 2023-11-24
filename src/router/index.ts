@@ -51,6 +51,7 @@ import { DeleteAirtype } from "../handler/info/airtype/delete.js";
 
 import { CreateNotam } from "../handler/notam/create.js";
 import {  GetNotam } from "../handler/notam/get.js";
+import {UpdatePhotoInfo} from "../handler/photo/update.js";
 
 
 
@@ -71,7 +72,8 @@ router.delete('/user/:id',IsLogin,IsAdmin,DeleteUser)
 router.get('/photo/:id', GetPhoto);
 router.get('/photos/full', GetFullList);
 router.get('/search', SearchPhoto);
-router.post('/photo',UploadPreProcess,photoUpload.array('file'),UploadHandler)
+router.post('/photo',UploadPreProcess,photoUpload.array('file'),UploadHandler);
+router.put('/photo/:id', IsLogin, UpdatePhotoInfo);
 router.delete('/photo/:id', IsLogin, DelPhoto);
 
 // queue
