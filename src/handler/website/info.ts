@@ -35,7 +35,7 @@ export async function GetPhotoList() {
                LIMIT 40) AS a
                   LEFT JOIN user AS c ON c.id = a.uploader
         `);
-    console.log("CALL FUNCTION GetPhotoList");
+    // console.log("CALL FUNCTION GetPhotoList");
 }
 
 export async function GetStatisticalData() {
@@ -51,7 +51,7 @@ export async function GetStatisticalData() {
         'SELECT COUNT(id) AS photo_num FROM photo WHERE is_delete = 0 AND result = 1'
     );
     homepageInfo.photoNum = Number(photoNum[0]['photo_num']);
-    console.log("CALL FUNCTION GetStatisticalData");
+    // console.log("CALL FUNCTION GetStatisticalData");
 
 }
 
@@ -66,5 +66,5 @@ export async function GetRandomPhoto() {
           AND a.uploader = b.id
         ORDER BY RAND()
         LIMIT 5`);
-    console.log("CALL FUNCTION GetRandomPhoto");
+    // console.log("CALL FUNCTION GetRandomPhoto");
 }

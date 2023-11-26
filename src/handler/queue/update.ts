@@ -1,6 +1,6 @@
 import prisma from "./prisma.js";
 import {GetTimeStamp} from "../../components/time.js";
-export async function updateQueueStatus() {
+export async function UpdateQueueStatus() {
 
     const timeStamp = GetTimeStamp();
 
@@ -13,5 +13,5 @@ export async function updateQueueStatus() {
            AND ${timeStamp} - last_screen_time > 1000 * 60 * 3`
     );
 
-    console.log('CALL FUNCTION updateQueueStatus');
+    // console.log('CALL FUNCTION updateQueueStatus');
 }
