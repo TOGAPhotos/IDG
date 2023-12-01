@@ -9,6 +9,9 @@ export function Counter(){
         },
         reset:function(){
             LIMIT = 0;
+        },
+        get:function (){
+            return LIMIT;
         }
     }
 }
