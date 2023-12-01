@@ -1,5 +1,5 @@
 import {PrismaClient} from "@prisma/client";
-import { Request,Response,NextFunction } from "express";
+import { Request,Response } from "express";
 
 const prisma = new PrismaClient();
 
@@ -11,8 +11,25 @@ const homepageInfo = {
     uploadQueueLen: 0,
     photoNum: 0,
     randomPhoto: {},//下版本中删除 
-    randomPhotoList: []
+    randomPhotoList: [],
+    voteTop:[]
 };
+
+export async function GetVoteTopList( ){
+    homepageInfo.voteTop = await prisma.$queryRawUnsafe(`
+        SELECT photo.id, photo_url, airtype, reg, airline, username
+        FROM photo,user
+        WHERE photo.id IN (
+            SELECT photo_id
+            FROM vote_list
+            WHERE is_delete = 0
+            ORDER BY tally
+            -- LIMIT 8
+        )
+          AND uploader = user.id
+        LIMIT 8
+        `);
+}
 
 export async function GetWebsiteInfo(req:Request, res:Response) {
     
