@@ -3,7 +3,7 @@ declare namespace Express {
         userIp?:string,
         uuid?:string
         token?: { id:number } | null,
-        role?: number
+        role?: string
     }
 }
 

@@ -2,10 +2,12 @@ import { CheckPromiseResult } from "../../components/promise-check.js";
 import prisma from "./prisma.js";
 import { Request,Response } from "express"
 import { GetMinImage } from "../../components/compress.js";
+import {CheckUserStatus} from "../../components/auth/user-check.js";
 export async function ProcessScreenResult(req:Request, res:Response) {
     
     const queueId = Number(req.params['id']);
     const userId = req.token.id
+
     let finishScreen = false;
 
     // 查询图片信息
@@ -19,14 +21,19 @@ export async function ProcessScreenResult(req:Request, res:Response) {
     const queuePhoto = resultList[0];
     const screenerInfo = resultList[1];
 
+    // 检查审图员账户状态
+    if( !CheckUserStatus(screenerInfo) ){
+        return res.status(HTTP_STATUS.FORBIDDEN).json({message: "您暂无权限审核图片"});
+    }
+
     // 检查图片信息
+    if(queuePhoto['is_delete']){
+        return res.status(HTTP_STATUS.NOT_FOUND).json({message: '已删除'})
+    }
     if (queuePhoto['screener_1'] !== null && queuePhoto['screener_2'] !== null) {
         return res.status(HTTP_STATUS.BAD_REQUEST).json({message: '已完成审核'});
     }
 
-    if(queuePhoto['is_delete']){
-        return res.status(HTTP_STATUS.NOT_FOUND).json({message: '已删除'})
-    }
 
     let screenData
 
@@ -66,7 +73,6 @@ export async function ProcessScreenResult(req:Request, res:Response) {
         data: screenData
     });
 
-    // console.log(screenData)
 
     if(finishScreen){
 
@@ -95,6 +101,7 @@ export async function ProcessScreenResult(req:Request, res:Response) {
                     `
             )
         ]);
+
         // 重新计算过图率
         await prisma.$queryRawUnsafe(`
                 UPDATE user

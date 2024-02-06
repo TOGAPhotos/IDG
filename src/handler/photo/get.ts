@@ -1,46 +1,25 @@
 import prisma from "./prisma.js";
 import { Request, Response } from "express";
+import {Photo} from "../../dto/photo.js";
+import {checkNumberParams} from "../../components/decorators/checkNumberParams.js";
 
 export async function GetPhoto(req: Request, res: Response) {
-    const id = req.params['id'];
-    let photoInfo = await prisma.$queryRawUnsafe(`
-        SELECT a.photo_url,
-               a.reg,
-               a.msn,
-               a.airline,
-               a.remark,
-               a.allow_socialmedia,
-               a.vote,
-               a.photo_time,
-               b.manufacturer,
-               b.sub_type,
-               c.id       AS uploader_id,
-               c.username AS uploader,
-               d.iata,
-               d.icao,
-               d.id       AS airport_id,
-               d.cn_name,
-               a.in_upload_queue
-        FROM (SELECT * FROM photo WHERE id = ${id}) AS a
-                 LEFT JOIN airtype AS b ON b.sub_type = a.airtype,
-             user c,
-             airport d
-        WHERE c.id = a.uploader
-          AND a.airport_info = d.id
-    `);
 
-    photoInfo = photoInfo[0];
+    const id = Number(req.params['id']);
+
+    const photoInfo = await Photo.getPhotoById(id);
 
 
     if (!photoInfo || photoInfo['is_delete']) {
         return res.status(HTTP_STATUS.NOT_FOUND).json({ message: '图片不存在' });
     }
 
-    photoInfo['upload_time'] = Number(photoInfo['upload_time']);
-    if (photoInfo["aircraft"]) {
-        delete photoInfo["aircraft"]['create_time']
-    }
+    // photoInfo['photo_time'] = Number(photoInfo['upload_time']);
+    // if (photoInfo["aircraft"]) {
+    //     delete photoInfo["aircraft"]['create_time']
+    // }
 
+    if(photoInfo[''])
 
     // 检查是否在队列内
     if (photoInfo['in_upload_queue']) {

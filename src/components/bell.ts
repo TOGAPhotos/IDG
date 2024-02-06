@@ -1,14 +1,11 @@
-// import {bellUrl} from '../config.js'
 const bellUrl = process.env.BELL_URL;
 import { Logger } from './loger.js';
-// import fetch from "node-fetch";
 
 async function bell(title:string,message=""){
     Logger.info(`
     Bell
     ${title}
     ${message}
-
     `);
 
     try{
@@ -21,8 +18,8 @@ async function bell(title:string,message=""){
         Logger.error(`
         Bell Error
         ${e.message}
-
         `)
+        console.error(`Bell Error:${e.message}`)
     }
 }
 export default bell;

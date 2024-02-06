@@ -10,14 +10,14 @@ const mailGunSession = await mg.client(MailGunConnParams);
 
 export let HourLimit = Counter()
 
-export async function SendEmail(sender:string,receiver:string,subject:string,template:string|null,content:object):Promise<void>{
+export async function SendEmail(sender:string,receiver:string,subject:string,template:string|null,content:string|null):Promise<void>{
 
     HourLimit.add();
 
     let contentStr = JSON.stringify(content);
     Logger.info(`Email Record\nSender:${sender},\nReceiver:${receiver}\ncontent:${content}\n`)
 
-    if (Object.keys(content).length === 0) {
+    if (content === null) {
         await mailGunSession.messages.create('togaphotos.com', {
             from: sender,
             to: receiver,

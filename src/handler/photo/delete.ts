@@ -10,6 +10,10 @@ import {photoBaseFolder} from "../../config.js";
 import {GetPhotoList} from "../website/info.js";
 const photoFolder = `${photoBaseFolder}/photos`;
 
+// export async function DelPhotoFromDisk(){
+//
+// }
+
 export async function DelPhoto(req:Request, res:Response) {
     const userId = req.token.id;
     let photoId = Number(req.params['id']);
@@ -74,6 +78,7 @@ export async function DelPhoto(req:Request, res:Response) {
                 }
             }),
             fs.unlink(`${photoFolder}/${photoId}.jpg`, (err) => {
+                Logger.error(err)
                 console.log(err)
             }),
         ]);

@@ -65,7 +65,7 @@ router.post("/user/register",Register)
 router.get('/user/:id',GetUserInfo)
 router.get('/users',IsLogin,IsAdmin,GetUserList)
 router.get('/user/search/:keyword', SearchUser)
-router.put('/user/:id', IsLogin, IsAdmin, UpdateUserInfo);
+router.put('/user/:id', IsLogin, IsScreener, UpdateUserInfo);
 router.delete('/user/:id',IsLogin,IsAdmin,DeleteUser)
 
 // photo

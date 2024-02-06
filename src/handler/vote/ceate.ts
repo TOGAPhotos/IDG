@@ -1,14 +1,16 @@
 import prisma from "./prisma.js";
 import { Request,Response } from "express"
 import CalculateVote from "./calculate.js";
-export async function CreateVote(req:Request,res:Response) {
-    const userInfo = await prisma.user.findUnique({where: {id: req.token.id}});
-    if (userInfo.status !== 0) {
-        return res.status(HTTP_STATUS.FORBIDDEN).json({message: "用户已暂停"});
-    }
+import {User} from "../../dto/user.js";
+import {CheckUserStatus} from "../../components/auth/user-check.js";
 
-    if (userInfo.is_deleted) {
-        return res.status(HTTP_STATUS.FORBIDDEN).json({message: "用户已注销"});
+
+export async function CreateVote(req:Request,res:Response) {
+    const userInfo = await User.getUserById(req.token.id);
+    //const userInfo = await prisma.user.findUnique({where: {id: req.token.id}});
+
+    if ( !CheckUserStatus(userInfo) ){
+        return res.status(HTTP_STATUS.FORBIDDEN).json({message: "您暂时不能发起投票"});
     }
     
     if ( !(userInfo.total_photo > 20 || userInfo.role >= USER_ROLE.screener) ) {

@@ -5,13 +5,16 @@ import { ConvertSqlValue } from "../../components/sql.js";
 import fs from 'fs'
 import { Request, Response, NextFunction } from "express"
 import { Logger } from "../../components/loger.js";
+import {User} from "../../dto/user.js";
+import {CheckUserStatus} from "../../components/auth/user-check.js";
 
 export async function UploadPreProcess(req: Request, res: Response, next: NextFunction) {
     const userId = req.token.id;
-    const userInfo = await prisma.user.findUnique({ where: { id: userId } });
+    const userInfo = await User.getUserById(userId);
     const queue = req.body['queue'];
-    if (userInfo["status"] !== 0) {
-        res.status(HTTP_STATUS.FORBIDDEN).json({ message: "账户已暂停" })
+
+    if( !CheckUserStatus(userInfo) ){
+        return res.status(HTTP_STATUS.FORBIDDEN).json({message: "您暂时不能上传图片"});
     }
 
     if (queue === 'priority' && userInfo.free_priority_queue <= 0) {
