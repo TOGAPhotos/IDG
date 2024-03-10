@@ -1,0 +1,26 @@
+import {PrismaClient} from '@prisma/client';
+import {checkNumberParams} from "../components/decorators/checkNumberParams.js";
+const prisma = new PrismaClient();
+
+export default class Notam{
+
+    static async getNewest(){
+        return prisma.notam.findFirst({orderBy: {id: 'desc'}});
+    }
+
+    static async create(title:string,content:string,userId:number){
+        return prisma.notam.create({
+            data:{
+                title:title,
+                content:content,
+                create_user:userId
+            }
+        });
+    }
+
+    @checkNumberParams
+    static async getById(id:number){
+        return prisma.notam.findUnique({where:{id:id}});
+    }
+
+}

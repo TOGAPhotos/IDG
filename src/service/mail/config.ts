@@ -9,4 +9,3 @@ export const MailGunConnParams = {
     key: getEnvironmentData('MAILGUN_API_KEY'),
     url: 'https://api.mailgun.net'
 }
-// declare const

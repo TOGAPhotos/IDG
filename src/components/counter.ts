@@ -1,17 +1,17 @@
 export function Counter(){
-    let LIMIT = 0;
+    let number = 0;
     return{
         add:function(){
-            LIMIT++;
+            number++;
         },
         reduce:function(){
-            LIMIT--;
+            number--;
         },
         reset:function(){
-            LIMIT = 0;
+            number = 0;
         },
         get:function (){
-            return LIMIT;
+            return number;
         }
     }
 }

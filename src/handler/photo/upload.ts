@@ -5,12 +5,12 @@ import { ConvertSqlValue } from "../../components/sql.js";
 import fs from 'fs'
 import { Request, Response, NextFunction } from "express"
 import { Logger } from "../../components/loger.js";
-import {User} from "../../dto/user.js";
-import {CheckUserStatus} from "../../components/auth/user-check.js";
+import User from "../../dto/user.js";
+import {CheckUserStatus, Permission} from "../../components/auth/permissions.js";
 
 export async function UploadPreProcess(req: Request, res: Response, next: NextFunction) {
     const userId = req.token.id;
-    const userInfo = await User.getUserById(userId);
+    const userInfo = await User.getById(userId);
     const queue = req.body['queue'];
 
     if( !CheckUserStatus(userInfo) ){
@@ -31,27 +31,30 @@ export async function UploadPreProcess(req: Request, res: Response, next: NextFu
 const photoFolder = photoBaseFolder + '/photos';
 
 const storage = multer.diskStorage({
-    destination: function (req, file, callback) {
-        callback(null, photoFolder);
-    },
-    filename: async function (req, file, callback) {
-        const d = new Date();
-        const dbResult = await prisma.photo.create({
-            data: {
-                uploader: req.token.id, upload_time: d.getTime(),reg:req.body["reg"],
-            }
-        });
-        const photoId = dbResult.id
-        await prisma.photo.update({
-            data: {
-                photo_url: `/photos/${photoId}.jpg`,
-            }, where: {
-                id: photoId,
-            }
-        })
-        req.body['photoId'] = photoId;
-        callback(null, `${photoId}.jpg`);
-    }
+/**
+ * @todo 修改storage
+ * */
+//     destination: function (req, file, callback) {
+//         callback(null, photoFolder);
+//     },
+//     filename: async function (req, file, callback) {
+//         const d = new Date();
+//         const dbResult = await prisma.photo.create({
+//             data: {
+//                 uploader: req.token.id, upload_time: d.getTime(),reg:req.body["reg"],
+//             }
+//         });
+//         const photoId = dbResult.id
+//         await prisma.photo.update({
+//             data: {
+//                 photo_url: `/photos/${photoId}.jpg`,
+//             }, where: {
+//                 id: photoId,
+//             }
+//         })
+//         req.body['photoId'] = photoId;
+//         callback(null, `${photoId}.jpg`);
+//     }
 });
 
 export const photoUpload = multer({storage: storage});
@@ -129,14 +132,14 @@ export async function UploadHandler(req:Request, res:Response) {
     }
 
     await Promise.allSettled([
-        prisma.upload_queue.create({
-            data: {
-                photo_id: req.body['photoId'],
-                user_id: req.token.id,
-                queue: req.body['queue'],
-                comment: req.body['comments']
-            }
-        }),
+        // prisma.upload_queue.create({
+        //     data: {
+        //         photo_id: req.body['photoId'],
+        //         user_id: req.token.id,
+        //         queue: req.body['queue'],
+        //         comment: req.body['comments']
+        //     }
+        // }),
         prisma.photo.update({
             where: {id: req.body['photoId']},
             data: dataParam,

@@ -1,129 +1,116 @@
 import { Router } from "express";
 
-import { Login } from "../handler/user/login.js";
-import { Register } from "../handler/user/register.js";
-import {GetUserInfo, GetUserList} from "../handler/user/get.js";
-import { SearchUser } from "../handler/user/search.js";
-import { UpdateUserInfo } from "../handler/user/update.js";
-import { DeleteUser } from "../handler/user/delete.js";
-
 import { GetWebsiteInfo } from "../handler/website/info.js";
 
-import { GetPhoto } from "../handler/photo/get.js";
 import { UploadHandler, UploadPreProcess, photoUpload } from "../handler/photo/upload.js";
 import { SearchPhoto } from "../handler/photo/search.js";
 import { GetFullList } from "../handler/photo/list.js";
-import { DelPhoto } from "../handler/photo/delete.js";
 
-import { GetQueueTop, GetRecentScreenedQueue, GetRejectQueue, GetScreenQueue } from "../handler/screen/queue.js";
-import { GetScreenPhoto } from "../handler/screen/get.js";
-import { GetUploadQueue } from "../handler/queue/get.js";
-
-import { IsLogin,IsScreener,IsAdmin } from "../components/auth/permissions.js";
-
-import { SetQueueStatus } from "../handler/screen/beater.js";
-import { ProcessScreenResult } from "../handler/screen/process.js";
+import {  GetRecentScreenedQueue, GetRejectQueue, GetScreenQueue } from "../handler/screen/queue.js";
 
 import { CreateVote } from "../handler/vote/ceate.js";
 import { Vote } from "../handler/vote/vote.js";
 import { GetVote, GetVoteList } from "../handler/vote/get.js";
 import { DeleteVote } from "../handler/vote/delete.js";
 
-import { CreateAirport } from "../handler/info/airport/create.js";
-import { GetAirport,GerAirportList } from "../handler/info/airport/get.js";
-import { UpdateAirportInfo } from "../handler/info/airport/update.js";
-import { DeleteAirport } from "../handler/info/airport/delete.js";
+import P from "../components/auth/permissions.js";
+import UserHandler from "../handler/user/index.js";
 
-import { CreateAirline } from "../handler/info/airline/create.js";
-import { SearchAirline,GetAirlineList } from "../handler/info/airline/get.js";
-import { UpdateAirlineInfo } from "../handler/info/airline/update.js";
-import { DeleteAirline } from "../handler/info/airline/delete.js";
+import QueueHandler from "../handler/queue/index.js";
+import PhotoHandler from "../handler/photo/index.js";
+
+import AirtypeHandler from "../handler/info/airtype.js";
+import AirportHandler from "../handler/info/airport.js";
+import AirlineHandler from "../handler/info/airline.js";
+
+import NotamHandler from "../handler/notam/handler.js";
+
 
 import { CreateAircraftRecord } from "../handler/info/aircraft/create.js";
 import { SearchAircraft,GetAircraftList } from "../handler/info/aircraft/get.js";
 import { UpdateAircraftRecord } from "../handler/info/aircraft/update.js";
 import { DeleteAircraftRecord } from "../handler/info/aircraft/delete.js";
 
-import { GetAirTypeList } from "../handler/info/airtype/get.js";
-import { CreateAirtype } from "../handler/info/airtype/create.js";
-import { UpdateAirtype } from "../handler/info/airtype/update.js";
-import { DeleteAirtype } from "../handler/info/airtype/delete.js";
-
-import { CreateNotam } from "../handler/notam/create.js";
-import {  GetNotam } from "../handler/notam/get.js";
 import {UpdatePhotoInfo} from "../handler/photo/update.js";
-
 
 
 const router = Router();
 
 router.get("/website",GetWebsiteInfo);
 
-// user
-router.post("/user/login",Login)
-router.post("/user/register",Register)
-router.get('/user/:id',GetUserInfo)
-router.get('/users',IsLogin,IsAdmin,GetUserList)
-router.get('/user/search/:keyword', SearchUser)
-router.put('/user/:id', IsLogin, IsScreener, UpdateUserInfo);
-router.delete('/user/:id',IsLogin,IsAdmin,DeleteUser)
+router.post("/user/login",UserHandler.login)
+router.post("/user/register",UserHandler.register)
+router.get('/user/:id',UserHandler.getUserInfo)
 
-// photo
-router.get('/photo/:id', GetPhoto);
+router.get('/photo/:id', PhotoHandler.get);
 router.get('/photos/full', GetFullList);
 router.get('/search', SearchPhoto);
-router.post('/photo',UploadPreProcess,photoUpload.array('file'),UploadHandler);
-router.put('/photo/:id', IsLogin, UpdatePhotoInfo);
-router.delete('/photo/:id', IsLogin, DelPhoto);
+
+router.get('/airports', AirportHandler.list);
+router.get('/airport/:id', AirportHandler.get)
+
+router.get('/airline/:keyword',AirlineHandler.search)
+router.get('/airlines', AirlineHandler.list);
+
+router.get('/aircraft/:reg', SearchAircraft)
+
+router.get('/vote/:id',GetVote);
+
+router.get('/notam',NotamHandler.get)
+
+
+router.use(P.isLoginMW)
+router.get('/users',P.isAdminMW,UserHandler.getUserList)
+router.get('/user/search/:keyword',P.isAdminMW,UserHandler.search)
+router.put('/user/:id', P.isScreenerMW, UserHandler.update);
+router.delete('/user/:id',P.isAdminMW,UserHandler.delete)
+
+
+router.post('/photo',P.checkUserStatusMW,UploadPreProcess,photoUpload.array('file'),UploadHandler);
+router.put('/photo/:id', UpdatePhotoInfo);
+router.delete('/photo/:id', P.isScreenerMW, PhotoHandler.delete);
 
 // queue
-router.get('/queue/top', IsLogin, IsScreener,GetQueueTop);
-router.get('/queue/screened',IsLogin,IsScreener,GetRecentScreenedQueue);
-router.get('/queue/photos',IsLogin,IsScreener,GetScreenQueue)
-router.get('/queue/photo/:id',IsLogin,IsScreener,GetScreenPhoto);
-router.put('/queue/photo/:id',IsLogin,IsScreener,SetQueueStatus);
-router.post('/queue/photo/:id',IsLogin,IsScreener,ProcessScreenResult);
-router.get('/queue/upload',IsLogin,GetUploadQueue)
-router.get('/queue/upload',IsLogin,GetUploadQueue)
-router.get('/queue/reject',IsLogin,GetRejectQueue);
+router.get('/queue/top',  P.isScreenerMW,QueueHandler.getQueuePhoto);
+router.get('/queue/screened',P.isScreenerMW,GetRecentScreenedQueue);
+router.get('/queue/photos',P.isScreenerMW,GetScreenQueue)
+router.get('/queue/photo/:id',P.isScreenerMW,QueueHandler.getQueuePhoto);
+router.put('/queue/photo/:id',P.isScreenerMW,QueueHandler.beater);
+router.post('/queue/photo/:id',P.isScreenerMW,QueueHandler.processScreenResult);
 
-// airport
-router.get('/airports', GerAirportList);
-router.get('/airport/:id', GetAirport)
-router.post('/airports', IsLogin, CreateAirport);
-router.put('/airport/:id', IsLogin, IsScreener, UpdateAirportInfo);
-router.delete('/airport/:id', IsLogin, IsScreener, DeleteAirport);
+router.get('/queue/upload',QueueHandler.getUserUploadQueue)
+router.get('/queue/reject',GetRejectQueue);
 
 
-// airline
-router.get('/airline/:keyword',SearchAirline)
-router.get('/airlines', GetAirlineList);
-router.post('/airlines', IsLogin, CreateAirline);
-router.put('/airline/:id', IsLogin, IsScreener , UpdateAirlineInfo);
-router.delete('/airline/:id', IsLogin, IsScreener, DeleteAirline);
+router.post('/airports', P.checkUserStatusMW, AirportHandler.create);
+router.put('/airport/:id',  P.isScreenerMW, AirportHandler.update);
+router.delete('/airport/:id',  P.isScreenerMW, AirportHandler.delete);
 
-// aircraft
-router.get('/aircraft/:reg', SearchAircraft)
-router.get('/aircrafts', IsLogin, GetAircraftList);
-router.post('/aircrafts', IsLogin, CreateAircraftRecord);
-router.put('/aircraft/:id', IsLogin, UpdateAircraftRecord);
-router.delete('/aircraft/:id', IsLogin, IsScreener, DeleteAircraftRecord);
 
-// airtype
-router.get('/airtypes', IsLogin, GetAirTypeList);
-router.post('/airtypes', IsLogin, IsScreener, CreateAirtype);
-router.put('/airtype/:sub_type', IsLogin, IsScreener, UpdateAirtype);
-router.delete('/airtype/:sub_type', IsLogin, IsScreener, DeleteAirtype);
+router.post('/airlines',  P.checkUserStatusMW,AirlineHandler.create);
+router.put('/airline/:id',  P.isScreenerMW , AirlineHandler.update);
+router.delete('/airline/:id',  P.isScreenerMW, AirlineHandler.delete);
+
+
+router.get('/aircrafts',  GetAircraftList);
+router.post('/aircrafts',  CreateAircraftRecord);
+router.put('/aircraft/:id',  UpdateAircraftRecord);
+router.delete('/aircraft/:id',  P.isScreenerMW, DeleteAircraftRecord);
+
+// airtype.ts
+router.get('/airtypes', AirtypeHandler.getList);
+router.post('/airtypes', P.isScreenerMW, AirtypeHandler.create);
+router.put('/airtype/:sub_type', P.isScreenerMW, AirtypeHandler.update);
+router.delete('/airtype/:sub_type', P.isScreenerMW, AirtypeHandler.delete);
 
 // notam
-router.post('/notam',IsLogin,IsAdmin,CreateNotam)
-router.get('/notam',GetNotam)
+router.post('/notam',P.isAdminMW,NotamHandler.create)
 
 // vote
-router.post('/vote',IsLogin,CreateVote);
-router.put('/vote/:id',IsLogin,Vote);
-router.get('/vote/:id',GetVote);
-router.get('/votes',IsLogin,IsScreener,GetVoteList);
-router.delete('/vote/:id',IsLogin,IsAdmin,DeleteVote)
+router.post('/vote',CreateVote);
+router.put('/vote/:id',Vote);
+
+router.get('/votes',P.isScreenerMW,GetVoteList);
+router.delete('/vote/:id',P.isAdminMW,DeleteVote)
 
 export default router;

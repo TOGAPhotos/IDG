@@ -1,5 +1,5 @@
 import amqplib from 'amqplib';
-import {Logger} from "../loger.js";
+import Logger from "../../components/loger.js"
 
 export class MessageQueueConnection {
 
@@ -14,7 +14,7 @@ export class MessageQueueConnection {
         try {
             this.conn = await amqplib.connect(process.env.MQ_URL || 'amqp://localhost');
         } catch (e) {
-            Logger.error(`${new Date().toString()}消息队列链接失败\n ${e.message}\n${e.stack}\n`);
+            Logger.error(`消息队列链接失败\n ${e.message}\n${e.stack}\n`);
         }
     }
 
@@ -74,7 +74,7 @@ export class MessageQueueWorker {
             await this.channel?.createChannel();
         }
 
-        Logger.error(`${new Date().toString()}消息队列链接失败\n`);
+        Logger.error(`消息队列链接失败\n`);
         throw new Error('消息队列链接失败');
 
     }

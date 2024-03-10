@@ -1,15 +1,24 @@
-import prisma from "./prisma.js"
+import Notam from "../../dto/notam.js";
 
-let notamCache:notam = {}
-export function SetNotamCache(id:number,title:string,content:string){
-    notamCache = {id,title,content}
+interface NotamI {
+    id: number;
+    title: string;
+    content: string;
 }
 
-export function GetNotamCache(){
-    return notamCache
-}
+export default class NotamCache {
+    private notam: NotamI;
 
-export async function RenewNotamCache(){
-        const dbResult = (await prisma.$queryRawUnsafe(`SELECT * FROM notam WHERE is_delete = 0 ORDER BY id DESC LIMIT 1`))[0]
-        SetNotamCache(dbResult.id,dbResult.title,dbResult.content)
+    private setNotamCache(id: number, title: string, content: string): void {
+        this.notam = { id, title, content };
+    }
+
+    public getCache(): NotamI {
+        return this.notam;
+    }
+
+    public async renewCache(): Promise<void> {
+        const dbResult = await Notam.getNewest();
+        this.setNotamCache(dbResult.id, dbResult.title, dbResult.content);
+    }
 }

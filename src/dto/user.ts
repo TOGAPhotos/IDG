@@ -1,30 +1,96 @@
 import {PrismaClient} from '@prisma/client';
+import {checkNumberParams} from "../components/decorators/checkNumberParams.js";
+import {secureSqlString} from "../components/decorators/secureSqlString.js";
 
 const prisma = new PrismaClient();
 
-export interface UserData {
-    id: number,
-    user_email: string,
-    username: string
-    password: string
-    role: string,
-    passing_rate: number,
-    total_queue: number,
-    free_queue: number,
-    priority_queue: number,
-    free_priority_queue: number,
-    total_photo: number,
-    create_time: Date,
-    update_time: Date
-    status: string,
-    suspension_days: number,
-    email_verify: boolean,
-    email_verify_token: string,
-    is_deleted: boolean
-}
+export default class User {
 
-export class User {
-    static async getUserById(id: number) {
-        return prisma.user.findUnique({where: {id: id}});
+    @secureSqlString
+    static async create(userEmail:string,username:string,password:string){
+        return prisma.user.create({
+            data:{
+                user_email:userEmail,
+                username:username,
+                password:password,
+            }
+        })
+    }
+
+    @checkNumberParams
+    static async updateById(id: number, data: any) {
+        return prisma.user.update({where: {id: id}, data: data});
+    }
+
+    @checkNumberParams
+    static async updatePassingRate(userId: number) {
+        const list = await prisma.full_photo_info.findMany({
+            select:{
+                status:true,
+            },
+            where: {
+                upload_user_id: userId,
+                OR: [{status: "ACCEPT"}, {status: "REJECT"}]
+            },
+            orderBy: {
+                photo_id: 'desc'
+            },
+            take: 50,
+
+        })
+        let passingRate = 0;
+        list.map((photo) => {
+            if (photo.status === 'ACCEPT') {
+                passingRate++;
+            }
+        });
+        passingRate = Math.round(passingRate / list.length * 100);
+        await prisma.user.update({
+            where: {id: userId},
+            data: {passing_rate: passingRate}
+        });
+    }
+
+    @checkNumberParams
+    static async getById(id: number) {
+        const res = await prisma.user.findUnique({where: {id: id}})
+        if (res === null) {
+            throw new Error('用户不存在');
+        }
+        return res;
+    }
+
+    @secureSqlString
+    static async getByEmail(email: string) {
+        return prisma.user.findMany({where: {user_email: email,is_deleted:false}});
+    }
+
+    @secureSqlString
+    static getByUsername(username: string) {
+        return prisma.user.findMany({where: {username: {contains: username}}});
+    }
+
+    static getList(limit:number){
+        return prisma.user.findMany({where:{is_deleted:false},take:limit})
+    }
+
+    @secureSqlString
+    static async search(keyword: string) {
+        return prisma.user.findMany({
+            where: {
+                OR: [
+                    {username: {contains: keyword}},
+                    {user_email: {contains: keyword}}
+                ]
+            }
+        });
+    }
+
+    @checkNumberParams
+    static async delete(id: number) {
+        return prisma.user.update({
+            where: {id: id},
+            data: {is_deleted: true}
+        });
     }
 }

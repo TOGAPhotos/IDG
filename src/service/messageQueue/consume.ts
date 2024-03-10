@@ -16,7 +16,7 @@ export default class MessageQueueConsumer extends MessageQueueWorker {
         this.callback = callback;
 
         // 统一应答
-        const inside_callback:MQConsumerCallback = async (msg) => {
+        const insideCallback:MQConsumerCallback = async (msg) => {
             try{
                 await callback(msg);
                 this.channel.getChannel().ack(msg);
@@ -30,10 +30,10 @@ export default class MessageQueueConsumer extends MessageQueueWorker {
         }
 
         if(this.consumerTag === null){
-            let {consumerTag} = await this.channel.getChannel().consume(this.queue, inside_callback)
+            let {consumerTag} = await this.channel.getChannel().consume(this.queue, insideCallback)
             this.consumerTag = consumerTag;
         }else{
-            await this.channel.getChannel().consume(this.queue,inside_callback)
+            await this.channel.getChannel().consume(this.queue,insideCallback)
         }
 
     }

@@ -3,15 +3,16 @@ import nodeSchedule from "node-schedule";
 import {SendEmail} from "./send.js";
 import {EMAIL_HOUR_LIMIT} from "./config.js";
 
-import MessageQueueConsumer from "../../components/mq/consume.js";
+import MessageQueueConsumer from "../messageQueue/consume.js";
 import {Counter} from "../../components/counter.js";
-import {Logger} from "../../components/loger.js";
-import bell from "../../components/bell.js";
+import Log from "../../components/loger.js";
 
-let HourLimit = Counter()
+
+const HourLimit = Counter()
 
 const emailQueue = new MessageQueueConsumer('email');
 console.log('邮件服务已启动');
+
 await emailQueue.consume(async (msg)=>{
 
     if(HourLimit.get() >= EMAIL_HOUR_LIMIT){
@@ -21,10 +22,10 @@ await emailQueue.consume(async (msg)=>{
     HourLimit.add();
 
     let { sender,receiver,subject,template,content, }:EmailFormat = JSON.parse(msg.content.toString())
-    Logger.info(`Email Record\nSender:${sender},\nReceiver:${receiver}\ncontent:${content}\n`);
-    console.log(`Email Record\nSender:${sender},\nReceiver:${receiver}\ncontent:${content}\n`);
+    Log.info(`Email Record\nSender:${sender},\nReceiver:${receiver}\ncontent:${content}\n`);
     const result = await SendEmail(sender,receiver,subject,template,content);
-    Logger.info(JSON.stringify(result));
+    Log.info(JSON.stringify(result));
+
 });
 
 const TimerRule_1H = new nodeSchedule.RecurrenceRule();

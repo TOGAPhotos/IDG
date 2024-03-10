@@ -1,5 +1,6 @@
 import {createLogger, format, transports} from 'winston';
 import 'winston-daily-rotate-file';
+import Time from "./time.js";
 
 const customFormat = format.combine(
     format.timestamp({format: "MMM-DD-YYYY HH:mm:ss"}),
@@ -14,7 +15,7 @@ const defaultOptions = {
     // maxFiles: "14d",
 };
 
-export const Logger = createLogger({
+const Logger = createLogger({
     format: customFormat,
     transports: [
         new transports.DailyRotateFile({
@@ -29,3 +30,13 @@ export const Logger = createLogger({
         }),
     ]
 });
+
+export default class Log {
+    static info(message: string) {
+        Logger.info(`${Time.getUTCTime()}:${message}\n`);
+    }
+
+    static error(message: string) {
+        Logger.error(`${Time.getUTCTime()}:${message}\n`);
+    }
+}

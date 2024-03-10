@@ -1,12 +1,8 @@
 const bellUrl = process.env.BELL_URL;
-import { Logger } from './loger.js';
+import Log from './loger.js';
 
-async function bell(title:string,message=""){
-    Logger.info(`
-    Bell
-    ${title}
-    ${message}
-    `);
+export default async function bell(title:string,message=""){
+    Log.info(`Bell ${title}\n${message}`);
 
     try{
         await fetch(bellUrl,{
@@ -15,11 +11,7 @@ async function bell(title:string,message=""){
             body:JSON.stringify({title:title, desp:message})
         });
     }catch(e){
-        Logger.error(`
-        Bell Error
-        ${e.message}
-        `)
+        Log.error(`Bell Error ${e.message}`)
         console.error(`Bell Error:${e.message}`)
     }
 }
-export default bell;

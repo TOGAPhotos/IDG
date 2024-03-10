@@ -9,7 +9,7 @@ const mg = new Mailgun(FormData);
 const mailGunSession = await mg.client(MailGunConnParams);
 
 export async function SendEmail(sender:string,receiver:string,subject:string,template:string|null,content:string|null):Promise<MessagesSendResult>{
-    // let contentStr = JSON.stringify(content);
+
 
     if(template === null && content !== null){
         return await mailGunSession.messages.create(EMAIL_DOMAIN, {

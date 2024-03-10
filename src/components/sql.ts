@@ -5,3 +5,4 @@ export function ConvertSqlValue(value:any):string{
     value = value.replace(/%/g, "")
     return value
 }
+

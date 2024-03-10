@@ -28,6 +28,7 @@ model airport {
   icao_code  String?  @db.VarChar(127)
   iata_code  String?  @db.VarChar(127)
   add_user   Int?
+  status     String?  @default("AVAILABLE") @db.VarChar(31)
   is_delete  Boolean? @default(false)
 }
 
@@ -76,12 +77,13 @@ model user {
   status              String?  @default("NORMAL") @db.VarChar(31)
   suspension_days     Int?     @default(0)
   is_deleted          Boolean  @default(false)
+  notam               notam[]
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model photo_queue {
-  queue_id            Int      @id
-  photo_id            Int
+  queue_id            Int      @id @default(autoincrement())
+  photo_id            Int      @unique(map: "photo_queue_pk")
   queue_type          String?  @default("NORMAL") @db.VarChar(31)
   status              String?  @default("WAIT SCREEN") @db.VarChar(127)
   message_to_screener String?  @db.VarChar(255)
@@ -93,28 +95,43 @@ model photo_queue {
   is_delete           Boolean?
 }
 
+model notam {
+  id          Int       @id @default(autoincrement())
+  title       String    @db.VarChar(255)
+  content     String    @db.Text
+  create_time DateTime? @default(now()) @db.Timestamp(0)
+  create_user Int
+  show        Boolean   @default(true)
+  is_delete   Boolean   @default(false)
+  user        user      @relation(fields: [create_user], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "create_user")
+
+  @@index([create_user], map: "create_user")
+}
+
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view accept_photo {
-  photo_id       Int       @id
-  upload_user_id Int
-  username       String    @db.VarChar(50)
-  ac_type        String?   @db.VarChar(255)
-  ac_reg         String?   @db.VarChar(255)
-  ac_msn         String?   @db.VarChar(255)
-  airline        String?   @db.VarChar(255)
-  airport_id     Int?
-  pic_type       String?   @db.VarChar(255)
-  user_remark    String?   @db.VarChar(255)
-  photo_time     DateTime? @db.Date
-  upload_time    DateTime? @db.Date
-  is_delete      Boolean?  @default(false)
+  photo_id          Int       @id
+  upload_user_id    Int
+  username          String    @db.VarChar(50)
+  ac_type           String?   @db.VarChar(255)
+  ac_reg            String?   @db.VarChar(255)
+  ac_msn            String?   @db.VarChar(255)
+  airline           String?   @db.VarChar(255)
+  airport_iata_code String?   @db.VarChar(127)
+  airport_icao_code String?   @db.VarChar(127)
+  airport_cn        String?   @db.VarChar(255)
+  airport_en        String?   @db.VarChar(255)
+  pic_type          String?   @db.VarChar(255)
+  user_remark       String?   @db.VarChar(255)
+  photo_time        DateTime? @db.Date
+  upload_time       DateTime? @db.Date
 }
 
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view photo_queue_info {
-  queue_id            Int       @id
+  queue_id            Int       @id @default(0)
   photo_id            Int
   queue_type          String?   @default("NORMAL") @db.VarChar(31)
   status              String?   @default("WAIT SCREEN") @db.VarChar(127)
@@ -134,4 +151,38 @@ view photo_queue_info {
   user_remark         String?   @db.VarChar(255)
   photo_time          DateTime? @db.Date
   upload_time         DateTime? @db.Date
+  airport_cn          String?   @db.VarChar(255)
+  airport_en          String?   @db.VarChar(255)
+  icao_code           String?   @db.VarChar(127)
+  iata_code           String?   @db.VarChar(127)
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+/// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+view full_photo_info {
+  queue_id            Int       @default(0)
+  photo_id            Int       @id
+  queue_type          String?   @default("NORMAL") @db.VarChar(31)
+  status              String?   @default("WAIT SCREEN") @db.VarChar(127)
+  message_to_screener String?   @db.VarChar(255)
+  screener_1          Int?
+  screener_2          Int?
+  reason              String?   @db.VarChar(512)
+  screener_remark     String?   @db.VarChar(255)
+  result              String?   @default("REJECT") @db.VarChar(128)
+  upload_user_id      Int
+  ac_type             String?   @db.VarChar(255)
+  ac_reg              String?   @db.VarChar(255)
+  ac_msn              String?   @db.VarChar(255)
+  airline             String?   @db.VarChar(255)
+  airport_id          Int?
+  pic_type            String?   @db.VarChar(255)
+  user_remark         String?   @db.VarChar(255)
+  photo_time          DateTime? @db.Date
+  upload_time         DateTime? @db.Date
+  airport_cn          String?   @db.VarChar(255)
+  airport_en          String?   @db.VarChar(255)
+  icao_code           String?   @db.VarChar(127)
+  iata_code           String?   @db.VarChar(127)
+  is_delete           Boolean?  @default(false)
 }
