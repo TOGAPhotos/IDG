@@ -1,8 +1,6 @@
 import {PrismaClient} from '@prisma/client';
 import {checkNumberParams} from "../components/decorators/checkNumberParams.js";
-import User from "./user.js";
 import {secureSqlString} from "../components/decorators/secureSqlString.js";
-import MailTemp from "../service/mail/mailTemp.js";
 
 const prisma = new PrismaClient();
 

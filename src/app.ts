@@ -5,8 +5,8 @@ import router from "./router/index.js";
 import  Log  from "./components/loger.js";
 import { randomUUID } from "crypto";
 import { VerifyToken} from './components/auth/token.js'
-import { StartTimer } from "./components/schedule/job.js";
 import bell from "./components/bell.js";
+
 const server = express();
 
 server.use(cors())
@@ -35,17 +35,11 @@ server.use((err:Error,req:Request,res:Response,next:NextFunction)=>{
     ${err.message}
     ${err.stack}
     `);
-    console.log(`
-    ${req.uuid}
-    ${err.message}
-    ${err.stack}
-    `)
     return res.status(HTTP_STATUS.SERVER_ERROR).json({message:err.message})
 })
 
 export default function StartHTTPServer(){
     server.listen(3000,async()=>{
-        await StartTimer();
         await bell('TOGAPhotos后端服务器',`${new Date().toString()}服务器启动`);
         Log.info('Server Start On 3000\n====================\n');
         console.log('Server Start On 3000');
