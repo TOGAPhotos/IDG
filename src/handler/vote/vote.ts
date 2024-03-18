@@ -1,15 +1,13 @@
 import prisma from "./prisma.js";
 import { Request,Response } from "express"
 import CalculateVote from "./calculate.js";
-import {CheckUserStatus} from "../../components/auth/permissions.js";
+import Permission from "../../components/auth/permissions.js";
+import User from "../../dto/user.js";
 
 export async function Vote(req:Request, res:Response) {
 
-    const userInfo = await prisma.user.findUnique({where: {id: req.token.id}});
+    // const userInfo = await User.getById(req.token.id);
 
-    if(CheckUserStatus(userInfo) === false){
-        return res.status(HTTP_STATUS.UNAUTHORIZED).json({message:"用户状态异常"})
-    }
 
     /**
      * @todo 投票
