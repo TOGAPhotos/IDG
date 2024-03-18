@@ -29,6 +29,17 @@ export default class UploadQueue {
         return this.prisma.photo_queue.update({where: {queue_id: queueId}, data: {screener_1: data}});
     }
 
+    static async recentScreenPhoto() {
+        return this.prisma.full_photo_info.findMany({
+            where:{
+                OR:[{status: "ACCEPT"}, {status: "REJECT"}],
+                is_delete:false,
+            },
+            orderBy:{upload_time:"desc"},
+            take:200
+        })
+    }
+
     static async create(photoId: number, type: string, message: string) {
         return this.prisma.photo_queue.create({
             data: {
@@ -37,5 +48,13 @@ export default class UploadQueue {
                 message_to_screener:message
             }
         })
+    }
+
+    static async rejectQueue(userId: number) {
+        return this.prisma.full_photo_info.findMany({
+        where: {upload_user_id: userId, is_delete:false},
+        orderBy: {upload_time: "desc"},
+        take:10
+        });
     }
 }

@@ -1,5 +1,6 @@
 import {Redis} from "ioredis";
 import {checkNumberParams} from "../../components/decorators/checkNumberParams.js"
+import {REDIS_DB} from "./distribute.js";
 
 export class UploadQueueCache {
     private conn: Redis;

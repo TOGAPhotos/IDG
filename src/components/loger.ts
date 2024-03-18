@@ -37,6 +37,7 @@ export default class Log {
     }
 
     static error(message: string) {
+        console.error(Time.getUTCTime()+message)
         Logger.error(`${Time.getUTCTime()}:${message}\n`);
     }
 }

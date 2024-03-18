@@ -1,7 +1,5 @@
 import { Router } from "express";
 
-import { GetWebsiteInfo } from "../handler/website/info.js";
-
 import { UploadHandler, UploadPreProcess, photoUpload } from "../handler/photo/upload.js";
 import { SearchPhoto } from "../handler/photo/search.js";
 import { GetFullList } from "../handler/photo/list.js";
@@ -12,6 +10,7 @@ import { GetScreenQueue } from "../handler/screen/queue.js";
 // import { Vote } from "../handler/vote/vote.js";
 // import { GetVote, GetVoteList } from "../handler/vote/get.js";
 // import { DeleteVote } from "../handler/vote/delete.js";
+import {UpdatePhotoInfo} from "../handler/photo/update.js";
 
 import P from "../components/auth/permissions.js";
 import UserHandler from "../handler/user/index.js";
@@ -25,20 +24,19 @@ import AirportHandler from "../handler/info/airport.js";
 import AirlineHandler from "../handler/info/airline.js";
 
 import NotamHandler from "../handler/notam/handler.js";
+import WebsiteHandler from "../handler/info/website.js";
 
 
-import { SearchAircraft,GetAircraftList } from "../handler/info/aircraft/get.js";
 
-import { DeleteAircraftRecord } from "../handler/info/aircraft/delete.js";
 
-import {UpdatePhotoInfo} from "../handler/photo/update.js";
+
 
 
 
 
 const router = Router();
 
-router.get("/website",GetWebsiteInfo);
+router.get("/website",WebsiteHandler.get);
 
 router.post("/user/login",UserHandler.login)
 router.post("/user/register",UserHandler.register)
@@ -54,7 +52,7 @@ router.get('/airport/:id', AirportHandler.get)
 router.get('/airline/:keyword',AirlineHandler.search)
 router.get('/airlines', AirlineHandler.list);
 
-router.get('/aircraft/:reg', SearchAircraft)
+router.get('/aircraft/:reg', AircraftHandler.search)
 
 // router.get('/vote/:id',GetVote);
 
@@ -94,10 +92,10 @@ router.put('/airline/:id',  P.isScreenerMW , AirlineHandler.update);
 router.delete('/airline/:id',  P.isScreenerMW, AirlineHandler.delete);
 
 
-router.get('/aircrafts',  GetAircraftList);
+// router.get('/aircrafts',  AircraftHandler.getAircraftList);
 router.post('/aircrafts',  P.isStaff,AircraftHandler.create);
 router.put('/aircraft/:id',  P.isStaff, AircraftHandler.update);
-router.delete('/aircraft/:id',  P.isScreenerMW, DeleteAircraftRecord);
+router.delete('/aircraft/:id',  P.isScreenerMW, AircraftHandler.delete);
 
 // airtype.ts
 router.get('/airtypes', AirtypeHandler.getList);

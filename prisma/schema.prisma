@@ -108,6 +108,19 @@ model notam {
   @@index([create_user], map: "create_user")
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model aircraft {
+  id         Int     @id @unique(map: "id") @default(autoincrement())
+  reg        String  @db.VarChar(20)
+  msn        String? @db.VarChar(20)
+  ln         String? @db.VarChar(20)
+  airline    String? @db.VarChar(60)
+  air_type   String? @db.VarChar(25)
+  remark     String? @db.VarChar(256)
+  is_delete  Boolean @default(false)
+  airline_id Int?
+}
+
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view accept_photo {
