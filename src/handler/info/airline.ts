@@ -4,6 +4,7 @@ import SearchCache from "../../service/redis/searchCache.js";
 import User from "../../dto/user.js";
 import Permission from "../../components/auth/permissions.js";
 import MailTemp from "../../service/mail/mailTemp.js";
+import {REDIS_DB} from "../../service/redis/distribute.js";
 
 export default class AirlineHandler{
 

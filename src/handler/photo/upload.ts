@@ -4,18 +4,18 @@ import { photoBaseFolder } from "../../config.js";
 import { ConvertSqlValue } from "../../components/sql.js";
 import fs from 'fs'
 import { Request, Response, NextFunction } from "express"
-import { Logger } from "../../components/loger.js";
+import Logger  from "../../components/loger.js";
 import User from "../../dto/user.js";
-import {CheckUserStatus, Permission} from "../../components/auth/permissions.js";
+// import {CheckUserStatus, Permission} from "../../components/auth/permissions.js";
 
 export async function UploadPreProcess(req: Request, res: Response, next: NextFunction) {
     const userId = req.token.id;
     const userInfo = await User.getById(userId);
     const queue = req.body['queue'];
 
-    if( !CheckUserStatus(userInfo) ){
-        return res.status(HTTP_STATUS.FORBIDDEN).json({message: "您暂时不能上传图片"});
-    }
+    // if( !CheckUserStatus(userInfo) ){
+    //     return res.status(HTTP_STATUS.FORBIDDEN).json({message: "您暂时不能上传图片"});
+    // }
 
     if (queue === 'priority' && userInfo.free_priority_queue <= 0) {
         req.body['queue'] = 'normal';

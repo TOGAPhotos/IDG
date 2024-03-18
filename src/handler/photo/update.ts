@@ -2,7 +2,7 @@ import prisma from "./prisma.js";
 import { Request,Response } from "express";
 import Permission from "../../components/auth/permissions.js";
 import User from "../../dto/user.js";
-import {Photo} from "../../dto/photo.js";
+import Photo from "../../dto/photo.js";
 
 export async function UpdatePhotoInfo(req:Request, res:Response) {
     let photoId = Number(req.params['id']);

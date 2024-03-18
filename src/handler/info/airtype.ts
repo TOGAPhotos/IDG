@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import SearchCache from "../../service/redis/searchCache.js";
 import {Airtype} from "../../dto/airtype.js";
+import {REDIS_DB} from "../../service/redis/distribute.js";
 
 export default class AirtypeHandler{
 

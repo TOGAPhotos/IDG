@@ -1,5 +1,5 @@
 import { Request,Response } from "express";
-import {Photo} from "../../dto/photo.js";
+import Photo from "../../dto/photo.js";
 
 export async function SearchPhoto(req:Request, res:Response) {
     const type = req.query['type'] as string;
