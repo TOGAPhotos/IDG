@@ -1,4 +1,4 @@
-declare const enum REDIS_DB{
+export const enum REDIS_DB{
     UPLOAD_QUEUE_STATUS ,
     AIRPORT_SEARCH_CACHE ,
     AIRLINE_SEARCH_CACHE ,
