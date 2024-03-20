@@ -10,7 +10,9 @@ export default class MessageQueueProducer extends MessageQueueWorker {
     }
 
     async send(msg:string) {
-        await this.createChanel();
+        if (!this.checkChannel()) {
+            await this.createChanel();
+        }
         await this.channel?.getChannel().assertQueue(this.queue);
         return this.channel?.getChannel().sendToQueue(this.queue, Buffer.from(msg));
     }
