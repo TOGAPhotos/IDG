@@ -2,41 +2,41 @@ import prisma from "./prisma.js";
 import { Request,Response } from "express"
 import CalculateVote from "./calculate.js";
 import User from "../../dto/user.js";
-import { CheckUserStatus, Permission} from "../../components/auth/permissions.js";
+// import { CheckUserStatus, Permission} from "../../components/auth/permissions.js";
 
 
 export async function CreateVote(req:Request,res:Response) {
-    const userInfo = await User.getById(req.token.id);
-    //const userInfo = await prisma.user.findUnique({where: {id: req.token.id}});
-
-    if ( !CheckUserStatus(userInfo) ){
-        return res.status(HTTP_STATUS.FORBIDDEN).json({message: "您暂时不能发起投票"});
-    }
-    
-    if ( !(userInfo.total_photo > 20 || Permission.checkUserPermission(userInfo.role,"SCREENER_1")) ) {
-        return res.status(HTTP_STATUS.FORBIDDEN).json({message: "您暂时不能发起投票"});
-    }
-
-    const photoId = Number(req.body.photo_id)
-    if(isNaN(photoId)){
-        return res.status(HTTP_STATUS.BAD_REQUEST).json({message: "参数错误"});
-    }
-
-    const photo = await prisma.photo.findUnique({
-        where: {
-            id: photoId
-        }
-    });
-
-    if(photo.is_delete){
-        return res.status(HTTP_STATUS.NOT_FOUND).json({message: "图片不存在"});
-    }
+    // const userInfo = await User.getById(req.token.id);
+    // //const userInfo = await prisma.user.findUnique({where: {id: req.token.id}});
+    //
+    // if ( !CheckUserStatus(userInfo) ){
+    //     return res.status(HTTP_STATUS.FORBIDDEN).json({message: "您暂时不能发起投票"});
+    // }
+    //
+    // if ( !(userInfo.total_photo > 20 || Permission.checkUserPermission(userInfo.role,"SCREENER_1")) ) {
+    //     return res.status(HTTP_STATUS.FORBIDDEN).json({message: "您暂时不能发起投票"});
+    // }
+    //
+    // const photoId = Number(req.body.photo_id)
+    // if(isNaN(photoId)){
+    //     return res.status(HTTP_STATUS.BAD_REQUEST).json({message: "参数错误"});
+    // }
+    //
+    // const photo = await prisma.photo.findUnique({
+    //     where: {
+    //         id: photoId
+    //     }
+    // });
+    //
+    // if(photo.is_delete){
+    //     return res.status(HTTP_STATUS.NOT_FOUND).json({message: "图片不存在"});
+    // }
 
     // if (photo.vote !== null) {
     //     return res.status(HTTP_STATUS.BAD_REQUEST).json({message: "该图片已经有投票了"});
     // }
 
-    let tally = CalculateVote(userInfo.total_photo);
+    // let tally = CalculateVote(userInfo.total_photo);
     // const vote = await prisma.vote_list.create({
     //     data:{
     //         user:userInfo.id,
