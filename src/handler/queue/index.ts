@@ -117,4 +117,14 @@ export default class QueueHandler {
             await User.updatePassingRate(queuePhoto['user_id']);
         }
     }
+
+    static async getScreenedPhoto(req: Request, res: Response) {
+        const result = await UploadQueue.recentScreenPhoto();
+        return res.json({message: "查询成功", result});
+    }
+
+    static async userRejectQueue(req: Request, res: Response) {
+        const result = await UploadQueue.rejectQueue(req.token.id);
+        return res.json({message: "查询成功", rejectQueue: result});
+    }
 }
