@@ -111,12 +111,12 @@ export default class Photo {
                 upload_time:data.uploadTime,
                 ac_reg:data.reg,
                 ac_msn:data.msn,
-                airline:data.airline,
+                airline:"data.airline",
                 ac_type:data.airtype,
                 airport_id:data.airport,
                 pic_type:data.picType,
                 photo_time:data.photoTime,
-                remark:data.remark,
+                // remark:data.remark,
                 // allow_social_media:data.allowSocialMedia
             }
         })
