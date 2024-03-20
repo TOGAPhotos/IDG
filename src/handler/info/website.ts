@@ -10,29 +10,33 @@ export default class WebsiteHandler{
     private static prisma = new PrismaClient()
 
     private static async updatePhotoList(){
-        this.photoList = await this.prisma.accept_photo.findMany({take:40,orderBy:{upload_time:'desc'}})
-        this.randomPhotoList = await this.prisma.$queryRawUnsafe(`SELECT * FROM accept_photo ORDER BY RAND() LIMIT 8`)
+        WebsiteHandler.photoList = await this.prisma.accept_photo.findMany({take:40,orderBy:{upload_time:'desc'}})
+        WebsiteHandler.randomPhotoList = await this.prisma.$queryRawUnsafe(`SELECT * FROM accept_photo ORDER BY RAND() LIMIT 8`)
+
     }
 
     private static async updateBasicInfo(){
-        this.userNum = await this.prisma.user.count({where:{is_deleted:false}})
-        this.uploadQueueLen = await this.prisma.photo_queue.count()
-        this.photoNum = await this.prisma.accept_photo.count()
+        console.log('update basic info')
+        WebsiteHandler.userNum = await this.prisma.user.count({where:{is_deleted:false}})
+        WebsiteHandler.uploadQueueLen = await this.prisma.photo_queue.count()
+        WebsiteHandler.photoNum = await this.prisma.accept_photo.count()
     }
 
-    private static scheduleUpdate(){
+    static async scheduleUpdate(){
+        await WebsiteHandler.updatePhotoList()
+        await WebsiteHandler.updateBasicInfo()
         nodeSchedule.scheduleJob('0 */5 * * * *', async ()=>{
-            await this.updatePhotoList()
-            await this.updateBasicInfo()
+            await WebsiteHandler.updatePhotoList()
+            await WebsiteHandler.updateBasicInfo()
         })
     }
     static async get(req:Request,res:Response){
         res.json({message:'成功',homepageInfo: {
-            photoList: this.photoList,
-            userNum: this.userNum,
-            uploadQueueLen: this.uploadQueueLen,
-            photoNum: this.photoNum,
-            randomPhotoList: this.randomPhotoList,
+            photoList: WebsiteHandler.photoList,
+            userNum: WebsiteHandler.userNum,
+            uploadQueueLen: WebsiteHandler.uploadQueueLen,
+            photoNum: WebsiteHandler.photoNum,
+            randomPhotoList: WebsiteHandler.randomPhotoList,
         }});
     }
 
