@@ -1,5 +1,6 @@
 import {MessageQueueConnection, MessageQueueWorker} from "./basic.js";
 import {MQConsumerCallback} from "./type.js";
+import Logger from '../../components/loger.js';
 
 export default class MessageQueueConsumer extends MessageQueueWorker {
 
@@ -20,7 +21,8 @@ export default class MessageQueueConsumer extends MessageQueueWorker {
             try{
                 await callback(msg);
                 this.channel.getChannel().ack(msg);
-            }catch{
+            }catch(e){
+                Logger.error(`消息处理失败\n`+e);
                 return;
             }
         }
