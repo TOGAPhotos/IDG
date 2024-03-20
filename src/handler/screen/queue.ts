@@ -2,35 +2,6 @@ import prisma from "./prisma.js";
 import { Request,Response } from "express"
 
 
-
-export async function GetRecentScreenedQueue(req:Request, res:Response) {
-  const result = await prisma.$queryRawUnsafe(`
-      SELECT a.photo_url,
-             b.id AS queue_id,
-             b.result,
-             b.reason,
-             b.screener_message,
-             b.need_screener_2,
-             c.username AS screener_1,
-             d.username AS screener_2,
-             e.username AS uploader
-      FROM photo a,
-           upload_queue b,
-           user c,
-           user d,
-           user e
-      WHERE in_upload_queue = 0
-        AND a.is_delete = 0
-        AND a.id = b.photo_id
-        AND e.id = a.uploader
-        AND c.id = b.screener_1
-        AND d.id = b.screener_2
-      ORDER BY last_screen_time DESC
-      LIMIT 200
-  `);
-  return res.json({message: "查询成功", result});
-}
-
 export async function GetRejectQueue(req:Request, res:Response) {
   const result = await prisma.$queryRawUnsafe(`
       SELECT a.id,
