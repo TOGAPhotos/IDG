@@ -6,7 +6,11 @@ const notamCache = new NotamCache();
 
 export default class NotamHandler{
     static async get(req:Request,res:Response){
-        const notam = notamCache.getCache();
+        let notam = notamCache.getCache();
+        if(!notam){
+            await notamCache.renewCache();
+            notam = notamCache.getCache();
+        }
 
         return res.json({
             message:'获取成功',
