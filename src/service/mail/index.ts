@@ -6,12 +6,23 @@ import {EMAIL_HOUR_LIMIT} from "./config.js";
 import MessageQueueConsumer from "../messageQueue/consume.js";
 import {Counter} from "../../components/counter.js";
 import Log from "../../components/loger.js";
-
+import MailTemp from "./mailTemp.js";
 
 const HourLimit = Counter()
 
+await MailTemp.ServerStatusNotice('davidyan003@gmail.com','邮件服务','已启动')
 const emailQueue = new MessageQueueConsumer('email');
 console.log('邮件服务已启动');
+
+const TimerRule_1H = new nodeSchedule.RecurrenceRule();
+TimerRule_1H.hour = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
+TimerRule_1H.minute = 0
+TimerRule_1H.second = 0
+
+nodeSchedule.scheduleJob(TimerRule_1H, async ()=>{
+    HourLimit.reset();
+    await emailQueue.restart();
+});
 
 await emailQueue.consume(async (msg)=>{
 
@@ -28,12 +39,3 @@ await emailQueue.consume(async (msg)=>{
 
 });
 
-const TimerRule_1H = new nodeSchedule.RecurrenceRule();
-TimerRule_1H.hour = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23];
-TimerRule_1H.minute = 0
-TimerRule_1H.second = 0
-
-nodeSchedule.scheduleJob(TimerRule_1H, async ()=>{
-    HourLimit.reset();
-    await emailQueue.restart();
-});

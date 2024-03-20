@@ -2,12 +2,12 @@ import {SHARE_ENV, Worker} from "worker_threads";
 import Log from "./components/loger.js";
 import bell from "./components/bell.js";
 import StartHTTPServer from "./app.js";
+
 import 'dotenv/config'
 
 // 启动HTTP服务器
 StartHTTPServer();
 
-// await SendInfoReviewNoticeEmail(`2468910380@qq.com`,'accept','队列测试','OTHER','QUEUE');
 
 
 // 启动消息队列消费者
