@@ -6,6 +6,8 @@ import  Log  from "./components/loger.js";
 import { randomUUID } from "crypto";
 import { VerifyToken} from './components/auth/token.js'
 import bell from "./components/bell.js";
+import {HTTP_PORT} from "./config.js";
+import WebsiteHandler from "./handler/info/website.js";
 
 const server = express();
 
@@ -39,7 +41,8 @@ server.use((err:Error,req:Request,res:Response,next:NextFunction)=>{
 })
 
 export default function StartHTTPServer(){
-    server.listen(3000,async()=>{
+    server.listen(HTTP_PORT,async()=>{
+        await WebsiteHandler.scheduleUpdate();
         await bell('TOGAPhotos后端服务器',`${new Date().toString()}服务器启动`);
         Log.info('Server Start On 3000\n====================\n');
         console.log('Server Start On 3000');
