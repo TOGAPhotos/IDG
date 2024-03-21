@@ -84,7 +84,7 @@ export default class UserHandler{
     static async search(req:Request,res:Response){
         let {keyword} = req.query;
         const userList = await User.search(<string>keyword);
-        userList.forEach( info => this.safeUserInfo(info) );
+        userList.forEach( info => UserHandler.safeUserInfo(info) );
         return res.json({message: '查询成功', data: userList});
     }
 
@@ -94,7 +94,7 @@ export default class UserHandler{
         }
         const userId = Number(req.params["id"]);
         let userInfo = await User.getById(userId);
-        userInfo = this.safeUserInfo(userInfo)
+        userInfo = UserHandler.safeUserInfo(userInfo)
         if(!userInfo || userInfo.is_deleted){
             return res.status(HTTP_STATUS.NOT_FOUND).json({message: '用户不存在'});
         }
@@ -113,7 +113,7 @@ export default class UserHandler{
     static async getUserList(req:Request,res:Response){
         const limit = Number(req.query['limit']) || 200
         const list = await User.getList(limit)
-        list.forEach( info => this.safeUserInfo(info))
+        list.forEach( info => UserHandler.safeUserInfo(info))
         return res.json({message: '查询成功', data: list});
     }
 }
