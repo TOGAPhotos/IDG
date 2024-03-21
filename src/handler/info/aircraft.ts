@@ -32,6 +32,7 @@ export default class AircraftHandler{
         return res.json({message: '查询成功', data: dbResult});
     }
 
+
     // static async list(req:Request,res:Response){
     //     const dbResult = await Aircraft.getAircraftList();
     //     return res.json({message: '查询成功', data: dbResult});

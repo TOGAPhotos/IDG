@@ -7,7 +7,7 @@ export class Aircraft {
 
     static async create(reg: string, mns: string, ln: string, airlineId: number, remark: string) {
 
-        return this.prisma.aircraft.create({
+        return Aircraft.prisma.aircraft.create({
             data: {
                 reg: reg,
                 msn: mns,
@@ -19,27 +19,27 @@ export class Aircraft {
     }
 
     static async getById(id: number) {
-        return this.prisma.aircraft.findUnique({where: {id: id}})
+        return Aircraft.prisma.aircraft.findUnique({where: {id: id}})
     }
 
     @secureSqlString
     static async searchByKeyword(keyword: string) {
-        return this.prisma.aircraft.findMany({where:{reg: {contains: keyword}}})
+        return Aircraft.prisma.aircraft.findMany({where:{reg: {contains: keyword}}})
     }
 
     static async delete(id: number) {
-        return this.prisma.aircraft.update({
+        return Aircraft.prisma.aircraft.update({
             where: {id: id},
             data: {is_delete: true},
         });
     }
 
     static async getAircraftList() {
-        return this.prisma.aircraft.findMany({where: {is_delete: false}})
+        return Aircraft.prisma.aircraft.findMany({where: {is_delete: false}})
     }
 
     static async update(id:number,data:any){
-        return this.prisma.aircraft.update({
+        return Aircraft.prisma.aircraft.update({
             where: {id: id},
             data: data
         });
