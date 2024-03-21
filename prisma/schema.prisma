@@ -127,6 +127,8 @@ view accept_photo {
   photo_id          Int       @id
   upload_user_id    Int
   username          String    @db.VarChar(50)
+  manufacturer_cn   String?   @db.VarChar(255)
+  manufacturer_en   String?   @db.VarChar(255)
   ac_type           String?   @db.VarChar(255)
   ac_reg            String?   @db.VarChar(255)
   ac_msn            String?   @db.VarChar(255)
