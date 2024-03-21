@@ -14,16 +14,16 @@ export default class AirlineHandler{
         const { airline_cn_name, airline_en_name, icao, iata,wait_for_review } = req.body;
         await Airline.create(airline_cn_name, airline_en_name, icao, iata,req.token.id,wait_for_review);
         res.json({message: '创建成功'});
-        await this.searchCache.flush();
+        await AirlineHandler.searchCache.flush();
     }
 
     static async search(req:Request, res:Response){
         let { keyword } = req.params;
 
-        let result = await this.searchCache.get(keyword);
+        let result = await AirlineHandler.searchCache.get(keyword);
         if(result === null){
             result = Airline.searchByKeyword(keyword);
-            await this.searchCache.set(keyword, result);
+            await AirlineHandler.searchCache.set(keyword, result);
         }
 
         return res.json({message: '查询成功', airline: result});
@@ -61,7 +61,7 @@ export default class AirlineHandler{
         }else{
             await Airline.deleteById(airlineId);
             res.json({message: '删除成功'});
-            await this.searchCache.flush();
+            await AirlineHandler.searchCache.flush();
         }
 
     }
@@ -89,7 +89,7 @@ export default class AirlineHandler{
 
         }
 
-        await this.searchCache.flush();
+        await AirlineHandler.searchCache.flush();
     }
 
 }

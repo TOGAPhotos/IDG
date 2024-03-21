@@ -25,7 +25,7 @@ export default class AirportHandler{
         }
         await Airport.delete(AirportId);
         res.json({message: '删除成功'});
-        await this.searchCache.flush();
+        await AirportHandler.searchCache.flush();
     }
 
     static async get(req:Request,res:Response){
@@ -43,11 +43,11 @@ export default class AirportHandler{
 
     static async list(req:Request,res:Response){
         if(req.query?.search){
-            let result = await this.searchCache.get(<string>req.query.search);
+            let result = await AirportHandler.searchCache.get(<string>req.query.search);
             if(result === null){
                 result = await Airport.searchByKeyword(<string>req.query.search);
                 res.json({airport: result});
-                await this.searchCache.set(<string>req.query.search, result);
+                await AirportHandler.searchCache.set(<string>req.query.search, result);
             }else{
                 res.json({airport: result});
             }
@@ -82,7 +82,7 @@ export default class AirportHandler{
         res.json({message:message});
 
         if(status === 'AVAILABLE'){
-            await this.searchCache.flush();
+            await AirportHandler.searchCache.flush();
         }
     }
 
@@ -105,6 +105,6 @@ export default class AirportHandler{
         }
 
 
-        await this.searchCache.flush();
+        await AirportHandler.searchCache.flush();
     }
 }

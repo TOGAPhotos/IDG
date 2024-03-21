@@ -10,15 +10,15 @@ export default class AircraftHandler{
         const AircraftId = Number(req.params.id);
         await Aircraft.delete(AircraftId);
         res.json({message: '删除成功'});
-        await this.searchCache.flush();
+        await AircraftHandler.searchCache.flush();
     }
 
     static async search(req:Request,res:Response){
-        let result = await this.searchCache.get(<string>req.query.search);
+        let result = await AircraftHandler.searchCache.get(<string>req.query.search);
         if(result === null){
             result = await Aircraft.searchByKeyword(<string>req.query.search);
             res.json({aircraft: result});
-            await this.searchCache.set(<string>req.query.search, result);
+            await AircraftHandler.searchCache.set(<string>req.query.search, result);
         }else{
             res.json({data: result});
         }
@@ -40,12 +40,14 @@ export default class AircraftHandler{
     static async create(req:Request,res:Response){
         const {reg, msn,ln, airlineId, remark} = req.body;
         const result = await Aircraft.create(reg, msn,ln, airlineId, remark);
-        return res.json({message: '创建成功', data: result});
+        res.json({message: '创建成功', data: result});
+        await AircraftHandler.searchCache.flush();
     }
 
     static async update(req:Request,res:Response){
         const id = Number(req.params["id"]);
         const result = await Aircraft.update(Number(id), req.body);
-        return res.json({message: '更新成功', data: result});
+        res.json({message: '更新成功', data: result});
+        await AircraftHandler.searchCache.flush();
     }
 }
