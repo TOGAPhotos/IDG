@@ -71,25 +71,16 @@ export class Airport {
             throw new Error('参数错误')
         }
 
-        if (status === 'accept') {
-            await prisma.airport.update({
-                where: {
-                    id: id,
-                },
-                data: {
-                    status: 'AVAILABLE'
-                }
-            })
-        } else if (status === 'reject') {
-            await prisma.airport.update({
-                where: {
-                    id: id,
-                },
-                data: {
-                    status: 'REJECTED'
-                }
-            })
+        let data = {status: 'AVAILABLE'};
+        if (status === 'reject') {
+            data = { status: 'REJECTED' }
         }
+        await prisma.airport.update({
+            where: {
+                id: id,
+            },
+            data: data
+        })
     }
 
     static async createPreCheck(userId: number) {
