@@ -9,34 +9,37 @@ export default class Permission{
     static readonly screener1 = "SCREENER_1";
     static readonly screener2 = "SCREENER_2";
     static readonly admin = "ADMIN";
-    static readonly ROLE_LIST = [this.user,this.media,this.database,this.screener1,this.screener2,this.admin];
+    static readonly ROLE_LIST = [Permission.user,Permission.media,Permission.database,Permission.screener1,Permission.screener2,Permission.admin];
 
     static checkUserPermission(userRole:string,requiredRole:string):boolean{
 
-        const userRoleIndex = this.ROLE_LIST.indexOf(userRole);
-        const requiredRoleIndex = this.ROLE_LIST.indexOf(requiredRole);
+        const userRoleIndex = Permission.ROLE_LIST.indexOf(userRole);
+        const requiredRoleIndex = Permission.ROLE_LIST.indexOf(requiredRole);
 
         return userRoleIndex >= requiredRoleIndex;
     }
 
     static isUser(userRole:string){
-        return userRole === this.user;
+        return userRole === Permission.user;
     }
 
     static isStaff(userRole:string){
-        return this.ROLE_LIST.indexOf(userRole) > this.ROLE_LIST.indexOf(this.user);
+        return Permission.ROLE_LIST.indexOf(userRole) > Permission.ROLE_LIST.indexOf(Permission.user);
     }
 
     static isMedia(userRole:string){
-        return userRole === this.media;
+        return Permission.checkUserPermission(userRole,Permission.media);
     }
 
+    static isScreener(userRole:string){
+        return Permission.checkUserPermission(userRole,Permission.screener1);
+    }
 
     static isSeniorScreener(userRole:string){
-        return userRole === this.screener2;
+        return Permission.checkUserPermission(userRole,Permission.screener2);
     }
     static isDatabase(userRole:string){
-        return userRole === this.database;
+        return Permission.checkUserPermission(userRole,Permission.database);
     }
 
     static isLoginMW (req:Request, res:Response, next:NextFunction){
@@ -49,10 +52,10 @@ export default class Permission{
     static async isScreenerMW(req:Request, res:Response, next:NextFunction){
         const userInfo = await User.getById(req.token.id);
 
-        if( !this.checkUserStatus(userInfo) ){
+        if( !Permission.checkUserStatus(userInfo) ){
             return res.status(HTTP_STATUS.UNAUTHORIZED).json({message:"用户状态异常"})
         }
-        if( !Permission.checkUserPermission(userInfo.role, "SCREENER_1") ){
+        if( !Permission.isScreener(userInfo.role) ){
             return res.status(HTTP_STATUS.UNAUTHORIZED).json({message:"没有权限"})
         }
 
@@ -62,10 +65,10 @@ export default class Permission{
     static async isAdminMW(req:Request, res:Response, next:NextFunction){
         const userInfo = await User.getById(req.token.id);
 
-        if( !this.checkUserStatus(userInfo) ){
+        if( !Permission.checkUserStatus(userInfo) ){
             return res.status(HTTP_STATUS.UNAUTHORIZED).json({message:"用户状态异常"})
         }
-        if( !Permission.checkUserPermission(userInfo.role, "ADMIN") ){
+        if( !Permission.isSeniorScreener(userInfo.role) ){
             return res.status(HTTP_STATUS.UNAUTHORIZED).json({message:"没有权限"})
         }
 
@@ -87,7 +90,7 @@ export default class Permission{
     }
     static async checkUserStatusMW(req:Request, res:Response, next:NextFunction){
         const userInfo = await User.getById(req.token.id);
-        if( !this.checkUserStatus(userInfo) ){
+        if( !Permission.checkUserStatus(userInfo) ){
             return res.status(HTTP_STATUS.FORBIDDEN).json({message:"用户状态异常"})
         }
         next()
