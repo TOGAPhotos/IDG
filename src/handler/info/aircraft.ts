@@ -14,11 +14,12 @@ export default class AircraftHandler{
     }
 
     static async search(req:Request,res:Response){
-        let result = await AircraftHandler.searchCache.get(<string>req.query.search);
+        const keyword = <string>req.params["keyword"];
+        let result = await AircraftHandler.searchCache.get(keyword);
         if(result === null){
-            result = await Aircraft.searchByKeyword(<string>req.query.search);
+            result = await Aircraft.searchByKeyword(keyword);
             res.json({aircraft: result});
-            await AircraftHandler.searchCache.set(<string>req.query.search, result);
+            await AircraftHandler.searchCache.set(keyword, result);
         }else{
             res.json({data: result});
         }
