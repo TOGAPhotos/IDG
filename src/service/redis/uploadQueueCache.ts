@@ -23,14 +23,13 @@ export class UploadQueueCache {
     @checkNumberParams
     async update(queueId:number,screenerId:number){
         const key = `queue_${queueId}`
-
         const cacheInfo = await this.conn.get(key)
-        if(cacheInfo === null){
-            await this.set(queueId,screenerId)
+        if(cacheInfo === null || Number(cacheInfo) === screenerId){
+            return true
+        } else {
+            return false
         }
-        if(Number(cacheInfo) !== screenerId){
-            throw new Error("其他审图员正在审核中")
-        }
+
     }
 
     @checkNumberParams
