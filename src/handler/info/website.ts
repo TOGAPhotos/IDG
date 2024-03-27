@@ -18,7 +18,7 @@ export default class WebsiteHandler{
     private static async updateBasicInfo(){
         console.log('update basic info')
         WebsiteHandler.userNum = await this.prisma.user.count({where:{is_deleted:false}})
-        WebsiteHandler.uploadQueueLen = await this.prisma.photo_queue.count()
+        WebsiteHandler.uploadQueueLen = await this.prisma.photo_queue_info.count()
         WebsiteHandler.photoNum = await this.prisma.accept_photo.count()
     }
 

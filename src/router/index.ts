@@ -27,13 +27,6 @@ import NotamHandler from "../handler/notam/handler.js";
 import WebsiteHandler from "../handler/info/website.js";
 
 
-
-
-
-
-
-
-
 const router = Router();
 
 router.get("/website",WebsiteHandler.get);
@@ -52,7 +45,7 @@ router.get('/airport/:id', AirportHandler.get)
 router.get('/airline/:keyword',AirlineHandler.search)
 router.get('/airlines', AirlineHandler.list);
 
-router.get('/aircraft/:reg', AircraftHandler.search)
+router.get('/aircraft/:keyword', AircraftHandler.search)
 
 // router.get('/vote/:id',GetVote);
 
@@ -71,7 +64,7 @@ router.put('/photo/:id', UpdatePhotoInfo);
 router.delete('/photo/:id', P.isScreenerMW, PhotoHandler.delete);
 
 // queue
-router.get('/queue/top',  P.isScreenerMW,QueueHandler.getQueuePhoto);
+router.get('/queue/top',  P.isScreenerMW,QueueHandler.getQueueTop);
 router.get('/queue/screened',P.isScreenerMW,QueueHandler.getScreenedPhoto);
 router.get('/queue/photos',P.isScreenerMW,GetScreenQueue)
 router.get('/queue/photo/:id',P.isScreenerMW,QueueHandler.getQueuePhoto);
