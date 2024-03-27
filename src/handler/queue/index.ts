@@ -16,43 +16,45 @@ export default class QueueHandler {
 
     static async getQueuePhoto(req: Request, res: Response) {
         const queueId = Number(req.params['id']);
-        const screenCache = await this.uploadQueueCache.get(queueId);
+        const screenCache = await QueueHandler.uploadQueueCache.get(queueId);
 
         if(screenCache !== null && Number(screenCache) !== req.token.id){
             return res.status(HTTP_STATUS.BAD_REQUEST).json({message: '其他审图员正在审核中'});
         }else{
-            await this.uploadQueueCache.update(queueId, req.token.id);
+            await QueueHandler.uploadQueueCache.update(queueId, req.token.id);
         }
         const result = await UploadQueue.getById(queueId)
 
-        return res.json({message: '查询成功', photoQueue: result});
+        return res.json({message: '查询成功', data: result});
     }
 
 
     static async getQueueTop(req: Request, res: Response) {
         const cursor = Number(req.query['cursor']) || 0;
         const userInfo = await User.getById(req.token.id);
-        let result = await UploadQueue.getTop(cursor,userInfo.role);
 
-        while (await this.uploadQueueCache.get(result.queue_id) !== null) {
+        let counter = 0;
+        let result = await UploadQueue.getTop(cursor,userInfo.role);
+        while ( ! await QueueHandler.uploadQueueCache.update(result.queue_id, req.token.id) ) {
             result = await UploadQueue.getTop(result.queue_id,userInfo.role);
-            if(result === null){
-                return res.json({message: '没有待审核的图片'});
+            counter++;
+            if (counter > 10) {
+                res.status(HTTP_STATUS.SERVER_ERROR).json({message: '服务器错误'});
+                throw new Error('服务器错误');
             }
         }
-
         return res.json({message: '查询成功', result: result.queue_id});
 
     }
 
     static async beater(req: Request, res: Response) {
         const action = req.query['action'];
-        const queueId = Number(req.query['queueId']);
+        const queueId = Number(req.params['id']);
 
         if (action === 'open') {
-            await this.uploadQueueCache.update(queueId, req.token.id);
+            await QueueHandler.uploadQueueCache.update(queueId, req.token.id);
         } else {
-            await this.uploadQueueCache.del(queueId);
+            await QueueHandler.uploadQueueCache.del(queueId);
         }
         return res.end();
     }
