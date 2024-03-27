@@ -18,13 +18,13 @@ export default class AirtypeHandler{
             const keyword = req.query['search'] as string;
             let result = await AirtypeHandler.searchCache.get(keyword);
             if(result === null){
-                result = Airtype.searchByKeyword(keyword);
-                await AirtypeHandler.searchCache.set(keyword, result);
+                result = await Airtype.searchByKeyword(keyword);
             }
-            return res.json({message:'查询成功',type: result});
+            res.json({message:'查询成功',type: result});
+            await AirtypeHandler.searchCache.set(keyword, result);
         }else{
             const dbResult = await Airtype.getList();
-            return res.json({message: '查询成功', type: dbResult});
+            return res.json({message: '查询成功', data: dbResult});
         }
     }
 
