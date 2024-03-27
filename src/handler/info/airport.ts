@@ -44,12 +44,14 @@ export default class AirportHandler{
     static async list(req:Request,res:Response){
         if(req.query?.search){
             let result = await AirportHandler.searchCache.get(<string>req.query.search);
+            console.log(result)
             if(result === null){
                 result = await Airport.searchByKeyword(<string>req.query.search);
+                console.log(result)
                 res.json({airport: result});
-                await AirportHandler.searchCache.set(<string>req.query.search, result);
+                return AirportHandler.searchCache.set(<string>req.query.search, result);
             }else{
-                res.json({airport: result});
+                return  res.json({airport: result});
             }
 
         }

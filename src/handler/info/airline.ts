@@ -22,11 +22,10 @@ export default class AirlineHandler{
 
         let result = await AirlineHandler.searchCache.get(keyword);
         if(result === null){
-            result = Airline.searchByKeyword(keyword);
-            await AirlineHandler.searchCache.set(keyword, result);
+            result = await Airline.searchByKeyword(keyword);
         }
-
-        return res.json({message: '查询成功', airline: result});
+        res.json({message: '查询成功', airline: result});
+        await AirlineHandler.searchCache.set(keyword, result);
     }
 
     static async list(req:Request, res:Response){

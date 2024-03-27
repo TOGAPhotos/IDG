@@ -26,7 +26,7 @@ export class Airport {
 
     @secureSqlString
     static async searchByKeyword(keyword: string) {
-        if (keyword.search(/[A-Z]+/) === -1) {
+        if (keyword.search(/^[A-Z]{3,4}$/) !== -1) {
             return prisma.$queryRawUnsafe(`SELECT *
                                            FROM airport
                                            WHERE (iata_code LIKE '%${keyword}%'
@@ -37,6 +37,7 @@ export class Airport {
             return prisma.$queryRawUnsafe(`SELECT *
                                            FROM airport
                                            WHERE airport_cn LIKE '%${keyword}%' 
+                                              OR airport_en LIKE '%${keyword}%'
                                              AND status = 'AVAILABLE'`
             );
         }
