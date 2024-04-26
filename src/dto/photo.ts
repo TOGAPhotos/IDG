@@ -48,26 +48,38 @@ export default class Photo {
         return
     }
 
+    @checkNumberParams
+    static async getAcceptPhotoList(lastId:number) {
+        if(lastId === -1){
+            return prisma.accept_photo.findMany({take:100,orderBy:{upload_time:'desc'}})
+        }else{
+            return prisma.accept_photo.findMany({where: {photo_id: {lt:lastId}},take:100,orderBy:{upload_time:'desc'}})
+        }
+    }
+
     @secureSqlString
     static async searchByRegKeyword(keyword: string,lastId:number) {
+        lastId = Number(lastId)
         if(lastId === -1){
-            return prisma.accept_photo.findMany({where: {ac_reg: {contains: keyword}}});
+            return prisma.accept_photo.findMany({where: {ac_reg: {contains: keyword}},orderBy:{upload_time:'desc'}});
         }else{
-            return prisma.accept_photo.findMany({where: {ac_reg: {contains: keyword},photo_id:{lt:lastId}}});
+            return prisma.accept_photo.findMany({where: {ac_reg: {contains: keyword},photo_id:{lt:lastId}},orderBy:{upload_time:'desc'}});
         }
     }
 
     @secureSqlString
     static async searchByAirlineKeyword(keyword: string,lastId:number) {
+        lastId = Number(lastId)
         if(lastId === -1){
-            return prisma.accept_photo.findMany({where: {OR: [{airline: {contains: keyword}}]}});
+            return prisma.accept_photo.findMany({where: {OR: [{airline_en_name: {contains: keyword}},{airline_cn_name: {contains: keyword}}]},orderBy:{upload_time:'desc'}});
         }else{
-            return prisma.accept_photo.findMany({where: {OR: [{airline: {contains: keyword}}], photo_id:{lt:lastId}}});
+            return prisma.accept_photo.findMany({where: {OR: [{airline_en_name: {contains: keyword}},{airline_cn_name: {contains: keyword}}], photo_id:{lt:lastId}},orderBy:{upload_time:'desc'}});
         }
     }
 
     @secureSqlString
     static async searchByAirportKeyword(keyword: string,lastId:number) {
+        lastId = Number(lastId)
         if(lastId === -1){
         return prisma.accept_photo.findMany({
             where: {
@@ -96,6 +108,7 @@ export default class Photo {
 
     @secureSqlString
     static async searchByUserKeyword(keyword: string,lastId:number) {
+        lastId = Number(lastId)
         if(lastId === -1){
             return prisma.accept_photo.findMany({where: {username: {contains: keyword}}});
         }else{

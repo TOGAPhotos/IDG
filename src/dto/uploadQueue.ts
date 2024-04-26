@@ -15,12 +15,11 @@ export default class UploadQueue {
         return UploadQueue.prisma.photo_queue_info.findUnique({where: {queue_id: photoId}});
     }
 
-    @checkNumberParams
     static async getTop(id: number, role: string) {
         if (Permission.isSeniorScreener(role)) {
-            return UploadQueue.prisma.photo_queue.findFirst({where: {photo_id: {gt: id}}})
+                return UploadQueue.prisma.photo_queue_info.findFirst({where: {queue_id: {gt: id}}})
         } else {
-            return UploadQueue.prisma.photo_queue.findFirst({where: {photo_id: {gt: id}, screener_1: null}})
+            return UploadQueue.prisma.photo_queue_info.findFirst({where: {queue_id: {gt: id}, screener_1: null}})
         }
 
     }

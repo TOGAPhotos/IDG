@@ -26,6 +26,7 @@ server.use((req,res,next)=>{
     userId:${req.token?.id} ${req.uuid}
     ${JSON.stringify(req.body)}
     `)
+    console.log(`${req.userIp} ${req.method} ${req.url}`)
     next();
 })
 
@@ -43,7 +44,7 @@ server.use((err:Error,req:Request,res:Response,next:NextFunction)=>{
 export default function StartHTTPServer(){
     server.listen(HTTP_PORT,async()=>{
         await WebsiteHandler.scheduleUpdate();
-        await bell('TOGAPhotos后端服务器',`${new Date().toString()}服务器启动`);
+        // await bell('TOGAPhotos后端服务器',`${new Date().toString()}服务器启动`);
         Log.info('Server Start On 3000\n====================\n');
         console.log('Server Start On 3000');
     });

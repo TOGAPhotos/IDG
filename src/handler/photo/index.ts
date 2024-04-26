@@ -23,6 +23,44 @@ export default class PhotoHandler {
         return res.json({message: "成功", photoInfo});
     }
 
+    static async getList(req: Request, res: Response) {
+        let lastId = Number(req.query['lastId']);
+        const list = await Photo.getAcceptPhotoList(lastId);
+        return res.json({message:'查询成功',data: list});
+    }
+
+    static async search(req: Request, res: Response) {
+        const type = req.query['type'] as string;
+        const keyword = req.query['keyword'] as string;
+        let lastId:number = Number(req.query['lastId']);
+
+        if(isNaN(lastId)){
+            lastId = -1;
+        }
+
+        let result;
+
+        switch (type) {
+            case 'reg':
+                result = await Photo.searchByRegKeyword(keyword, lastId);
+                break;
+            case 'airline':
+                result = await Photo.searchByAirlineKeyword(keyword, lastId);
+                break;
+            case 'airport':
+                result = await Photo.searchByAirportKeyword(keyword, lastId);
+                break;
+            case 'user':
+                result = await Photo.searchByUserKeyword(keyword, lastId);
+                break;
+            default:
+                throw new Error('Search Type');
+        }
+
+
+        return res.json({message: '查询成功', data: result});
+    }
+
     static storage = multer.diskStorage({
         destination: function (req, file, callback) {
             callback(null, photoBaseFolder + '/photos');

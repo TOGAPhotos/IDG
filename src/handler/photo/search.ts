@@ -9,6 +9,7 @@ export async function SearchPhoto(req:Request, res:Response) {
     if(isNaN(lastId)){
         lastId = -1;
     }
+    console.log(lastId,typeof (lastId));
 
     let result;
 

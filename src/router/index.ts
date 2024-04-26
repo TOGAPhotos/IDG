@@ -1,9 +1,6 @@
 import { Router } from "express";
 
 import { UploadHandler, UploadPreProcess, photoUpload } from "../handler/photo/upload.js";
-import { SearchPhoto } from "../handler/photo/search.js";
-import { GetFullList } from "../handler/photo/list.js";
-
 import { GetScreenQueue } from "../handler/screen/queue.js";
 
 // import { CreateVote } from "../handler/vote/ceate.js";
@@ -36,8 +33,8 @@ router.post("/user/register",UserHandler.register)
 router.get('/user/:id',UserHandler.getUserInfo)
 
 router.get('/photo/:id', PhotoHandler.get);
-router.get('/photos/full', GetFullList);
-router.get('/search', SearchPhoto);
+router.get('/photos/full', PhotoHandler.getList);
+router.get('/search', PhotoHandler.search);
 
 router.get('/airports', AirportHandler.list);
 router.get('/airport/:id', AirportHandler.get)

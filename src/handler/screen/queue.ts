@@ -2,25 +2,6 @@ import prisma from "./prisma.js";
 import { Request,Response } from "express"
 
 
-export async function GetRejectQueue(req:Request, res:Response) {
-  const result = await prisma.$queryRawUnsafe(`
-      SELECT a.id,
-             a.photo_url,
-             b.reason,
-             b.screener_message
-      FROM photo a,
-           upload_queue b
-      WHERE a.uploader = ${req.token.id}
-        AND a.in_upload_queue = 0
-        AND a.result = 0
-        AND b.photo_id = a.id
-      ORDER BY a.id
-              DESC
-      LIMIT 10
-  `);
-  return res.json({message: "查询成功", rejectQueue: result});
-}
-
 export async function GetScreenQueue(req:Request, res:Response) {
 
   let normalQueue = await prisma.$queryRawUnsafe(`

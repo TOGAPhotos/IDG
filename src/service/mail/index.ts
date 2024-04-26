@@ -10,7 +10,7 @@ import MailTemp from "./mailTemp.js";
 
 const HourLimit = Counter()
 
-await MailTemp.ServerStatusNotice('davidyan003@gmail.com','邮件服务','已启动')
+// await MailTemp.ServerStatusNotice('davidyan003@gmail.com','邮件服务','已启动')
 const emailQueue = new MessageQueueConsumer('email');
 console.log('邮件服务已启动');
 

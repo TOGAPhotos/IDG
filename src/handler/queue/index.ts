@@ -114,7 +114,7 @@ export default class QueueHandler {
         await UploadQueue.update(queueId, screenData);
         if(finishScreen){
             if (Number(req.body["result"]) === 1) {
-                GetMinImage(`/photos/${queuePhoto['photo_id']}.jpg`);
+                await GetMinImage(`/photos/${queuePhoto['photo_id']}.jpg`);
             }
             await User.updatePassingRate(queuePhoto['user_id']);
         }
