@@ -7,22 +7,23 @@ import Time from "../../components/time.js";
 import  Permission from "../../components/auth/permissions.js";
 import {emailRegex} from "../../components/regexp.js";
 import Photo from "../../dto/photo.js";
+import { HTTP_STATUS } from "../../../types/http_code.js";
 
 export default class UserHandler{
     static async login(req:Request,res:Response) {
         let {email, password}: { email: string, password: string } = req.body;
         const userList = await User.getByEmail(email);
         if (userList.length === 0) {
-            return res.status(HTTP_STATUS.NOT_FOUND).json({msg: '账户不存在'})
+            return res.fail(HTTP_STATUS.NOT_FOUND,'账户不存在');
         }
 
         const userInfo = userList[0];
 
         if(userInfo.password !== md5(password)){
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json({msg: '密码错误'});
+            return res.fail(HTTP_STATUS.UNAUTHORIZED,'密码错误');
         }
         if(Permission.checkUserStatus(userInfo) === false){
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json({msg:"用户状态异常"})
+            return res.fail(HTTP_STATUS.UNAUTHORIZED,'用户状态异常');
         }
 
         return res.success("登录成功",{
@@ -44,26 +45,21 @@ export default class UserHandler{
 
         // 基础检查
         if( !emailRegex.test(email) ){
-            // return res.status(HTTP_STATUS.OK).json({msg: '邮箱格式错误'});
             return res.fail(HTTP_STATUS.BAD_REQUEST,'邮箱格式错误');
         }
         if(password !== passwordR){
-            // return res.status(HTTP_STATUS.BAD_REQUEST).json({msg: '两次密码不一致'});
             return res.fail(HTTP_STATUS.BAD_REQUEST,'两次密码不一致');
         }
         if(username.length > 20){
-            // return res.status(HTTP_STATUS.BAD_REQUEST).json({msg: '用户名过长'});
             return res.fail(HTTP_STATUS.BAD_REQUEST,'用户名过长');
         }
 
         const emailCheck = await User.getByEmail(email)
         if(emailCheck.length > 0){
-            // return res.status(HTTP_STATUS.BAD_REQUEST).json({msg: '邮箱已被注册'});
             return res.fail(HTTP_STATUS.BAD_REQUEST,'邮箱已被注册');
         }
         const usernameCheck = await User.getByUsername(username)
         if(usernameCheck.length > 0){
-            // return res.status(HTTP_STATUS.BAD_REQUEST).json({msg: '用户名已被注册'});
             return res.fail(HTTP_STATUS.BAD_REQUEST,'用户名已被注册');
         }
 
@@ -125,7 +121,7 @@ export default class UserHandler{
         const userId = Number(req.params["id"]);
         let userInfo = await User.getById(userId);
         if(!userInfo || userInfo.is_deleted){
-            return res.status(HTTP_STATUS.NOT_FOUND).json({msg: '用户不存在'});
+            return res.fail(HTTP_STATUS.NOT_FOUND,'用户不存在');
         }
         userInfo = UserHandler.safeUserInfo(userInfo);
 
