@@ -5,6 +5,7 @@ import Permission from "../../components/auth/permissions.js";
 import SearchCache from "../../service/redis/searchCache.js";
 import MailTemp from "../../service/mail/mailTemp.js";
 import {REDIS_DB} from "../../service/redis/distribute.js";
+import { HTTP_STATUS } from "../../../types/http_code.js";
 
 
 export default class AirportHandler{
@@ -24,7 +25,7 @@ export default class AirportHandler{
                 }
         }
         await Airport.delete(AirportId);
-        res.json({message: '删除成功'});
+        res.success('删除成功');
         await AirportHandler.searchCache.flush();
     }
 
@@ -48,7 +49,7 @@ export default class AirportHandler{
             if(result === null){
                 result = await Airport.searchByKeyword(<string>req.query.search);
                 console.log(result)
-                res.json({airport: result});
+                res.success('查询成功', result);
                 return AirportHandler.searchCache.set(<string>req.query.search, result);
             }else{
                 res.success('查询成功', result);
@@ -81,7 +82,7 @@ export default class AirportHandler{
 
         await Airport.create(cn_name,en_name,iata, icao, userId,status);
 
-        res.json({message:message});
+        res.success(message);
 
         if(status === 'AVAILABLE'){
             await AirportHandler.searchCache.flush();
@@ -94,7 +95,7 @@ export default class AirportHandler{
         if (req.query["type"] === 'review') {
             await Airport.verifyAirportInfo(airportId, 'accept');
             const airportInfo = await Airport.getById(airportId);
-            res.json({message: '审核通过'});
+            res.success('审核成功');
 
             const applicantUser = await User.getById(airportInfo.add_user);
             if(Permission.checkUserStatus(applicantUser)){
@@ -103,7 +104,7 @@ export default class AirportHandler{
 
         }else{
             await Airport.update(airportId,req.body);
-            res.json({message: '修改成功'});
+            res.success('更新成功');
         }
 
 

@@ -44,7 +44,6 @@ export default class QueueHandler {
                 return res.success("查询成功",{queueId:result.queue_id});
             }
         }
-        // throw new Error('服务器错误'); 
         return res.fail(HTTP_STATUS.SERVER_ERROR,'服务器错误');
     }
 

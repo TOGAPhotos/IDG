@@ -1,5 +1,6 @@
 import { Request,Response,NextFunction } from "express";
 import User from "../../dto/user.js";
+import { HTTP_STATUS } from "../../../types/http_code.js";
 
 export default class Permission{
 
@@ -44,7 +45,7 @@ export default class Permission{
 
     static isLoginMW (req:Request, res:Response, next:NextFunction){
         if( !req.token ){
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json({message:"请先登录"})
+            return res.fail(HTTP_STATUS.UNAUTHORIZED,"未登录")
         }
         next()
     }
@@ -53,10 +54,10 @@ export default class Permission{
         const userInfo = await User.getById(req.token.id);
 
         if( !Permission.checkUserStatus(userInfo) ){
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json({message:"用户状态异常"})
+            return res.fail(HTTP_STATUS.UNAUTHORIZED,"用户状态异常")
         }
         if( !Permission.isScreener(userInfo.role) ){
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json({message:"没有权限"})
+            return res.fail(HTTP_STATUS.UNAUTHORIZED,"没有权限")
         }
 
         req.role = userInfo.role;
@@ -66,10 +67,10 @@ export default class Permission{
         const userInfo = await User.getById(req.token.id);
 
         if( !Permission.checkUserStatus(userInfo) ){
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json({message:"用户状态异常"})
+            res.fail(HTTP_STATUS.UNAUTHORIZED,"用户状态异常")
         }
         if( !Permission.isSeniorScreener(userInfo.role) ){
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json({message:"没有权限"})
+            res.fail(HTTP_STATUS.UNAUTHORIZED,"没有权限")
         }
 
         req.role = userInfo.role;
@@ -91,7 +92,7 @@ export default class Permission{
     static async checkUserStatusMW(req:Request, res:Response, next:NextFunction){
         const userInfo = await User.getById(req.token.id);
         if( !Permission.checkUserStatus(userInfo) ){
-            return res.status(HTTP_STATUS.FORBIDDEN).json({message:"用户状态异常"})
+            res.fail(HTTP_STATUS.UNAUTHORIZED,"用户状态异常")
         }
         next()
     }
