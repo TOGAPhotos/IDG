@@ -8,33 +8,33 @@ export class UploadQueueCache {
         this.conn = new Redis({db: REDIS_DB.UPLOAD_QUEUE_STATUS});
     }
 
-    @checkNumberParams
-    async get(queueId:number){
-        return this.conn.get(`queue_${queueId}`)
+    private genKey(queueId:number){
+        return `queue_${queueId}`
     }
 
-    @checkNumberParams
+    async get(queueId:number){
+        return this.conn.get( this.genKey(queueId) )
+    }
+ 
     async set(queueId:number,screenerId:number){
-        const key = `queue_${queueId}`
+        const key = this.genKey(queueId)
         this.conn.set(key,screenerId)
         this.conn.expire(key,60*5)
     }
-
-    @checkNumberParams
-    async update(queueId:number,screenerId:number){
-        const key = `queue_${queueId}`
+ 
+    async update(queueId:number,screenerId:number):Promise<boolean>{
+        const key = this.genKey(queueId)
         const cacheInfo = await this.conn.get(key)
-        if(cacheInfo === null || Number(cacheInfo) === screenerId){
+        if( Number(cacheInfo) === screenerId){
+            this.conn.set(key,screenerId)
+            this.conn.expire(key,60*5)
             return true
-        } else {
+        }else{
             return false
         }
-
     }
-
-    @checkNumberParams
+ 
     async del(queueId:number){
-        const key = `queue_${queueId}`
-        this.conn.del(key)
+        this.conn.del( this.genKey(queueId) )
     }
 }
