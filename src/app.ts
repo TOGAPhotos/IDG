@@ -8,11 +8,14 @@ import { VerifyToken} from './components/auth/token.js'
 import bell from "./components/bell.js";
 import {HTTP_PORT} from "./config.js";
 import WebsiteHandler from "./handler/info/website.js";
-
+import {success,fail} from './exntend/response.js'
 const server = express();
 
 server.use(cors())
 server.use(express.json());
+
+server.response.success = success;
+server.response.fail = fail;
 
 server.use(VerifyToken)
 
@@ -30,7 +33,7 @@ server.use((req,res,next)=>{
     next();
 })
 
-server.use('/api/v1',router);
+server.use('/api/v2',router);
 
 server.use((err:Error,req:Request,res:Response,next:NextFunction)=>{
     Log.error(`
@@ -38,7 +41,7 @@ server.use((err:Error,req:Request,res:Response,next:NextFunction)=>{
     ${err.message}
     ${err.stack}
     `);
-    return res.status(HTTP_STATUS.SERVER_ERROR).json({message:err.message})
+    return res.fail(HTTP_STATUS.SERVER_ERROR,err.message)
 })
 
 export default function StartHTTPServer(){

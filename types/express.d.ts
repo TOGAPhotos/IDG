@@ -1,9 +1,23 @@
+interface SuccessRes{
+    (msg:any):void;
+    (msg:string,data: any):void
+}
+interface FailRes{
+    (statusCode:number,msg:string):void;
+    (statusCode:number,msg:string,data:any):void;
+}
+
 declare namespace Express {
     export interface Request {
         userIp?:string,
         uuid?:string
         token?: { id:number } | null,
         role?: string
+    }
+
+    export interface Response {
+        success:SuccessRes;
+        fail:FailRes;
     }
 }
 

@@ -13,19 +13,20 @@ export default class AirlineHandler{
     static async create(req:Request, res:Response){
         const { airline_cn_name, airline_en_name, icao, iata,wait_for_review } = req.body;
         await Airline.create(airline_cn_name, airline_en_name, icao, iata,req.token.id,wait_for_review);
-        res.json({message: '创建成功'});
+        res.success("创建成功");
         await AirlineHandler.searchCache.flush();
     }
 
     static async search(req:Request, res:Response){
-        let { keyword } = req.params;
+        const keyword = req.query?.search as string;
 
         let result = await AirlineHandler.searchCache.get(keyword);
         if(result === null){
             result = await Airline.searchByKeyword(keyword);
+            await AirlineHandler.searchCache.set(keyword, result);
         }
-        res.json({message: '查询成功', airline: result});
-        await AirlineHandler.searchCache.set(keyword, result);
+        res.success('查询成功', result);
+        
     }
 
     static async list(req:Request, res:Response){

@@ -1,5 +1,6 @@
 import {PrismaClient} from '@prisma/client';
 import {secureSqlString} from "../components/decorators/secureSqlString.js";
+import {checkNumberParams, checkSqlString} from "../components/params-check.js";
 
 export class Aircraft {
 
@@ -22,8 +23,8 @@ export class Aircraft {
         return Aircraft.prisma.aircraft.findUnique({where: {id: id}})
     }
 
-    @secureSqlString
     static async searchByKeyword(keyword: string) {
+        [keyword] = checkSqlString(keyword)
         return Aircraft.prisma.aircraft.findMany({where:{reg: {contains: keyword}}})
     }
 
@@ -39,6 +40,7 @@ export class Aircraft {
     }
 
     static async update(id:number,data:any){
+        [id] = checkNumberParams(id)
         return Aircraft.prisma.aircraft.update({
             where: {id: id},
             data: data

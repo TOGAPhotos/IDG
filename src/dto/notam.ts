@@ -1,5 +1,6 @@
 import {PrismaClient} from '@prisma/client';
-import {checkNumberParams} from "../components/decorators/checkNumberParams.js";
+import {checkNumberParams} from "../components/params-check.js";
+
 const prisma = new PrismaClient();
 
 export default class Notam{
@@ -18,8 +19,8 @@ export default class Notam{
         });
     }
 
-    @checkNumberParams
     static async getById(id:number){
+        [id] = checkNumberParams(id)
         return prisma.notam.findUnique({where:{id:id}});
     }
 

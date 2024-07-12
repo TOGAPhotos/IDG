@@ -13,20 +13,19 @@ export default class UserHandler{
         let {email, password}: { email: string, password: string } = req.body;
         const userList = await User.getByEmail(email);
         if (userList.length === 0) {
-            return res.status(HTTP_STATUS.NOT_FOUND).json({message: '账户不存在'})
+            return res.status(HTTP_STATUS.NOT_FOUND).json({msg: '账户不存在'})
         }
 
         const userInfo = userList[0];
 
         if(userInfo.password !== md5(password)){
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json({message: '密码错误'});
+            return res.status(HTTP_STATUS.UNAUTHORIZED).json({msg: '密码错误'});
         }
         if(Permission.checkUserStatus(userInfo) === false){
-            return res.status(HTTP_STATUS.UNAUTHORIZED).json({message:"用户状态异常"})
+            return res.status(HTTP_STATUS.UNAUTHORIZED).json({msg:"用户状态异常"})
         }
 
-        return res.json({
-            message: '登录成功',
+        return res.success("登录成功",{
             token: Token.create(userInfo.id),
             expireTime: Time.getTimeStamp() + TOKEN_EXPIRE_TIME * 1000,
             id: userInfo.id,
@@ -45,47 +44,78 @@ export default class UserHandler{
 
         // 基础检查
         if( !emailRegex.test(email) ){
-            return res.status(HTTP_STATUS.OK).json({message: '邮箱格式错误'});
+            // return res.status(HTTP_STATUS.OK).json({msg: '邮箱格式错误'});
+            return res.fail(HTTP_STATUS.BAD_REQUEST,'邮箱格式错误');
         }
         if(password !== passwordR){
-            return res.status(HTTP_STATUS.BAD_REQUEST).json({message: '两次密码不一致'});
+            // return res.status(HTTP_STATUS.BAD_REQUEST).json({msg: '两次密码不一致'});
+            return res.fail(HTTP_STATUS.BAD_REQUEST,'两次密码不一致');
         }
         if(username.length > 20){
-            return res.status(HTTP_STATUS.BAD_REQUEST).json({message: '用户名过长'});
+            // return res.status(HTTP_STATUS.BAD_REQUEST).json({msg: '用户名过长'});
+            return res.fail(HTTP_STATUS.BAD_REQUEST,'用户名过长');
         }
 
         const emailCheck = await User.getByEmail(email)
         if(emailCheck.length > 0){
-            return res.status(HTTP_STATUS.BAD_REQUEST).json({message: '邮箱已被注册'});
+            // return res.status(HTTP_STATUS.BAD_REQUEST).json({msg: '邮箱已被注册'});
+            return res.fail(HTTP_STATUS.BAD_REQUEST,'邮箱已被注册');
         }
         const usernameCheck = await User.getByUsername(username)
         if(usernameCheck.length > 0){
-            return res.status(HTTP_STATUS.BAD_REQUEST).json({message: '用户名已被注册'});
+            // return res.status(HTTP_STATUS.BAD_REQUEST).json({msg: '用户名已被注册'});
+            return res.fail(HTTP_STATUS.BAD_REQUEST,'用户名已被注册');
         }
 
         const user = await User.create(email, username, md5(password));
-
-        return res.json({message: '注册成功',username:username ,token: Token.create(user['id']), id: user['id'], permission: Permission.user});
+        
+        return res.success("注册成功",{
+            username:username,
+            token: Token.create(user['id']),
+            id: user['id'],
+            permission: Permission.user
+        })
 
     }
 
     static async delete(req:Request,res:Response){
         await User.delete(Number(req.params["id"]));
-        return res.json({message: '删除成功'});
+        return res.success("删除成功")
     }
 
     static async update(req:Request,res:Response){
+        
         const id = Number(req.params["id"]);
+        const [actionUser,updateUser] = await Promise.all([
+                User.getById(req.token.id),
+                User.getById(id)
+            ]);
+
+        if( !(req.token.id === id)){
+            if( !Permission.isDatabase(actionUser.role) ){
+                return res.fail(HTTP_STATUS.UNAUTHORIZED,"没有权限")
+            }
+        }
+         
         const data = req.body;
+
+        if(data["username"] && updateUser.username !== data["username"]){
+            const usernameCheck = await User.getByUsername(data["username"]);
+            console.log(usernameCheck);
+            if(usernameCheck.length > 0){
+                return res.fail(HTTP_STATUS.BAD_REQUEST,'用户名已注册');
+            }
+        }
+
         await User.updateById(id,data);
-        return res.json({message: '更新成功'});
+        return res.success("更新成功")
     }
 
     static async search(req:Request,res:Response){
         let {keyword} = req.query;
         const userList = await User.search(<string>keyword);
         userList.forEach( info => UserHandler.safeUserInfo(info) );
-        return res.json({message: '查询成功', data: userList});
+        return res.success("查询成功",userList)
     }
 
     static async getUserInfo(req:Request,res:Response){
@@ -94,18 +124,17 @@ export default class UserHandler{
         }
         const userId = Number(req.params["id"]);
         let userInfo = await User.getById(userId);
-        userInfo = UserHandler.safeUserInfo(userInfo)
         if(!userInfo || userInfo.is_deleted){
-            return res.status(HTTP_STATUS.NOT_FOUND).json({message: '用户不存在'});
+            return res.status(HTTP_STATUS.NOT_FOUND).json({msg: '用户不存在'});
         }
         userInfo = UserHandler.safeUserInfo(userInfo);
 
         if(req.query["action"] === 'uploadCheck'){
-            return res.json({message: '查询成功', userInfo: userInfo});
+            return res.success("查询成功",userInfo)
 
         }else{
             const photoList = await Photo.getByUserId(userId);
-            return res.json({message: '查询成功', userInfo: userInfo,photoList:photoList});
+            return res.success("查询成功",{userInfo:userInfo,photoList:photoList})
         }
 
     }
@@ -114,6 +143,6 @@ export default class UserHandler{
         const limit = Number(req.query['limit']) || 200
         const list = await User.getList(limit)
         list.forEach( info => UserHandler.safeUserInfo(info))
-        return res.json({message: '查询成功', data: list});
+        return res.success("查询成功",list)
     }
 }

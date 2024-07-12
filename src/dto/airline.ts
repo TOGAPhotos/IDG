@@ -1,6 +1,6 @@
 import {PrismaClient} from '@prisma/client';
 import {secureSqlString} from "../components/decorators/secureSqlString.js";
-import {checkNumberParams} from "../components/decorators/checkNumberParams.js";
+import {checkNumberParams} from "../components/params-check.js";
 const prisma = new PrismaClient();
 
 export class Airline{
@@ -25,8 +25,9 @@ export class Airline{
 
     }
 
-    @checkNumberParams
+
     static async deleteById(id:number) {
+        [id] = checkNumberParams(id)
         return prisma.airline.update({where:{id:id}, data:{is_delete:true}})
     }
 

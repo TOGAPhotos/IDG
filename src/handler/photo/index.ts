@@ -20,19 +20,20 @@ export default class PhotoHandler {
         if (photoInfo === null) {
             return res.status(HTTP_STATUS.NOT_FOUND).json({message: "图片不存在"});
         }
-        return res.json({message: "成功", photoInfo});
+        res.success('获取成功', photoInfo);
     }
 
     static async getList(req: Request, res: Response) {
         let lastId = Number(req.query['lastId']);
-        const list = await Photo.getAcceptPhotoList(lastId);
-        return res.json({message:'查询成功',data: list});
+        const list = await Photo.getAcceptPhotoList(lastId,50);
+        res.success('查询成功', list);
     }
 
     static async search(req: Request, res: Response) {
         const type = req.query['type'] as string;
         const keyword = req.query['keyword'] as string;
-        let lastId:number = Number(req.query['lastId']);
+        let lastId = Number(req.query['lastId']);
+        const num = Number(req.query['num'])
 
         if(isNaN(lastId)){
             lastId = -1;
@@ -42,16 +43,19 @@ export default class PhotoHandler {
 
         switch (type) {
             case 'reg':
-                result = await Photo.searchByRegKeyword(keyword, lastId);
+                result = await Photo.searchByRegKeyword(keyword, lastId, num);
                 break;
-            case 'airline':
-                result = await Photo.searchByAirlineKeyword(keyword, lastId);
+            // case 'airline':
+            //     result = await Photo.searchByAirlineKeyword(keyword, lastId);
+            //     break;
+            case 'airtype':
+                result = await Photo.searchByAirtypeKeyword(keyword, lastId, num);
                 break;
             case 'airport':
-                result = await Photo.searchByAirportKeyword(keyword, lastId);
+                result = await Photo.searchByAirportKeyword(keyword, lastId, num);
                 break;
             case 'user':
-                result = await Photo.searchByUserKeyword(keyword, lastId);
+                result = await Photo.searchByUserKeyword(keyword, lastId, num);
                 break;
             default:
                 throw new Error('Search Type');

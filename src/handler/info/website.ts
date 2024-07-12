@@ -2,13 +2,14 @@ import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import nodeSchedule from "node-schedule";
 export default class WebsiteHandler{
+    private static prisma = new PrismaClient()
+
     private static photoList = [];
     private static randomPhotoList = [];
     private static userNum = 0;
     private static uploadQueueLen = 0;
     private static photoNum = 0;
-    private static prisma = new PrismaClient()
-
+    
     private static async updatePhotoList(){
         WebsiteHandler.photoList = await this.prisma.accept_photo.findMany({take:40,orderBy:{upload_time:'desc'}})
         WebsiteHandler.randomPhotoList = await this.prisma.$queryRawUnsafe(`SELECT * FROM accept_photo ORDER BY RAND() LIMIT 8`)
@@ -31,13 +32,13 @@ export default class WebsiteHandler{
         })
     }
     static async get(req:Request,res:Response){
-        res.json({message:'成功',homepageInfo: {
+        res.success("网站正常",{
             photoList: WebsiteHandler.photoList,
             userNum: WebsiteHandler.userNum,
             uploadQueueLen: WebsiteHandler.uploadQueueLen,
             photoNum: WebsiteHandler.photoNum,
             randomPhotoList: WebsiteHandler.randomPhotoList,
-        }});
+        })
     }
 
 }

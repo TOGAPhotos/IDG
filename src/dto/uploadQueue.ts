@@ -1,23 +1,20 @@
 import {PrismaClient} from "@prisma/client";
-import {checkNumberParams} from "../components/decorators/checkNumberParams.js";
 import Permission from "../components/auth/permissions.js";
 
 export default class UploadQueue {
     static prisma = new PrismaClient();
 
-    @checkNumberParams
     static async getByUserId(userId: number) {
         return UploadQueue.prisma.photo_queue_info.findMany({where: {upload_user_id: userId}});
     }
 
-    @checkNumberParams
     static async getById(photoId: number) {
         return UploadQueue.prisma.photo_queue_info.findUnique({where: {queue_id: photoId}});
     }
 
     static async getTop(id: number, role: string) {
         if (Permission.isSeniorScreener(role)) {
-                return UploadQueue.prisma.photo_queue_info.findFirst({where: {queue_id: {gt: id}}})
+            return UploadQueue.prisma.photo_queue_info.findFirst({where: {queue_id: {gt: id}}})
         } else {
             return UploadQueue.prisma.photo_queue_info.findFirst({where: {queue_id: {gt: id}, screener_1: null}})
         }

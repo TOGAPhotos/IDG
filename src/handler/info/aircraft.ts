@@ -14,23 +14,25 @@ export default class AircraftHandler{
     }
 
     static async search(req:Request,res:Response){
-        const keyword = <string>req.params["keyword"];
+        const keyword = req.query.reg as string;
         let result = await AircraftHandler.searchCache.get(keyword);
         if(result === null){
             result = await Aircraft.searchByKeyword(keyword);
-            res.json({aircraft: result});
+            res.success('查询成功', result);
             await AircraftHandler.searchCache.set(keyword, result);
         }else{
-            res.json({data: result});
+            res.success('查询成功', result);
         }
     }
 
     static async get(req:Request,res:Response){
         const dbResult = await Aircraft.getById(Number(req.params.id));
         if (dbResult === null) {
-            return res.status(404).json({message: '飞机记录不存在'})
+            // return res.status(404).json({message: '飞机记录不存在'})
+            res.fail(HTTP_STATUS.NOT_FOUND, '飞机记录不存在')
         }
-        return res.json({message: '查询成功', data: dbResult});
+        // return res.json({message: '查询成功', data: dbResult});
+        res.success('查询成功', dbResult);
     }
 
 
@@ -48,7 +50,7 @@ export default class AircraftHandler{
 
     static async update(req:Request,res:Response){
         const id = Number(req.params["id"]);
-        const result = await Aircraft.update(Number(id), req.body);
+        const result = await Aircraft.update(id, req.body);
         res.json({message: '更新成功', data: result});
         await AircraftHandler.searchCache.flush();
     }

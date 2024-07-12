@@ -38,7 +38,7 @@ export default class AirportHandler{
             return res.status(HTTP_STATUS.NOT_FOUND).json({message: '机场已删除'})
         }
 
-        return res.json({message: '查询成功', airport: dbResult});
+        res.success('查询成功', dbResult);
     }
 
     static async list(req:Request,res:Response){
@@ -51,7 +51,7 @@ export default class AirportHandler{
                 res.json({airport: result});
                 return AirportHandler.searchCache.set(<string>req.query.search, result);
             }else{
-                return  res.json({airport: result});
+                res.success('查询成功', result);
             }
 
         }
@@ -60,10 +60,10 @@ export default class AirportHandler{
 
         if(req.query?.type === 'full'){
             const reviewList = await Airport.getReviewAirportList();
-            return res.json({airport: dbResult, reviewList});
+            res.success('查询成功', {airport: dbResult, reviewList});
         }
 
-        return res.json({airport: dbResult});
+        res.success('查询成功', dbResult);
     }
 
     static async create(req:Request,res:Response){

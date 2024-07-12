@@ -40,7 +40,7 @@ model airtype {
   type            String? @db.VarChar(255)
   sub_type        String? @unique(map: "airtype_pk") @db.VarChar(255)
   icao_code       String? @db.VarChar(255)
-  remark          String? @db.VarChar(255)
+  remark          String? @db.Text
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -67,6 +67,10 @@ model user {
   username            String   @db.VarChar(50)
   password            String   @db.VarChar(256)
   role                String?  @db.VarChar(127)
+  airport_id          Int?
+  cover_photo_id      Int?
+  allow_toga_use      Boolean?
+  allow_third_use     Boolean?
   passing_rate        Int      @default(0) @db.TinyInt
   total_queue         Int      @default(5) @db.TinyInt
   free_queue          Int      @default(5) @db.TinyInt
@@ -112,38 +116,16 @@ model notam {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model aircraft {
-  id         Int     @id @unique(map: "id") @default(autoincrement())
-  reg        String  @db.VarChar(20)
-  msn        String? @db.VarChar(20)
-  ln         String? @db.VarChar(20)
-  airline    String? @db.VarChar(60)
-  air_type   String? @db.VarChar(25)
-  remark     String? @db.VarChar(256)
-  is_delete  Boolean @default(false)
-  airline_id Int?
-}
-
-/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-/// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-view accept_photo {
-  photo_id          Int       @id
-  upload_user_id    Int
-  username          String    @db.VarChar(50)
-  manufacturer_cn   String?   @db.VarChar(255)
-  manufacturer_en   String?   @db.VarChar(255)
-  ac_type           String?   @db.VarChar(255)
-  ac_reg            String?   @db.VarChar(255)
-  ac_msn            String?   @db.VarChar(255)
-  airline_cn_name   String?   @db.VarChar(255)
-  airline_en_name   String?   @db.VarChar(255)
-  airport_iata_code String?   @db.VarChar(127)
-  airport_icao_code String?   @db.VarChar(127)
-  airport_cn        String?   @db.VarChar(255)
-  airport_en        String?   @db.VarChar(255)
-  pic_type          String?   @db.VarChar(255)
-  user_remark       String?   @db.VarChar(255)
-  photo_time        DateTime? @db.Date
-  upload_time       DateTime? @db.Date
+  id            Int       @id @unique(map: "id") @default(autoincrement())
+  msn           String?   @db.VarChar(20)
+  ln            String?   @db.VarChar(20)
+  reg           String    @db.VarChar(20)
+  airline_id    Int?
+  airline       String?   @db.VarChar(60)
+  air_type      String?   @db.VarChar(25)
+  delivery_date DateTime? @db.Date
+  remark        String?   @db.VarChar(256)
+  is_delete     Boolean   @default(false)
 }
 
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -191,6 +173,7 @@ view full_photo_info {
   screener_remark     String?   @db.VarChar(255)
   result              String?   @default("REJECT") @db.VarChar(128)
   upload_user_id      Int
+  username            String    @db.VarChar(50)
   ac_type             String?   @db.VarChar(255)
   ac_reg              String?   @db.VarChar(255)
   ac_msn              String?   @db.VarChar(255)
@@ -202,7 +185,28 @@ view full_photo_info {
   upload_time         DateTime? @db.Date
   airport_cn          String?   @db.VarChar(255)
   airport_en          String?   @db.VarChar(255)
-  icao_code           String?   @db.VarChar(127)
-  iata_code           String?   @db.VarChar(127)
+  airport_icao_code   String?   @db.VarChar(127)
+  airport_iata_code   String?   @db.VarChar(127)
   is_delete           Boolean?  @default(false)
+}
+
+view accept_photo {
+  id                Int       @id
+  result            String?   @default("REJECT") @db.VarChar(128)
+  upload_user_id    Int
+  username          String    @db.VarChar(50)
+  ac_type           String?   @db.VarChar(255)
+  ac_reg            String?   @db.VarChar(255)
+  ac_msn            String?   @db.VarChar(255)
+  airline           String?   @db.VarChar(255)
+  airport_id        Int?
+  pic_type          String?   @db.VarChar(255)
+  user_remark       String?   @db.VarChar(255)
+  photo_time        DateTime? @db.Date
+  upload_time       DateTime? @db.Date
+  airport_cn        String?   @db.VarChar(255)
+  airport_en        String?   @db.VarChar(255)
+  airport_icao_code String?   @db.VarChar(127)
+  airport_iata_code String?   @db.VarChar(127)
+  is_delete         Boolean?  @default(false)
 }

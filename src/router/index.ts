@@ -3,10 +3,6 @@ import { Router } from "express";
 import { UploadHandler, UploadPreProcess, photoUpload } from "../handler/photo/upload.js";
 import { GetScreenQueue } from "../handler/screen/queue.js";
 
-// import { CreateVote } from "../handler/vote/ceate.js";
-// import { Vote } from "../handler/vote/vote.js";
-// import { GetVote, GetVoteList } from "../handler/vote/get.js";
-// import { DeleteVote } from "../handler/vote/delete.js";
 import {UpdatePhotoInfo} from "../handler/photo/update.js";
 
 import P from "../components/auth/permissions.js";
@@ -33,16 +29,16 @@ router.post("/user/register",UserHandler.register)
 router.get('/user/:id',UserHandler.getUserInfo)
 
 router.get('/photo/:id', PhotoHandler.get);
-router.get('/photos/full', PhotoHandler.getList);
+router.get('/photos', PhotoHandler.getList);
 router.get('/search', PhotoHandler.search);
 
 router.get('/airports', AirportHandler.list);
 router.get('/airport/:id', AirportHandler.get)
 
-router.get('/airline/:keyword',AirlineHandler.search)
+router.get('/airline',AirlineHandler.search)
 router.get('/airlines', AirlineHandler.list);
 
-router.get('/aircraft/:keyword', AircraftHandler.search)
+router.get('/aircraft', AircraftHandler.search)
 
 // router.get('/vote/:id',GetVote);
 
@@ -51,8 +47,8 @@ router.get('/notam',NotamHandler.get)
 
 router.use(P.isLoginMW)
 router.get('/users',P.isAdminMW,UserHandler.getUserList)
-router.get('/user/search/:keyword',P.isAdminMW,UserHandler.search)
-router.put('/user/:id', P.isScreenerMW, UserHandler.update);
+router.get('/user/search/:keyword',P.isScreenerMW,UserHandler.search)
+router.put('/user/:id', UserHandler.update);
 router.delete('/user/:id',P.isAdminMW,UserHandler.delete)
 
 
@@ -96,11 +92,5 @@ router.delete('/airtype/:sub_type', P.isScreenerMW, AirtypeHandler.delete);
 // notam
 router.post('/notam',P.isAdminMW,NotamHandler.create)
 
-// vote
-// router.post('/vote',CreateVote);
-// router.put('/vote/:id',P.checkUserStatusMW,Vote);
-//
-// router.get('/votes',P.isScreenerMW,GetVoteList);
-// router.delete('/vote/:id',P.isAdminMW,DeleteVote)
 
 export default router;

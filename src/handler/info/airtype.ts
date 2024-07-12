@@ -9,7 +9,7 @@ export default class AirtypeHandler{
     static async create(req:Request, res:Response){
         const { type, subType, manufacturerCn, manufacturerEn } = req.body;
         await Airtype.create(type, subType, manufacturerCn, manufacturerEn);
-        res.json({message: '创建成功'});
+        res.success('创建成功');
         await AirtypeHandler.searchCache.flush();
     }
 
@@ -20,25 +20,25 @@ export default class AirtypeHandler{
             if(result === null){
                 result = await Airtype.searchByKeyword(keyword);
             }
-            res.json({message:'查询成功',type: result});
+            res.success('查询成功', result);
             await AirtypeHandler.searchCache.set(keyword, result);
         }else{
             const dbResult = await Airtype.getList();
-            return res.json({message: '查询成功', data: dbResult});
+            res.success('查询成功', dbResult);
         }
     }
 
     static async delete(req:Request, res:Response){
         const subType = req.params.subType;
         await Airtype.delete(subType);
-        res.json({message: '删除成功'});
+        res.success('删除成功');
         await AirtypeHandler.searchCache.flush();
     }
 
     static async update(req:Request, res:Response){
         const subType = req.params["sub_type"] as string;
         await Airtype.update(subType, req.body);
-        res.json({message: '更新成功'});
+        res.success('更新成功');
         await AirtypeHandler.searchCache.flush();
     }
 }

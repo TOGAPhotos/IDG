@@ -33,6 +33,7 @@ const Logger = createLogger({
 
 export default class Log {
     static info(message: string) {
+        console.log(Time.getUTCTime()+message)
         Logger.info(`${Time.getUTCTime()}:${message}\n`);
     }
 

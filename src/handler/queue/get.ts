@@ -51,5 +51,5 @@ export async function GetUploadQueue(req:Request, res:Response) {
     if(cursor === -1){
         await GetExcludeList()
     }
-    return res.json({message: '查询成功',cursor, photoQueue,excludeList});
+    res.success('查询成功',{cursor, photoQueue,excludeList})
 }

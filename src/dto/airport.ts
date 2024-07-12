@@ -1,9 +1,7 @@
 import {PrismaClient} from '@prisma/client';
-import {checkNumberParams} from "../components/decorators/checkNumberParams.js";
-import {secureSqlString} from "../components/decorators/secureSqlString.js";
+import {checkNumberParams, checkSqlString} from "../components/params-check.js";
 
 const prisma = new PrismaClient();
-
 
 export class Airport {
     static async create(airportCn: string, airportEn: string, iata: string, icao: string, addUser: number, status: string) {
@@ -19,13 +17,15 @@ export class Airport {
         })
     }
 
-    @checkNumberParams
+
     static async getById(id: number) {
+        // [id] = checkNumberParams(id)
         return prisma.airport.findUnique({where: {id: id}})
     }
 
-    @secureSqlString
+
     static async searchByKeyword(keyword: string) {
+        [keyword] = checkSqlString(keyword)
         if (keyword.search(/^[A-Z]{3,4}$/) !== -1) {
             return prisma.$queryRawUnsafe(`SELECT *
                                            FROM airport
@@ -51,16 +51,17 @@ export class Airport {
         return prisma.airport.findMany({where: {status: 'WAITING', is_delete: false}})
     }
 
-    @checkNumberParams
+
     static async delete(id: number) {
+        [id] = checkNumberParams(id)
         return prisma.airport.update({
             where: {id: id},
             data: {is_delete: true},
         });
     }
 
-    @checkNumberParams
     static async update(id: number, data: any) {
+        [id] = checkNumberParams(id)
         return prisma.airport.update({
             where: {id: id},
             data: data,
@@ -68,9 +69,7 @@ export class Airport {
     }
 
     static async verifyAirportInfo(id: number, status: 'accept' | 'reject') {
-        if(isNaN(id)){
-            throw new Error('参数错误')
-        }
+        [id] = checkNumberParams(id)
 
         let data = {status: 'AVAILABLE'};
         if (status === 'reject') {
@@ -85,6 +84,7 @@ export class Airport {
     }
 
     static async createPreCheck(userId: number) {
+        [userId] = checkNumberParams(userId)
         const result = await prisma.airport.findMany({
             where: {
                 add_user: userId,
@@ -94,6 +94,5 @@ export class Airport {
         });
         return result.length > 0;
     }
-
 
 }
