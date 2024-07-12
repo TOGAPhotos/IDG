@@ -12,32 +12,17 @@ export default class Token {
             { expiresIn: TOKEN_EXPIRE_TIME }
         );
     }
+    static verify(token: string) {
+        return jwt.verify(token, JWT_SECRET) as { id: number }
+    }
 
     static verifyMW(req: Request, res: Response, next: NextFunction) {
         try {
             const token = req.headers['authorization'].split(' ')[1]
-            req.token = jwt.verify(token, JWT_SECRET) as { id: number }
+            req.token = Token.verify(token);
         } catch {
             req.token = null
         }
         next()
     }
-}
-
-// export function CreateToken(userId: number) {
-//     return jwt.sign(
-//         { id: userId },
-//         JWT_SECRET,
-//         { expiresIn: TOKEN_EXPIRE_TIME }
-//     );
-// }
-
-export async function VerifyToken(req: Request, res: Response, next: NextFunction) {
-    try {
-        const token = req.headers['authorization'].split(' ')[1]
-        req.token = jwt.verify(token, JWT_SECRET) as { id: number }
-    } catch {
-        req.token = null
-    }
-    next()
 }

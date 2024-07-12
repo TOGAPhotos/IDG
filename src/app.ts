@@ -4,11 +4,13 @@ import cors from "cors";
 import router from "./router/index.js";
 import  Log  from "./components/loger.js";
 import { randomUUID } from "crypto";
-import { VerifyToken} from './components/auth/token.js'
+import Token from './components/auth/token.js'
 import bell from "./components/bell.js";
 import {HTTP_PORT} from "./config.js";
 import WebsiteHandler from "./handler/info/website.js";
 import {success,fail} from './exntend/response.js'
+import { HTTP_STATUS } from "../types/http_code.js";
+
 const server = express();
 
 server.use(cors())
@@ -17,30 +19,20 @@ server.use(express.json());
 server.response.success = success;
 server.response.fail = fail;
 
-server.use(VerifyToken)
+server.use(Token.verifyMW)
 
 server.use((req,res,next)=>{
 
     req.uuid = randomUUID();
     req.userIp = req.headers['x-real-ip'] as string || req.ip;
-
-    Log.info(`
-    ${req.userIp} ${req.method} ${req.url}
-    userId:${req.token?.id} ${req.uuid}
-    ${JSON.stringify(req.body)}
-    `)
-    console.log(`${req.userIp} ${req.method} ${req.url}`)
+    Log.info(`${req.userIp} ${req.method} ${req.url} userId:${req.token?.id} ${req.uuid} ${JSON.stringify(req.body)}`)
     next();
 })
 
 server.use('/api/v2',router);
 
 server.use((err:Error,req:Request,res:Response,next:NextFunction)=>{
-    Log.error(`
-    ${req.uuid}
-    ${err.message}
-    ${err.stack}
-    `);
+    Log.error(`${req.uuid} ${err.message} ${err.stack}`);
     return res.fail(HTTP_STATUS.SERVER_ERROR,err.message)
 })
 
