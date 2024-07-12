@@ -4,6 +4,7 @@ import {UploadQueueCache} from "../../service/redis/uploadQueueCache.js";
 import Permission from "../../components/auth/permissions.js";
 import User from "../../dto/user.js";
 import {GetMinImage} from "../../components/compress.js";
+import { HTTP_STATUS } from "../../../types/http_code.js";
 
 export default class QueueHandler {
 
@@ -33,18 +34,18 @@ export default class QueueHandler {
         const cursor = Number(req.query['cursor']) || 0;
         const userInfo = await User.getById(req.token.id);
 
-        let counter = 0;
-        let result = await UploadQueue.getTop(cursor,userInfo.role);
-        while ( ! await QueueHandler.uploadQueueCache.update(result.queue_id, req.token.id) ) {
-            result = await UploadQueue.getTop(result.queue_id,userInfo.role);
-            counter++;
-            if (counter > 10) {
-                res.status(HTTP_STATUS.SERVER_ERROR).json({message: '服务器错误'});
-                throw new Error('服务器错误');
+        const MAX_TRY = 0;
+        
+        for(let counter = 0;counter<MAX_TRY;counter++){
+            let result = await UploadQueue.getTop(cursor,userInfo.role);
+            const cacheInfo = await QueueHandler.uploadQueueCache.get(result.queue_id);
+            if(cacheInfo === null || Number(cacheInfo) === req.token.id){
+                await QueueHandler.uploadQueueCache.set(result.queue_id,userInfo.id);
+                return res.success("查询成功",{queueId:result.queue_id});
             }
         }
-        return res.json({message: '查询成功', result: result.queue_id});
-
+        // throw new Error('服务器错误'); 
+        return res.fail(HTTP_STATUS.SERVER_ERROR,'服务器错误');
     }
 
     static async beater(req: Request, res: Response) {
@@ -52,7 +53,10 @@ export default class QueueHandler {
         const queueId = Number(req.params['id']);
 
         if (action === 'open') {
-            await QueueHandler.uploadQueueCache.update(queueId, req.token.id);
+            const update = await QueueHandler.uploadQueueCache.update(queueId, req.token.id);
+            if(!update){
+                return res.fail(HTTP_STATUS.BAD_REQUEST,'其他审图员正在审核中');
+            }
         } else {
             await QueueHandler.uploadQueueCache.del(queueId);
         }
