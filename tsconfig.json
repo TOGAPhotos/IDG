@@ -8,5 +8,9 @@
         "sourceMap": true,
         "outDir": "dist",
     },
-    "include": ["src/**/*","types/*.d.ts", "types/http_code.d.ts"]
+    "include": [
+        "src/**/*.*",
+        "types/**.d.ts",
+        "types/**/*.*"
+    ]
 }

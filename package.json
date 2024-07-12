@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./dist/index.js",
-    "dev": "nodemon ./dist/index.js",
+    "dev": "tsx watch src/index.ts --env-file=.env --clear-screen=false",
     "db-update": "npx prisma db pull && npx prisma generate"
   },
   "keywords": [],
@@ -24,6 +24,7 @@
     "@types/node-schedule": "^2.1.2",
     "nodemon": "^3.1.0",
     "prisma": "^5.9.1",
+    "tsx": "^4.16.2",
     "typescript": "^5.2.2"
   },
   "dependencies": {
