@@ -9,6 +9,7 @@ export default class SearchCache {
     async set(keyword:string,result:any){
         const key = `${keyword}`
         this.conn.set(key,JSON.stringify(result))
+        this.conn.expire(key,60*5)
     }
 
     async get(keyword:string){
