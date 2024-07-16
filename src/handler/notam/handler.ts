@@ -11,9 +11,7 @@ export default class NotamHandler{
             await notamCache.renewCache();
             notam = notamCache.getCache();
         }
-
-        return res.json({
-            message:'获取成功',
+        return res.success("获取成功",{
             id:notam.id,
             title:notam.title,
             content:notam.content
@@ -22,14 +20,12 @@ export default class NotamHandler{
 
     static async create(req:Request,res:Response){
         const {title,content} = req.body;
-        const userId = req.token.id;
+        const createrId = req.token.id;
 
-        await Notam.create(title,content,userId);
+        await Notam.create(title,content,createrId);
         await notamCache.renewCache();
-
-        return res.json({
-            message:'创建成功'
-        })
+        
+        return res.success("创建成功")
     }
 
 }
