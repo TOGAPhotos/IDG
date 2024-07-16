@@ -5,7 +5,7 @@ import { GetScreenQueue } from "../handler/screen/queue.js";
 
 import {UpdatePhotoInfo} from "../handler/photo/update.js";
 
-import P from "../components/auth/permissions.js";
+import Per from "../components/auth/permissions.js";
 import UserHandler from "../handler/user/index.js";
 
 import QueueHandler from "../handler/queue/index.js";
@@ -45,52 +45,52 @@ router.get('/aircraft', AircraftHandler.search)
 router.get('/notam',NotamHandler.get)
 
 
-router.use(P.isLoginMW)
-router.get('/users',P.isAdminMW,UserHandler.getUserList)
-router.get('/user/search/:keyword',P.isScreenerMW,UserHandler.search)
+router.use(Per.isLoginMW)
+router.get('/users',Per.isAdminMW,UserHandler.getUserList)
+router.get('/user/search/:keyword',Per.isScreenerMW,UserHandler.search)
 router.put('/user/:id', UserHandler.update);
-router.delete('/user/:id',P.isAdminMW,UserHandler.delete)
+router.delete('/user/:id',Per.isAdminMW,UserHandler.delete)
 
 
-router.post('/photo',P.checkUserStatusMW,UploadPreProcess,photoUpload.array('file'),UploadHandler);
+router.post('/photo',Per.checkUserStatusMW,UploadPreProcess,photoUpload.array('file'),UploadHandler);
 router.put('/photo/:id', UpdatePhotoInfo);
-router.delete('/photo/:id', P.isScreenerMW, PhotoHandler.delete);
+router.delete('/photo/:id', Per.isScreenerMW, PhotoHandler.delete);
 
 // queue
-router.get('/queue/top',  P.isScreenerMW,QueueHandler.getQueueTop);
-router.get('/queue/screened',P.isScreenerMW,QueueHandler.getScreenedPhoto);
-router.get('/queue/photos',P.isScreenerMW,GetScreenQueue)
-router.get('/queue/photo/:id',P.isScreenerMW,QueueHandler.getQueuePhoto);
-router.put('/queue/photo/:id',P.isScreenerMW,QueueHandler.beater);
-router.post('/queue/photo/:id',P.isScreenerMW,QueueHandler.processScreenResult);
+router.get('/queue/top',  Per.isScreenerMW,QueueHandler.getQueueTop);
+router.get('/queue/screened',Per.isScreenerMW,QueueHandler.getScreenedPhoto);
+router.get('/queue/photos',Per.isScreenerMW,GetScreenQueue)
+router.get('/queue/photo/:id',Per.isScreenerMW,QueueHandler.getQueuePhoto);
+router.put('/queue/photo/:id',Per.isScreenerMW,QueueHandler.beater);
+router.post('/queue/photo/:id',Per.isScreenerMW,QueueHandler.processScreenResult);
 
 router.get('/queue/upload',QueueHandler.getUserUploadQueue)
 router.get('/queue/reject',QueueHandler.userRejectQueue);
 
 
-router.post('/airports', P.checkUserStatusMW, AirportHandler.create);
-router.put('/airport/:id',  P.isScreenerMW, AirportHandler.update);
-router.delete('/airport/:id',  P.isScreenerMW, AirportHandler.delete);
+router.post('/airport', Per.checkUserStatusMW, AirportHandler.create);
+router.put('/airport/:id',  Per.isScreenerMW, AirportHandler.update);
+router.delete('/airport/:id',  Per.isScreenerMW, AirportHandler.delete);
 
 
-router.post('/airlines',  P.checkUserStatusMW,AirlineHandler.create);
-router.put('/airline/:id',  P.isScreenerMW , AirlineHandler.update);
-router.delete('/airline/:id',  P.isScreenerMW, AirlineHandler.delete);
+router.post('/airline',  Per.checkUserStatusMW,AirlineHandler.create);
+router.put('/airline/:id',  Per.isScreenerMW , AirlineHandler.update);
+router.delete('/airline/:id',  Per.isScreenerMW, AirlineHandler.delete);
 
 
 // router.get('/aircrafts',  AircraftHandler.getAircraftList);
-router.post('/aircrafts',  P.isStaff,AircraftHandler.create);
-router.put('/aircraft/:id',  P.isStaff, AircraftHandler.update);
-router.delete('/aircraft/:id',  P.isScreenerMW, AircraftHandler.delete);
+router.post('/aircrafts',  Per.isStaff,AircraftHandler.create);
+router.put('/aircraft/:id',  Per.isStaff, AircraftHandler.update);
+router.delete('/aircraft/:id',  Per.isScreenerMW, AircraftHandler.delete);
 
 // airtype.ts
 router.get('/airtypes', AirtypeHandler.getList);
-router.post('/airtypes', P.isScreenerMW, AirtypeHandler.create);
-router.put('/airtype/:sub_type', P.isScreenerMW, AirtypeHandler.update);
-router.delete('/airtype/:sub_type', P.isScreenerMW, AirtypeHandler.delete);
+router.post('/airtypes', Per.isScreenerMW, AirtypeHandler.create);
+router.put('/airtype/:sub_type', Per.isScreenerMW, AirtypeHandler.update);
+router.delete('/airtype/:sub_type', Per.isScreenerMW, AirtypeHandler.delete);
 
 // notam
-router.post('/notam',P.isAdminMW,NotamHandler.create)
+router.post('/notam',Per.isAdminMW,NotamHandler.create)
 
 
 export default router;
