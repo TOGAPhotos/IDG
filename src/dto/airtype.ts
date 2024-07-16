@@ -1,6 +1,7 @@
 import {PrismaClient} from '@prisma/client';
 
 import {secureSqlString} from "../components/decorators/secureSqlString.js";
+import { stat } from 'fs';
 const prisma = new PrismaClient();
 export class Airtype{
     @secureSqlString
@@ -11,12 +12,30 @@ export class Airtype{
         );
     }
 
+    static async createPreCheck(userId:number) {
+        const res = await prisma.airtype.findMany({
+            where:{
+                create_user:userId,
+                status:'WAITING',
+            }
+        });
+        return res.length > 0;
+    }
+
     @secureSqlString
-    static async create(type:string,subType:string,manufacturerCn:string,manufacturerEn:string) {
+    static async create(manufacturerCn:string,manufacturerEn:string,type:string,subType:string,icao:string,status:string) {
         await prisma.airtype.create({
-            data: {type: type, sub_type: subType, manufacturer_cn: manufacturerCn, manufacturer_en: manufacturerEn},
+            data: {
+                manufacturer_cn: manufacturerCn, 
+                manufacturer_en: manufacturerEn,
+                type: type, 
+                sub_type: subType,
+                icao_code:icao,
+                status:status as 'AVAILABLE'|'WAITING',
+            },
         });
     }
+
 
     static async getList() {
         return prisma.airtype.findMany({orderBy:{sub_type:'asc'}});
@@ -27,7 +46,7 @@ export class Airtype{
     }
 
     static async update(subType:string, data:any) {
-        await prisma.airtype.update({where:{sub_type:subType},data:data});
+        return await prisma.airtype.update({where:{sub_type:subType},data:data});
     }
 
 }

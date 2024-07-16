@@ -14,16 +14,6 @@ export default class AirportHandler{
 
     static async delete(req:Request,res:Response){
         const AirportId = Number(req.params.id);
-        if (req.query["type"] === 'review') {
-             // 拒绝信息
-             const airportInfo = await Airport.getById(AirportId);
-             await Airport.verifyAirportInfo(AirportId, 'reject');
-
-             const applicantUser = await User.getById(airportInfo.add_user);
-                if(Permission.checkUserStatus(applicantUser)) {
-                    await MailTemp.InfoReviewNotice(applicantUser.user_email, 'reject', airportInfo.airport_cn, airportInfo.iata_code, airportInfo.iata_code);
-                }
-        }
         await Airport.delete(AirportId);
         res.success('删除成功');
         await AirportHandler.searchCache.flush();
@@ -68,19 +58,18 @@ export default class AirportHandler{
     }
 
     static async create(req:Request,res:Response){
-        const userId = req.token.id;
-        const user = await User.getById(userId);
-        const preCheckResult:boolean = await  Airport.createPreCheck(userId);
-        if(preCheckResult){
-            return res.status(HTTP_STATUS.BAD_REQUEST).json({message: '添加失败，您的添加的上一条数据还没有完成审核'});
+        const user = await User.getById(req.token.id);
+        const {iata_code, icao_code, airport_cn,airport_en} = req.body;
+        let status = 'WAITING';
+        if(Permission.isStaff(user.role)){
+            status = 'AVAILABLE';
+        }else if(await  Airport.createPreCheck(user.id)){
+            return res.fail(HTTP_STATUS.BAD_REQUEST, '添加失败，您的添加的上一条数据还没有完成审核');
         }
-
-        const {iata, icao, cn_name,en_name, wait_for_review} = req.body;
-
-        const status = wait_for_review === undefined && Permission.isStaff(user.role) ? 'WAITING' : 'AVAILABLE';
+    
         const message = status === 'WAITING' ? '申请已提交' : '添加成功';
 
-        await Airport.create(cn_name,en_name,iata, icao, userId,status);
+        await Airport.create(airport_cn,airport_en,iata_code, icao_code, user.id,status);
 
         res.success(message);
 
@@ -91,23 +80,20 @@ export default class AirportHandler{
 
     static async update(req:Request,res:Response){
         const airportId = Number(req.params.id);
-
-        if (req.query["type"] === 'review') {
-            await Airport.verifyAirportInfo(airportId, 'accept');
-            const airportInfo = await Airport.getById(airportId);
-            res.success('审核成功');
-
-            const applicantUser = await User.getById(airportInfo.add_user);
-            if(Permission.checkUserStatus(applicantUser)){
-                await MailTemp.InfoReviewNotice(applicantUser.user_email, 'accept', airportInfo.airport_cn, airportInfo.iata_code, airportInfo.iata_code);
+        const { status } = req.query;
+        if (status === 'AVAILABLE' || status === 'REJECT') {
+            const airportInfo = await Airport.update(airportId, {status: status});
+            res.success('审核完成');
+            const createUser = await User.getById(airportInfo.add_user);
+            if (!Permission.checkUserStatus(createUser)) {
+                return;
             }
+            await MailTemp.InfoReviewNotice(createUser.user_email, status, airportInfo.airport_cn, airportInfo.iata_code, airportInfo.iata_code);
 
         }else{
             await Airport.update(airportId,req.body);
             res.success('更新成功');
         }
-
-
         await AirportHandler.searchCache.flush();
     }
 }

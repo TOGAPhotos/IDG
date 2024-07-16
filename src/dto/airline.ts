@@ -1,6 +1,6 @@
-import {PrismaClient} from '@prisma/client';
-import {secureSqlString} from "../components/decorators/secureSqlString.js";
-import {checkNumberParams} from "../components/params-check.js";
+import { PrismaClient } from '@prisma/client';
+import { secureSqlString } from "../components/decorators/secureSqlString.js";
+import { checkNumberParams } from "../components/params-check.js";
 const prisma = new PrismaClient();
 
 export class Airline{
@@ -8,17 +8,18 @@ export class Airline{
     @secureSqlString
     static async searchByKeyword(keyword:string) {
         try{
-            return await prisma.$queryRawUnsafe(`
-            SELECT id, airline_cn_name, airline_en_name, icao, iata
-            FROM airline
-            WHERE (
-                        iata LIKE '%${keyword}%'
-                    OR icao LIKE '%${keyword}%'
-                    OR airline_cn_name LIKE '%${keyword}%'
-                    OR airline_en_name LIKE '%${keyword}%'
-                )
-              AND is_delete = false
-        `)
+            return await prisma.airline.findMany({
+                where:{
+                    OR:[
+                        {airline_cn:{contains:keyword}},
+                        {airline_en:{contains:keyword}},
+                        {iata_code:{contains:keyword}},
+                        {icao_code:{contains:keyword}}
+                    ],
+                    status:'AVAILABLE',
+                    is_delete:false
+                }
+            })
         }catch{
             throw new Error('查询错误')
         }
@@ -31,42 +32,67 @@ export class Airline{
         return prisma.airline.update({where:{id:id}, data:{is_delete:true}})
     }
 
-    static async searchByAddUser(userId:number) {
-        return prisma.airline.findMany({where:{add_user:userId,wait_for_review:true,is_delete:false}});
+    static async preCheck(userId:number) {
+        return prisma.airline.findMany({
+            where:{
+                create_user:userId,
+                status:'WAITING',
+                is_delete:false
+            }
+        });
     }
 
-    static async verifyAirline(id:number,status:'accept'|'reject') {
-        if (status === 'accept') {
-            return prisma.airline.update({where: {id: id}, data: {wait_for_review: false}})
-        } else if (status === 'reject') {
-            return prisma.airline.update({where: {id: id}, data: {is_delete: true}})
-        }
+    // static async verifyAirline(id:number,status:'accept'|'reject') {
+    //     if (status === 'accept') {
+    //         return prisma.airline.update({
+    //             where: {id: id}, 
+    //             data: {status: 'AVAILABLE'}
+    //         })
+    //     } else if (status === 'reject') {
+    //         return prisma.airline.update({
+    //             where: {id: id}, 
+    //             data: {status: 'REJECT'}
+    //         })
+    //     }
+    // }
 
-    }
-
-    static async create(airlineCnName:string,airlineEnName:string,iata:string,icao:string,addUser:number,waitForReview:boolean) {
+    static async create(airlineCnName:string,airlineEnName:string,iata:string,icao:string,addUser:number,status:string) {
         return prisma.airline.create({
             data:{
-                airline_cn_name:airlineCnName,
-                airline_en_name:airlineEnName,
-                iata:iata,
-                icao:icao,
-                add_user:addUser,
-                wait_for_review:waitForReview
+                airline_cn:airlineCnName,
+                airline_en:airlineEnName,
+                iata_code:iata,
+                icao_code:icao,
+                create_user:addUser,
+                status:status
             }
         })
     }
 
     static async getList() {
-        return prisma.airline.findMany({where:{is_delete:false,wait_for_review:false}})
+        return prisma.airline.findMany({
+            where:{
+                is_delete:false,
+                status:'AVAILABLE'    
+            }
+        })
     }
 
     static async getReviewList() {
-        return prisma.airline.findMany({where:{is_delete:false,wait_for_review:true}})
+        return prisma.airline.findMany({
+            where:{
+                is_delete:false,
+                status:'WAITING'
+                
+            }
+        })
     }
 
     static async update(id:number,data:any) {
-        return prisma.airline.update({where:{id:id}, data:data})
+        return prisma.airline.update({
+            where:{id:id}, 
+            data:data
+        })
     }
 
     static async getById(id:number) {

@@ -18,6 +18,15 @@ export default class MailTemp{
 
     static async InfoReviewNotice(emailAddr:string,result:string,cn_name:string,icao:string,iata:string){
 
+        switch (result) {
+            case 'REJECT':
+                result = 'reject';
+                break;
+            case 'AVAILABLE':
+                result = 'accept';
+                break;
+        }
+
         if (iata.length === 0){
             iata = '—'
         }

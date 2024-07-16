@@ -62,29 +62,13 @@ export class Airport {
 
     static async update(id: number, data: any) {
         [id] = checkNumberParams(id)
-        return prisma.airport.update({
+        return await prisma.airport.update({
             where: {id: id},
             data: data,
         });
     }
 
-    static async verifyAirportInfo(id: number, status: 'accept' | 'reject') {
-        [id] = checkNumberParams(id)
-
-        let data = {status: 'AVAILABLE'};
-        if (status === 'reject') {
-            data = { status: 'REJECTED' }
-        }
-        await prisma.airport.update({
-            where: {
-                id: id,
-            },
-            data: data
-        })
-    }
-
     static async createPreCheck(userId: number) {
-        [userId] = checkNumberParams(userId)
         const result = await prisma.airport.findMany({
             where: {
                 add_user: userId,
