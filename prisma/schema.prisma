@@ -10,42 +10,49 @@ datasource db {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model airline {
-  id              Int      @id @default(autoincrement())
-  airline_cn_name String?  @db.VarChar(255)
-  airline_en_name String?  @db.VarChar(255)
-  icao            String?  @db.VarChar(255)
-  iata            String?  @db.VarChar(255)
-  remark          String?  @db.VarChar(255)
-  wait_for_review Boolean  @default(true)
-  add_user        Int?
-  is_delete       Boolean? @default(false)
+  id          Int       @id @default(autoincrement())
+  airline_cn  String?   @db.VarChar(255)
+  airline_en  String?   @db.VarChar(255)
+  icao_code   String?   @db.VarChar(255)
+  iata_code   String?   @db.VarChar(255)
+  remark      String?   @db.VarChar(255)
+  status      String?   @db.VarChar(255)
+  create_user Int?
+  create_time DateTime? @default(now()) @db.DateTime(0)
+  is_delete   Boolean?  @default(false)
 }
 
 model airport {
-  id         Int      @id @default(autoincrement())
-  airport_cn String?  @db.VarChar(255)
-  airport_en String?  @db.VarChar(255)
-  icao_code  String?  @db.VarChar(127)
-  iata_code  String?  @db.VarChar(127)
-  add_user   Int?
-  status     String?  @default("AVAILABLE") @db.VarChar(31)
-  is_delete  Boolean? @default(false)
+  id          Int       @id @default(autoincrement())
+  airport_cn  String?   @db.VarChar(255)
+  airport_en  String?   @db.VarChar(255)
+  icao_code   String?   @db.VarChar(127)
+  iata_code   String?   @db.VarChar(127)
+  status      String?   @default("AVAILABLE") @db.VarChar(31)
+  create_user Int?
+  create_time DateTime? @default(now()) @db.DateTime(0)
+  is_delete   Boolean?  @default(false)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model airtype {
-  id              Int     @id @default(autoincrement())
-  manufacturer_cn String? @db.VarChar(255)
-  manufacturer_en String? @db.VarChar(255)
-  type            String? @db.VarChar(255)
-  sub_type        String? @unique(map: "airtype_pk") @db.VarChar(255)
-  icao_code       String? @db.VarChar(255)
-  remark          String? @db.Text
+  id              Int             @id @default(autoincrement())
+  manufacturer_cn String?         @db.VarChar(255)
+  manufacturer_en String?         @db.VarChar(255)
+  type            String?         @db.VarChar(255)
+  sub_type        String?         @unique(map: "airtype_pk") @db.VarChar(255)
+  icao_code       String?         @db.VarChar(255)
+  status          airtype_status? @default(WAITING)
+  create_user     Int?
+  create_time     DateTime?       @default(now()) @db.DateTime(0)
+  remark          String?         @db.Text
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model photo {
   id             Int       @id @default(autoincrement())
+  status         String?   @db.VarChar(255)
+  queue          String?   @db.VarChar(255)
   upload_user_id Int
   ac_type        String?   @db.VarChar(255)
   ac_reg         String?   @db.VarChar(255)
@@ -55,8 +62,13 @@ model photo {
   airport_id     Int?
   pic_type       String?   @db.VarChar(255)
   user_remark    String?   @db.VarChar(255)
+  message        String?   @db.VarChar(255)
   photo_time     DateTime? @db.Date
-  upload_time    DateTime? @db.Date
+  upload_time    DateTime? @default(dbgenerated("(now())")) @db.Date
+  screener_1     Int?
+  screener_2     Int?
+  reason         String?   @db.VarChar(255)
+  comment        String?   @db.VarChar(255)
   is_delete      Boolean?  @default(false)
 }
 
@@ -128,71 +140,42 @@ model aircraft {
   is_delete     Boolean   @default(false)
 }
 
-/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-/// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-view photo_queue_info {
-  queue_id             Int       @id @default(0)
-  photo_id             Int
-  queue_type           String?   @default("NORMAL") @db.VarChar(31)
-  status               String?   @default("WAIT SCREEN") @db.VarChar(127)
-  message_to_screener  String?   @db.VarChar(255)
-  screener_1           Int?
-  screener_2           Int?
-  need_senior_screener Boolean?  @default(true)
-  reason               String?   @db.VarChar(512)
-  screener_remark      String?   @db.VarChar(255)
-  result               String?   @default("REJECT") @db.VarChar(128)
-  upload_user_id       Int
-  username             String    @db.VarChar(50)
-  ac_type              String?   @db.VarChar(255)
-  ac_reg               String?   @db.VarChar(255)
-  ac_msn               String?   @db.VarChar(255)
-  airline              String?   @db.VarChar(255)
-  airport_id           Int?
-  pic_type             String?   @db.VarChar(255)
-  user_remark          String?   @db.VarChar(255)
-  photo_time           DateTime? @db.Date
-  upload_time          DateTime? @db.Date
-  airport_cn           String?   @db.VarChar(255)
-  airport_en           String?   @db.VarChar(255)
-  icao_code            String?   @db.VarChar(127)
-  iata_code            String?   @db.VarChar(127)
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model photo_backup {
+  id             Int       @default(0)
+  status         String?   @db.VarChar(255)
+  upload_user_id Int
+  ac_type        String?   @db.VarChar(255)
+  ac_reg         String?   @db.VarChar(255)
+  ac_msn         String?   @db.VarChar(255)
+  airline        String?   @db.VarChar(255)
+  airline_id     Int?
+  airport_id     Int?
+  pic_type       String?   @db.VarChar(255)
+  user_remark    String?   @db.VarChar(255)
+  message        Int?
+  photo_time     DateTime? @db.Date
+  upload_time    DateTime? @db.Date
+  screener_1     Int?
+  screener_2     Int?
+  reason         String?   @db.VarChar(255)
+  comment        Int?
+  is_delete      Boolean?  @default(false)
+
+  @@ignore
 }
 
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view full_photo_info {
-  queue_id            Int       @default(0)
-  photo_id            Int       @id
-  queue_type          String?   @default("NORMAL") @db.VarChar(31)
-  status              String?   @default("WAIT SCREEN") @db.VarChar(127)
-  message_to_screener String?   @db.VarChar(255)
-  screener_1          Int?
-  screener_2          Int?
-  reason              String?   @db.VarChar(512)
-  screener_remark     String?   @db.VarChar(255)
-  result              String?   @default("REJECT") @db.VarChar(128)
-  upload_user_id      Int
-  username            String    @db.VarChar(50)
-  ac_type             String?   @db.VarChar(255)
-  ac_reg              String?   @db.VarChar(255)
-  ac_msn              String?   @db.VarChar(255)
-  airline             String?   @db.VarChar(255)
-  airport_id          Int?
-  pic_type            String?   @db.VarChar(255)
-  user_remark         String?   @db.VarChar(255)
-  photo_time          DateTime? @db.Date
-  upload_time         DateTime? @db.Date
-  airport_cn          String?   @db.VarChar(255)
-  airport_en          String?   @db.VarChar(255)
-  airport_icao_code   String?   @db.VarChar(127)
-  airport_iata_code   String?   @db.VarChar(127)
-  is_delete           Boolean?  @default(false)
-}
-
-view accept_photo {
-  id                Int       @id
-  result            String?   @default("REJECT") @db.VarChar(128)
+  photo_id          Int       @id @default(0)
+  status            String?   @db.VarChar(255)
+  queue             String?   @db.VarChar(255)
+  message           String?   @db.VarChar(255)
+  screener_1        Int?
+  screener_2        Int?
+  reason            String?   @db.VarChar(255)
+  comment           String?   @db.VarChar(255)
   upload_user_id    Int
   username          String    @db.VarChar(50)
   ac_type           String?   @db.VarChar(255)
@@ -203,10 +186,62 @@ view accept_photo {
   pic_type          String?   @db.VarChar(255)
   user_remark       String?   @db.VarChar(255)
   photo_time        DateTime? @db.Date
-  upload_time       DateTime? @db.Date
+  upload_time       DateTime? @default(dbgenerated("(now())")) @db.Date
   airport_cn        String?   @db.VarChar(255)
   airport_en        String?   @db.VarChar(255)
   airport_icao_code String?   @db.VarChar(127)
   airport_iata_code String?   @db.VarChar(127)
-  is_delete         Boolean?  @default(false)
+}
+
+view accept_photo {
+  id                Int       @id @default(0)
+  upload_user_id    Int
+  username          String    @db.VarChar(50)
+  ac_type           String?   @db.VarChar(255)
+  ac_reg            String?   @db.VarChar(255)
+  ac_msn            String?   @db.VarChar(255)
+  airline           String?   @db.VarChar(255)
+  airport_id        Int?
+  pic_type          String?   @db.VarChar(255)
+  user_remark       String?   @db.VarChar(255)
+  photo_time        DateTime? @db.Date
+  upload_time       DateTime? @default(dbgenerated("(now())")) @db.Date
+  airport_cn        String?   @db.VarChar(255)
+  airport_en        String?   @db.VarChar(255)
+  airport_icao_code String?   @db.VarChar(127)
+  airport_iata_code String?   @db.VarChar(127)
+}
+
+/// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+/// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+view queue_photo {
+  photo_id          Int       @id @default(0)
+  status            String?   @db.VarChar(255)
+  queue             String?   @db.VarChar(255)
+  message           String?   @db.VarChar(255)
+  screener_1        Int?
+  screener_2        Int?
+  reason            String?   @db.VarChar(255)
+  comment           String?   @db.VarChar(255)
+  upload_user_id    Int
+  username          String    @db.VarChar(50)
+  ac_type           String?   @db.VarChar(255)
+  ac_reg            String?   @db.VarChar(255)
+  ac_msn            String?   @db.VarChar(255)
+  airline           String?   @db.VarChar(255)
+  airport_id        Int?
+  pic_type          String?   @db.VarChar(255)
+  user_remark       String?   @db.VarChar(255)
+  photo_time        DateTime? @db.Date
+  upload_time       DateTime? @default(dbgenerated("(now())")) @db.Date
+  airport_cn        String?   @db.VarChar(255)
+  airport_en        String?   @db.VarChar(255)
+  airport_icao_code String?   @db.VarChar(127)
+  airport_iata_code String?   @db.VarChar(127)
+}
+
+enum airtype_status {
+  REJECT
+  AVAILABLE
+  WAITING
 }

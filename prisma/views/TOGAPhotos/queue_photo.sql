@@ -1,5 +1,12 @@
 SELECT
-  `TOGAPhotos`.`full_photo_info`.`photo_id` AS `id`,
+  `TOGAPhotos`.`full_photo_info`.`photo_id` AS `photo_id`,
+  `TOGAPhotos`.`full_photo_info`.`status` AS `status`,
+  `TOGAPhotos`.`full_photo_info`.`queue` AS `queue`,
+  `TOGAPhotos`.`full_photo_info`.`message` AS `message`,
+  `TOGAPhotos`.`full_photo_info`.`screener_1` AS `screener_1`,
+  `TOGAPhotos`.`full_photo_info`.`screener_2` AS `screener_2`,
+  `TOGAPhotos`.`full_photo_info`.`reason` AS `reason`,
+  `TOGAPhotos`.`full_photo_info`.`comment` AS `comment`,
   `TOGAPhotos`.`full_photo_info`.`upload_user_id` AS `upload_user_id`,
   `TOGAPhotos`.`full_photo_info`.`username` AS `username`,
   `TOGAPhotos`.`full_photo_info`.`ac_type` AS `ac_type`,
@@ -19,5 +26,5 @@ FROM
   `TOGAPhotos`.`full_photo_info`
 WHERE
   (
-    `TOGAPhotos`.`full_photo_info`.`status` = 'ACCEPT'
+    `TOGAPhotos`.`full_photo_info`.`status` = 'WAIT SCREEN'
   )
