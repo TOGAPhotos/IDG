@@ -33,12 +33,12 @@ const Logger = createLogger({
 
 export default class Log {
     static info(message: string) {
-        console.log(Time.getUTCTime()+message)
-        Logger.info(`${Time.getUTCTime()}:${message}\n`);
+        console.log(Time.getUTCTime()+': '+message)
+        Logger.info(`${Time.getUTCTime()}: ${message}\n`);
     }
 
     static error(message: string) {
-        console.error(Time.getUTCTime()+message)
-        Logger.error(`${Time.getUTCTime()}:${message}\n`);
+        console.error(Time.getUTCTime()+': '+message)
+        Logger.error(`${Time.getUTCTime()}: ${message}\n`);
     }
 }

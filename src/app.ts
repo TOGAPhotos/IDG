@@ -22,7 +22,6 @@ server.response.fail = fail;
 server.use(Token.verifyMW)
 
 server.use((req,res,next)=>{
-
     req.uuid = randomUUID();
     req.userIp = req.headers['x-real-ip'] as string || req.ip;
     Log.info(`${req.userIp} ${req.method} ${req.url} userId:${req.token?.id} ${req.uuid} ${JSON.stringify(req.body)}`)
@@ -40,7 +39,6 @@ export default function StartHTTPServer(){
     server.listen(HTTP_PORT,async()=>{
         await WebsiteHandler.scheduleUpdate();
         // await bell('TOGAPhotos后端服务器',`${new Date().toString()}服务器启动`);
-        Log.info('Server Start On 3000\n====================\n');
-        console.log('Server Start On 3000');
+        Log.info('HTTP Server Start On localhost:3000');
     });
 }
