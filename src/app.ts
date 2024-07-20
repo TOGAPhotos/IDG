@@ -9,7 +9,7 @@ import bell from "./components/bell.js";
 import {HTTP_PORT} from "./config.js";
 import WebsiteHandler from "./handler/info/website.js";
 import {success,fail} from './exntend/response.js'
-import { HTTP_STATUS } from "../types/http_code.js";
+import { HTTP_STATUS } from "./types/http_code.js";
 
 const server = express();
 

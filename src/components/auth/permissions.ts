@@ -1,6 +1,6 @@
 import { Request,Response,NextFunction } from "express";
 import User from "../../dto/user.js";
-import { HTTP_STATUS } from "../../../types/http_code.js";
+import { HTTP_STATUS } from "../../types/http_code.js";
 
 export default class Permission{
 
@@ -47,6 +47,20 @@ export default class Permission{
         if( !req.token ){
             return res.fail(HTTP_STATUS.UNAUTHORIZED,"未登录")
         }
+        next()
+    }
+
+    static async isStaffMW(req:Request, res:Response, next:NextFunction){
+        const userInfo = await User.getById(req.token.id);
+
+        if( !Permission.checkUserStatus(userInfo) ){
+            return res.fail(HTTP_STATUS.UNAUTHORIZED,"用户状态异常")
+        }
+        if( !Permission.isStaff(userInfo.role) ){
+            return res.fail(HTTP_STATUS.UNAUTHORIZED,"没有权限")
+        }
+
+        req.role = userInfo.role;
         next()
     }
 
