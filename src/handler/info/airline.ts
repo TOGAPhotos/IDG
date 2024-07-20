@@ -46,12 +46,14 @@ export default class AirlineHandler{
 
     static async list(req:Request, res:Response){
         const dbResult = await Airline.getList();
-
         if (req.query?.type === 'full') {
             const reviewList = await Airline.getReviewList();
-            return res.success('查询成功', {airline: dbResult, reviewList});
+            return res.success('查询成功',{airline: dbResult, reviewList})
+        }else if(req.query?.type === 'review'){
+            const reviewList = await Airline.getReviewList();
+            return res.success('查询成功',{reviewList})
         }else{
-            return res.json({message: '查询成功', airline: dbResult});
+            return res.success('查询成功',{airline: dbResult})
         }
     
     }
@@ -77,10 +79,14 @@ export default class AirlineHandler{
             MailTemp.InfoReviewNotice(createUser.user_email, status, airlineInfo.airline_cn, airlineInfo.icao_code, airlineInfo.iata_code);
         }else{
             await Airline.update(airlineId, req.body);
-            res.json({message: '修改成功'});
-
+            res.success('修改成功');
         }
         await AirlineHandler.searchCache.flush();
     }
 
+    static async get(req:Request, res:Response){
+        const airlineId = Number(req.params.id);
+        const result = await Airline.getById(airlineId);
+        res.success('查询成功', result);
+    }
 }

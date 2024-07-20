@@ -42,20 +42,6 @@ export class Airline{
         });
     }
 
-    // static async verifyAirline(id:number,status:'accept'|'reject') {
-    //     if (status === 'accept') {
-    //         return prisma.airline.update({
-    //             where: {id: id}, 
-    //             data: {status: 'AVAILABLE'}
-    //         })
-    //     } else if (status === 'reject') {
-    //         return prisma.airline.update({
-    //             where: {id: id}, 
-    //             data: {status: 'REJECT'}
-    //         })
-    //     }
-    // }
-
     static async create(airlineCnName:string,airlineEnName:string,iata:string,icao:string,addUser:number,status:string) {
         return prisma.airline.create({
             data:{
