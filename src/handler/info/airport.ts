@@ -5,7 +5,7 @@ import Permission from "../../components/auth/permissions.js";
 import SearchCache from "../../service/redis/searchCache.js";
 import MailTemp from "../../service/mail/mailTemp.js";
 import {REDIS_DB} from "../../service/redis/distribute.js";
-import { HTTP_STATUS } from "../../../types/http_code.js";
+import { HTTP_STATUS } from "../../types/http_code.js";
 
 
 export default class AirportHandler{
@@ -32,29 +32,31 @@ export default class AirportHandler{
         res.success('查询成功', dbResult);
     }
 
-    static async list(req:Request,res:Response){
-        if(req.query?.search){
-            let result = await AirportHandler.searchCache.get(<string>req.query.search);
-            console.log(result)
-            if(result === null){
-                result = await Airport.searchByKeyword(<string>req.query.search);
-                console.log(result)
-                res.success('查询成功', result);
-                return AirportHandler.searchCache.set(<string>req.query.search, result);
-            }else{
-                res.success('查询成功', result);
-            }
+    static async search(req:Request,res:Response){
+        const keyword = req.query?.search as string;
 
+        let result = await AirportHandler.searchCache.get(keyword);
+        if(result === null){
+            result = await Airport.searchByKeyword(keyword);
+            await AirportHandler.searchCache.set(keyword, result);
         }
+        res.success('查询成功', result);
+    }
 
+    static async list(req:Request,res:Response){
+
+        if(req.query?.type === 'review'){
+            const reviewList = await Airport.getReviewAirportList();
+            return res.success('查询成功', {reviewList:reviewList});
+        }
+        
         const dbResult = await Airport.getAvailableAirportList();
-
         if(req.query?.type === 'full'){
             const reviewList = await Airport.getReviewAirportList();
-            res.success('查询成功', {airport: dbResult, reviewList});
+            return res.success('查询成功', {airport: dbResult, reviewList:reviewList});
+        }else{
+            return res.success('查询成功', dbResult);
         }
-
-        res.success('查询成功', dbResult);
     }
 
     static async create(req:Request,res:Response){
@@ -84,11 +86,11 @@ export default class AirportHandler{
         if (status === 'AVAILABLE' || status === 'REJECT') {
             const airportInfo = await Airport.update(airportId, {status: status});
             res.success('审核完成');
-            const createUser = await User.getById(airportInfo.add_user);
+            const createUser = await User.getById(airportInfo.create_user);
             if (!Permission.checkUserStatus(createUser)) {
                 return;
             }
-            await MailTemp.InfoReviewNotice(createUser.user_email, status, airportInfo.airport_cn, airportInfo.iata_code, airportInfo.iata_code);
+            // await MailTemp.InfoReviewNotice(createUser.user_email, status, airportInfo.airport_cn, airportInfo.iata_code, airportInfo.iata_code);
 
         }else{
             await Airport.update(airportId,req.body);

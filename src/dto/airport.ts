@@ -11,7 +11,7 @@ export class Airport {
                 airport_en: airportEn,
                 iata_code: iata,
                 icao_code: icao,
-                add_user: addUser,
+                create_user: addUser,
                 status: status
             }
         })
@@ -19,28 +19,24 @@ export class Airport {
 
 
     static async getById(id: number) {
-        // [id] = checkNumberParams(id)
         return prisma.airport.findUnique({where: {id: id}})
     }
 
 
     static async searchByKeyword(keyword: string) {
         [keyword] = checkSqlString(keyword)
-        if (keyword.search(/^[A-Z]{3,4}$/) !== -1) {
-            return prisma.$queryRawUnsafe(`SELECT *
-                                           FROM airport
-                                           WHERE (iata_code LIKE '%${keyword}%'
-                                              OR icao_code LIKE '%${keyword}%')
-                                              AND status = 'AVAILABLE'
-                                              `);
-        } else {
-            return prisma.$queryRawUnsafe(`SELECT *
-                                           FROM airport
-                                           WHERE airport_cn LIKE '%${keyword}%' 
-                                              OR airport_en LIKE '%${keyword}%'
-                                             AND status = 'AVAILABLE'`
-            );
-        }
+            return prisma.airport.findMany({
+                where: {
+                    OR: [
+                        {iata_code: {contains: keyword}},
+                        {icao_code: {contains: keyword}},
+                        {airport_cn: {contains: keyword}},
+                        {airport_en: {contains: keyword}}
+                    ],
+                    status: 'AVAILABLE',
+                    is_delete: false
+                }
+            });
     }
 
     static async getAvailableAirportList() {
@@ -53,7 +49,6 @@ export class Airport {
 
 
     static async delete(id: number) {
-        [id] = checkNumberParams(id)
         return prisma.airport.update({
             where: {id: id},
             data: {is_delete: true},
@@ -61,7 +56,6 @@ export class Airport {
     }
 
     static async update(id: number, data: any) {
-        [id] = checkNumberParams(id)
         return await prisma.airport.update({
             where: {id: id},
             data: data,
@@ -71,7 +65,7 @@ export class Airport {
     static async createPreCheck(userId: number) {
         const result = await prisma.airport.findMany({
             where: {
-                add_user: userId,
+                create_user: userId,
                 status: 'WAITING',
                 is_delete: false
             }
