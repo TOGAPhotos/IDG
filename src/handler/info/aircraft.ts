@@ -2,7 +2,7 @@ import {Request, Response} from "express";
 import SearchCache from "../../service/redis/searchCache.js";
 import {REDIS_DB} from "../../service/redis/distribute.js";
 import {Aircraft} from "../../dto/aircraft.js";
-import { HTTP_STATUS } from "../../../types/http_code.js";
+import { HTTP_STATUS } from "../../types/http_code.js";
 
 export default class AircraftHandler{
     static searchCache = new SearchCache(REDIS_DB.AIRPORT_SEARCH_CACHE);

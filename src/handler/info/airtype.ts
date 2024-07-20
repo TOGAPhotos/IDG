@@ -4,7 +4,7 @@ import User from "../../dto/user.js";
 import {Airtype} from "../../dto/airtype.js";
 import {REDIS_DB} from "../../service/redis/distribute.js";
 import Permission from '../../components/auth/permissions.js';
-import { HTTP_STATUS } from '../../../types/http_code.js';
+import { HTTP_STATUS } from '../../types/http_code.js';
 import MailTemp from "../../service/mail/mailTemp.js";
 
 export default class AirtypeHandler{
@@ -28,18 +28,38 @@ export default class AirtypeHandler{
         await AirtypeHandler.searchCache.flush();
     }
 
-    static async getList(req:Request, res:Response){
-        if(req.query?.search) {
-            const keyword = req.query['search'] as string;
-            let result = await AirtypeHandler.searchCache.get(keyword);
-            if(result === null){
-                result = await Airtype.searchByKeyword(keyword);
-            }
-            res.success('查询成功', result);
-            await AirtypeHandler.searchCache.set(keyword, result);
+    static async search(req:Request, res:Response){
+        if( !req.query?.search ){
+            return res.fail(HTTP_STATUS.BAD_REQUEST, '请输入搜索关键字');
+        }
+        const keyword = req.query['search'] as string;
+        let result = await AirtypeHandler.searchCache.get(keyword);
+        if(result === null){
+            result = await Airtype.searchByKeyword(keyword);
+        }
+        res.success('查询成功', result);
+        await AirtypeHandler.searchCache.set(keyword, result);
+        
+    }
+
+    static async get(req:Request, res:Response){
+        const id = Number(req.params["id"]);
+        const result = await Airtype.getById(id);
+        res.success('查询成功', result);
+    }
+
+    static async list(req:Request, res:Response){
+        const type = req.query.type as string;
+        if(type === 'review'){
+            const dbResult = await Airtype.getReviewList();
+            return res.success('查询成功', {reviewList: dbResult});
+        }
+        const dbResult = await Airtype.getList();
+        if(type === 'full'){
+            const reviewList = await Airtype.getReviewList();
+            return res.success('查询成功', {airtype: dbResult, reviewList});
         }else{
-            const dbResult = await Airtype.getList();
-            res.success('查询成功', dbResult);
+            return res.success('查询成功', {airtype: dbResult});
         }
     }
 
@@ -51,18 +71,18 @@ export default class AirtypeHandler{
     }
 
     static async update(req:Request, res:Response){
-        const subType = req.params["sub_type"] as string;
+        const id = Number(req.params["id"])
         const { status } = req.query;
         if(status === 'AVAILABLE' || status === 'REJECT'){
-            const airtypeInfo = await Airtype.update(subType, {status:status});
+            const airtypeInfo = await Airtype.update(id, {status:status});
             res.success('审核完成');
             const createUser = await User.getById(airtypeInfo.create_user);
             if(!Permission.checkUserStatus(createUser)){
                 return;
             }
-            MailTemp.InfoReviewNotice(createUser.user_email, status, airtypeInfo.manufacturer_cn, airtypeInfo.type, airtypeInfo.sub_type);
+            // MailTemp.InfoReviewNotice(createUser.user_email, status, airtypeInfo.manufacturer_cn, airtypeInfo.type, airtypeInfo.sub_type);
         }else{
-            await Airtype.update(subType, req.body);
+            await Airtype.update(id, req.body);
             res.success('更新成功');
         }
         await AirtypeHandler.searchCache.flush();

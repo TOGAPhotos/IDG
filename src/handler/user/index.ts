@@ -7,7 +7,7 @@ import Time from "../../components/time.js";
 import  Permission from "../../components/auth/permissions.js";
 import {emailRegex} from "../../components/regexp.js";
 import Photo from "../../dto/photo.js";
-import { HTTP_STATUS } from "../../../types/http_code.js";
+import { HTTP_STATUS } from "../../types/http_code.js";
 
 export default class UserHandler{
     static async login(req:Request,res:Response) {

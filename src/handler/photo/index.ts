@@ -8,6 +8,7 @@ import Permission from "../../components/auth/permissions.js";
 
 import {photoBaseFolder} from "../../config.js";
 import multer from "multer";
+import { HTTP_STATUS } from "../../types/http_code.js";
 
 export default class PhotoHandler {
 
@@ -17,8 +18,8 @@ export default class PhotoHandler {
         const id = Number(req.params['id']);
         const photoInfo = await Photo.getAcceptById(id);
 
-        if (photoInfo === null) {
-            return res.status(HTTP_STATUS.NOT_FOUND).json({message: "图片不存在"});
+        if (photoInfo === null ) {
+            return res.fail(HTTP_STATUS.BAD_REQUEST, '图片不存在');
         }
         res.success('获取成功', photoInfo);
     }
@@ -61,8 +62,7 @@ export default class PhotoHandler {
                 throw new Error('Search Type');
         }
 
-
-        return res.json({message: '查询成功', data: result});
+        res.success('查询成功', result);
     }
 
     static storage = multer.diskStorage({
@@ -112,7 +112,7 @@ export default class PhotoHandler {
 
         Log.info(`access_id:${req.uuid} user_id:${userId} username:${userInfo['username']} 尝试删除图片 ${photoId}`);
 
-        if (photoInfo.is_delete) {
+        if (photoInfo === null) {
             return res.status(HTTP_STATUS.NOT_FOUND).json({message: "已删除"});
         }
 
@@ -135,12 +135,41 @@ export default class PhotoHandler {
 
         if (photoInfo.status === 'WAIT SCREEN') {
             let data = {free_queue: {increment: 1}}
-            if (photoInfo.queue_type === "PRIORITY") {
+            if (photoInfo.queue === "PRIORITY") {
                 data["free_priority_queue"] = {increment: 1}
             }
             await User.updateById(userId, data);
         }
 
         return res.json({message: '删除成功'});
+    }
+
+    static async update(req: Request, res: Response) {
+        let photoId = Number(req.params['id']);
+
+        const userInfo = await User.getById(req.token.id);
+        const photoInfo = await Photo.getById(photoId);
+
+        if (photoInfo) {
+            return res.status(HTTP_STATUS.NOT_FOUND).json({message: "已删除"});
+        }
+        
+        if (Permission.checkUserPermission(userInfo.role,'DATABASE') && req.token.id !== photoInfo['uploader']) {
+            return res.status(HTTP_STATUS.FORBIDDEN).json({message: '无权限'});
+        }
+
+        if (photoInfo['in_upload_queue']) {
+            /**
+             * @todo 修改图片信息
+             * */
+            // const queueInfo = await prisma.upload_queue.findUnique({where: {photo_id: photoId}});
+            // if (queueInfo['screening']) {
+            //     return res.status(HTTP_STATUS.FORBIDDEN).json({message: '正在审核中'});
+            // }
+        }
+        
+        await Photo.update( photoId,req.body);
+        return res.success("更新成功");
+        
     }
 }

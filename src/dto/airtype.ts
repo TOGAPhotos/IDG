@@ -12,6 +12,10 @@ export class Airtype{
         );
     }
 
+    static async getById(id:number) {
+        return prisma.airtype.findUnique({where:{id:id}});
+    }
+
     static async createPreCheck(userId:number) {
         const res = await prisma.airtype.findMany({
             where:{
@@ -36,17 +40,21 @@ export class Airtype{
         });
     }
 
+    static async getReviewList() {
+        return prisma.airtype.findMany({where:{status:'WAITING'},orderBy:{sub_type:'asc'}});
+    }
 
     static async getList() {
         return prisma.airtype.findMany({orderBy:{sub_type:'asc'}});
     }
+
     @secureSqlString
     static async delete(subType:string) {
         await prisma.airtype.delete({where:{sub_type:subType}});
     }
 
-    static async update(subType:string, data:any) {
-        return await prisma.airtype.update({where:{sub_type:subType},data:data});
+    static async update(id:number, data:any) {
+        return await prisma.airtype.update({where:{id:id},data:data});
     }
 
 }

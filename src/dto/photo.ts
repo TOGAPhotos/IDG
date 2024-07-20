@@ -196,4 +196,8 @@ export default class Photo {
         })
     }
 
+    static async update(id:number,data:any){
+        this.prisma.photo.update({where: {id: id}, data: data})
+    }
+
 }
