@@ -5,18 +5,18 @@ export default class UploadQueue {
     static prisma = new PrismaClient();
 
     static async getByUserId(userId: number) {
-        return UploadQueue.prisma.photo_queue_info.findMany({where: {upload_user_id: userId}});
+        return UploadQueue.prisma.full_photo_info.findMany({where: {upload_user_id: userId}});
     }
 
     static async getById(photoId: number) {
-        return UploadQueue.prisma.photo_queue_info.findUnique({where: {queue_id: photoId}});
+        return UploadQueue.prisma.full_photo_info.findUnique({where: {photo_id: photoId}});
     }
 
     static async getTop(id: number, role: string) {
         if (Permission.isSeniorScreener(role)) {
-            return UploadQueue.prisma.photo_queue_info.findFirst({where: {queue_id: {gt: id}}})
+            return UploadQueue.prisma.full_photo_info.findFirst({where: {photo_id: {gt: id}}})
         } else {
-            return UploadQueue.prisma.photo_queue_info.findFirst({where: {queue_id: {gt: id}, screener_1: null}})
+            return UploadQueue.prisma.full_photo_info.findFirst({where: {photo_id: {gt: id}, screener_1: null}})
         }
 
     }
@@ -29,7 +29,7 @@ export default class UploadQueue {
         return UploadQueue.prisma.full_photo_info.findMany({
             where:{
                 OR:[{status: "ACCEPT"}, {status: "REJECT"}],
-                is_delete:false,
+                // is_delete:false,
             },
             orderBy:{upload_time:"desc"},
             take:200
@@ -48,7 +48,7 @@ export default class UploadQueue {
 
     static async rejectQueue(userId: number) {
         return this.prisma.full_photo_info.findMany({
-        where: {upload_user_id: userId, is_delete:false},
+        where: {upload_user_id: userId,},
         orderBy: {upload_time: "desc"},
         take:10
         });
