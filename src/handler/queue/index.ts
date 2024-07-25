@@ -26,24 +26,24 @@ export default class QueueHandler {
         }
         const result = await UploadQueue.getById(queueId)
 
-        return res.json({message: '查询成功', data: result});
+        return res.success('查询成功', result);
     }
-
 
     static async getQueueTop(req: Request, res: Response) {
         const cursor = Number(req.query['cursor']) || 0;
         const userInfo = await User.getById(req.token.id);
 
-        const MAX_TRY = 0;
+        const MAX_TRY = 10;
         
         for(let counter = 0;counter<MAX_TRY;counter++){
             let result = await UploadQueue.getTop(cursor,userInfo.role);
             const cacheInfo = await QueueHandler.uploadQueueCache.get(result.photo_id);
             if(cacheInfo === null || Number(cacheInfo) === req.token.id){
                 await QueueHandler.uploadQueueCache.set(result.photo_id,userInfo.id);
-                return res.success("查询成功",{queueId:result.photo_id});
+                return res.success("查询成功",{photoId:result.photo_id});
             }
         }
+
         return res.fail(HTTP_STATUS.SERVER_ERROR,'服务器错误');
     }
 
@@ -59,7 +59,7 @@ export default class QueueHandler {
         } else {
             await QueueHandler.uploadQueueCache.del(queueId);
         }
-        return res.end();
+        return res.success('success',action);
     }
 
     static async processScreenResult(req: Request, res: Response) {
@@ -123,9 +123,24 @@ export default class QueueHandler {
         }
     }
 
+    static async getQueue(req: Request, res: Response) {
+        type _QueueType = 'normal' | 'priority' | 'stuck';
+
+        const type =  req.query['type']  || 'normal' ;
+        switch (type) {
+            case 'screened':
+                return await QueueHandler.getScreenedPhoto(req, res);
+            default:
+                const dbRes = await UploadQueue.getQueue(<_QueueType>type);
+                return res.success('查询成功', dbRes);
+        }
+    }
+
+    
+
     static async getScreenedPhoto(req: Request, res: Response) {
         const result = await UploadQueue.recentScreenPhoto();
-        return res.json({message: "查询成功", result});
+        return res.success('查询成功', result);
     }
 
     static async userRejectQueue(req: Request, res: Response) {
