@@ -58,8 +58,9 @@ router.delete('/photo/:id', Per.isScreenerMW, PhotoHandler.delete);
 
 // queue
 router.get('/queue/top',  Per.isScreenerMW,QueueHandler.getQueueTop);
-router.get('/queue/screened',Per.isScreenerMW,QueueHandler.getScreenedPhoto);
-router.get('/queue/photos',Per.isScreenerMW,GetScreenQueue)
+router.get('/queue',Per.isScreenerMW,QueueHandler.getQueue)
+// router.get('/queue/screened',Per.isScreenerMW,QueueHandler.getScreenedPhoto);
+// router.get('/queue/photos',Per.isScreenerMW,GetScreenQueue)
 router.get('/queue/photo/:id',Per.isScreenerMW,QueueHandler.getQueuePhoto);
 router.put('/queue/photo/:id',Per.isScreenerMW,QueueHandler.beater);
 router.post('/queue/photo/:id',Per.isScreenerMW,QueueHandler.processScreenResult);
