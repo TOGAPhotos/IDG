@@ -40,6 +40,11 @@ export default class UserHandler{
         return userInfo;
     }
 
+    private static delPrivateInfo(userInfo: any){
+        delete userInfo.user_email;
+        delete userInfo.pass_rate;
+    }
+
     static async register(req:Request,res:Response){
         let {email,username,password,passwordR}:{email:string,username:string,password:string,passwordR:string} = req.body;
 
@@ -125,9 +130,16 @@ export default class UserHandler{
         }
         userInfo = UserHandler.safeUserInfo(userInfo);
 
-        if(req.query["action"] === 'uploadCheck'){
+        if(req.query["type"] === 'safe'){
+            if(!Permission.isSeniorScreener(userInfo.role)){
+                return res.fail(HTTP_STATUS.UNAUTHORIZED,"没有权限")
+            }
             return res.success("查询成功",userInfo)
-
+        }
+        
+        UserHandler.delPrivateInfo(userInfo);
+        if(req.query["type"] === 'info'){
+            return res.success("查询成功",userInfo)
         }else{
             const photoList = await Photo.getByUserId(userId);
             return res.success("查询成功",{userInfo:userInfo,photoList:photoList})
