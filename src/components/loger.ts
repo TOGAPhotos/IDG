@@ -1,5 +1,7 @@
 import {createLogger, format, transports} from 'winston';
 import 'winston-daily-rotate-file';
+import chalk from 'chalk';
+
 import Time from "./time.js";
 
 const customFormat = format.combine(
@@ -33,6 +35,11 @@ const Logger = createLogger({
 
 export default class Log {
     static info(message: string) {
+        if(message.includes('PUT') || message.includes('POST')){
+            message = chalk.bgYellow.bold(message)
+        }else if (message.includes('DELETE')){
+            message = chalk.bgRed.bold(message)
+        }
         console.log(Time.getUTCTime()+': '+message)
         Logger.info(`${Time.getUTCTime()}: ${message}\n`);
     }
