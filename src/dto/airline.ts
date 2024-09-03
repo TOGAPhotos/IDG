@@ -28,7 +28,6 @@ export class Airline{
 
 
     static async deleteById(id:number) {
-        [id] = checkNumberParams(id)
         return prisma.airline.update({where:{id:id}, data:{is_delete:true}})
     }
 

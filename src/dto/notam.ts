@@ -20,7 +20,6 @@ export default class Notam{
     }
 
     static async getById(id:number){
-        [id] = checkNumberParams(id)
         return prisma.notam.findUnique({where:{id:id}});
     }
 
