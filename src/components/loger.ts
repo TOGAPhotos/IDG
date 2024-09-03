@@ -3,6 +3,7 @@ import 'winston-daily-rotate-file';
 import chalk from 'chalk';
 
 import Time from "./time.js";
+import { PRODUCTION_ENV } from '../config.js';
 
 const customFormat = format.combine(
     format.timestamp({format: "MMM-DD-YYYY HH:mm:ss"}),
@@ -34,18 +35,37 @@ const Logger = createLogger({
 });
 
 export default class Log {
+    static success(message: string) {
+        console.log(chalk.bgGreen.bold(Time.getUTCTime()+': '+message))
+        Logger.info(message);
+    }
+
+    static debug(message: string) {
+        if( PRODUCTION_ENV ) return;
+        console.log(Time.getUTCTime()+': '+message)
+        Logger.info(message);
+    }
+
     static info(message: string) {
+        const _msg = message;
         if(message.includes('PUT') || message.includes('POST')){
             message = chalk.bgYellow.bold(message)
         }else if (message.includes('DELETE')){
             message = chalk.bgRed.bold(message)
         }
         console.log(Time.getUTCTime()+': '+message)
-        Logger.info(`${Time.getUTCTime()}: ${message}\n`);
+        Logger.info(_msg);
+    }
+
+    static warn(message: string) {
+        console.warn(chalk.bgYellow.bold(Time.getUTCTime()+': '+message))
+        Logger.warn(message);
     }
 
     static error(message: string) {
-        console.error(Time.getUTCTime()+': '+message)
-        Logger.error(`${Time.getUTCTime()}: ${message}\n`);
+        console.error(chalk.bgRed.bold(Time.getUTCTime()+': '+message))
+        Logger.error(message);
     }
+
+
 }

@@ -1,8 +1,12 @@
 import 'dotenv/config'
 
+export const PRODUCTION_ENV = (process.env.RUNNING_ENV || 'PRODUCTION') === "PRODUCTION"
+
 export const HTTP_PORT = Number(process.env.HTTP_PORT) || 3000;
 
 export const TOKEN_EXPIRE_TIME =  60 * 60 * 24 * 30;
+
+export const WORKER_REPORT_INTERVAL = 1000 * 60 * 5;
 
 export const photoBaseFolder = '/opt/1panel/apps/openresty/openresty/www/sites/photo.tp.794td.cn/index'
 
