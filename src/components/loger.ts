@@ -3,7 +3,7 @@ import 'winston-daily-rotate-file';
 import chalk from 'chalk';
 
 import Time from "./time.js";
-import { PRODUCTION_ENV } from '../config.js';
+import { PRODUCTION_ENV } from '@/config.js';
 
 const customFormat = format.combine(
     format.timestamp({format: "MMM-DD-YYYY HH:mm:ss"}),
@@ -42,8 +42,8 @@ export default class Log {
 
     static debug(message: string) {
         if( PRODUCTION_ENV ) return;
-        console.log(Time.getUTCTime()+': '+message)
-        Logger.info(message);
+        console.debug(Time.getUTCTime()+': '+message)
+        Logger.debug(message);
     }
 
     static info(message: string) {

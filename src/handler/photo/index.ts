@@ -1,12 +1,12 @@
 import fs from "fs/promises";
-import {Request, Response} from "express";
+import {NextFunction, Request, Response} from "express";
 import Log from "../../components/loger.js";
 
 import User from "../../dto/user.js";
 import Photo from "../../dto/photo.js";
 import Permission from "../../components/auth/permissions.js";
 
-import {photoBaseFolder} from "../../config.js";
+import {photoBaseFolder,PHOTO_FOLDER} from "../../config.js";
 import multer from "multer";
 import { HTTP_STATUS } from "../../types/http_code.js";
 
@@ -85,22 +85,19 @@ export default class PhotoHandler {
                 allowSocialMedia:(req.body['allowSocialMedia'] === '1')
             });
             const photoId = dbResult.id
-            // req.body['photoId'] = photoId;
             callback(null, `${photoId}.jpg`);
         }
     });
 
-    static async upload(req: Request, res: Response) {
+    static async UploadCheck(req: Request, res: Response, next:NextFunction) {
         const userInfo = await User.getById(req.token.id)
-        if (
-            userInfo.free_queue <= 0 ||
-            (req.body['queue'] === 'PRIORITY'
-                && userInfo.free_priority_queue <= 0)
-        ) {
-
+        if ( userInfo.free_queue <= 0 ) {
             return res.status(HTTP_STATUS.BAD_REQUEST).json({message: '无剩余队列'});
         }
-
+        if(req.body['queue'] === 'PRIORITY' && userInfo.free_priority_queue <= 0 ){
+            return res.status(HTTP_STATUS.BAD_REQUEST).json({message: '无剩余优先队列'});
+        }
+        next();
     }
 
     static async delete(req: Request, res: Response) {
