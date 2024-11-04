@@ -1,19 +1,23 @@
 import fs from "fs/promises";
-import {NextFunction, Request, Response} from "express";
-import Log from "../../components/loger.js";
+import type { Request, Response} from "express";
+import Log from "@/components/loger.js";
 
-import User from "../../dto/user.js";
-import Photo from "../../dto/photo.js";
-import Permission from "../../components/auth/permissions.js";
+import User from "@/dto/user.js";
+import Photo from "@/dto/photo.js";
+import Permission from "@/components/auth/permissions.js";
 
-import {photoBaseFolder,PHOTO_FOLDER} from "../../config.js";
-import multer from "multer";
-import { HTTP_STATUS } from "../../types/http_code.js";
+import {photoBaseFolder,PHOTO_FOLDER} from "@/config.js";
+import { HTTP_STATUS } from "@/types/http_code.js";
+import photoBucket from './cos.js'
 
 export default class PhotoHandler {
 
+    private static readonly photoBucket = photoBucket;
     private static readonly photoFolder = `${photoBaseFolder}/photos`;
-
+    private static readonly queueType = {
+        'PRIORITY': 'PRIO',
+        'NORMAL': 'NORM'
+    }
     static async get(req: Request, res: Response) {
         const id = Number(req.params['id']);
         const photoInfo = await Photo.getAcceptById(id);
@@ -33,15 +37,11 @@ export default class PhotoHandler {
     static async search(req: Request, res: Response) {
         const type = req.query['type'] as string;
         const keyword = req.query['keyword'] as string;
-        let lastId = Number(req.query['lastId']);
-        const num = Number(req.query['num'])
+        let lastId = Number(req.query['lastId']) || -1;
+        const num = Number(req.query['num']) || 20;
 
-        if(isNaN(lastId)){
-            lastId = -1;
-        }
 
         let result;
-
         switch (type) {
             case 'reg':
                 result = await Photo.searchByRegKeyword(keyword, lastId, num);
@@ -61,43 +61,48 @@ export default class PhotoHandler {
             default:
                 throw new Error('Search Type');
         }
-
         res.success('查询成功', result);
     }
 
-    static storage = multer.diskStorage({
-        destination: function (req, file, callback) {
-            callback(null, photoBaseFolder + '/photos');
-        },
-        filename: async function (req, file, callback) {
-            const d = new Date();
-            const dbResult = await Photo.create({
-                userId: req.token.id,
-                uploadTime: new Date(),
-                reg: req.body["reg"],
-                msn: req.body["msn"],
-                picType: req.body["picType"],
-                airport: req.body["airport"],
-                airline: req.body["airline"],
-                airtype: req.body["airtype"],
-                photoTime: new Date(req.body["photoDate"]),
-                remark: req.body["remark"],
-                allowSocialMedia:(req.body['allowSocialMedia'] === '1')
-            });
-            const photoId = dbResult.id
-            callback(null, `${photoId}.jpg`);
-        }
-    });
+    static async upload(req: Request, res: Response) {
 
-    static async UploadCheck(req: Request, res: Response, next:NextFunction) {
-        const userInfo = await User.getById(req.token.id)
-        if ( userInfo.free_queue <= 0 ) {
-            return res.status(HTTP_STATUS.BAD_REQUEST).json({message: '无剩余队列'});
+        const userId = req.token.id;
+        const userInfo = await User.getById(userId);
+
+        if( ( req['queue'] === PhotoHandler.queueType.PRIORITY && 
+            userInfo?.free_priority_queue <= 0 ) ||
+            (userInfo?.free_queue <= 0)
+        ){
+            return res.fail(HTTP_STATUS.FORBIDDEN, '队列已满');
         }
-        if(req.body['queue'] === 'PRIORITY' && userInfo.free_priority_queue <= 0 ){
-            return res.status(HTTP_STATUS.BAD_REQUEST).json({message: '无剩余优先队列'});
+        
+        const photoInfo = await Photo.create({
+            userId:userId,
+            uploadTime:req.body['uploadTime'],
+            reg:req.body['reg'],
+            msn:req.body['msn'],
+            airline:req.body['airline'],
+            ac_type:req.body['ac_type'],
+            airport:req.body['airport'],
+            picType:req.body['picType'],
+            photoTime:req.body['photoTime'],
+            remark:req.body['remark'],
+            queue: req['queue'] === PhotoHandler.queueType.PRIORITY ? 'PRIORITY' : 'NORMAL',
+        })
+        try{
+            const uploadUrl = PhotoHandler.photoBucket.getUploadUrl(photoInfo['id']+'.jpg');
+            res.success('创建成功',{
+                uploadUrl,
+                photoId:photoInfo['id'],
+            })
+            await User.updateById(userId, {
+                free_queue: {decrement: 1},
+                free_priority_queue: {decrement: req['queue'] === PhotoHandler.queueType.PRIORITY ? 1 : 0}
+            });
+        }catch{
+            await Photo.deleteById(photoInfo['id']);
+            return res.fail(HTTP_STATUS.SERVER_ERROR, '上传失败/COS错误');
         }
-        next();
     }
 
     static async delete(req: Request, res: Response) {
@@ -110,24 +115,27 @@ export default class PhotoHandler {
         Log.info(`access_id:${req.uuid} user_id:${userId} username:${userInfo['username']} 尝试删除图片 ${photoId}`);
 
         if (photoInfo === null) {
-            return res.status(HTTP_STATUS.NOT_FOUND).json({message: "已删除"});
+            return res.fail(HTTP_STATUS.NOT_FOUND, '已删除');
         }
 
         if (
             !(Permission.checkUserPermission(userInfo.role, Permission.screener1) ||
                 userId === photoInfo.upload_user_id)
         ) {
-            return res.status(HTTP_STATUS.FORBIDDEN).json({message: "您没有权限删除图片"});
+            return res.fail(HTTP_STATUS.FORBIDDEN, '您没有权限删除图片');
         }
 
-        await Photo.deleteById(photoId);
         try {
+            await Photo.deleteById(photoId);
             await fs.unlink(`${this.photoFolder}/${photoId}.jpg`);
             if (photoInfo.status === 'ACCEPT') {
                 await fs.unlink(`${photoBaseFolder}/min/photos/${photoId}.jpg`);
             }
         } catch (e) {
+            console.log('recover photo');
+            await Photo.update(photoId,{is_delete:false});
             Log.error(e)
+            return res.fail(HTTP_STATUS.SERVER_ERROR, '删除失败');
         }
 
         if (photoInfo.status === 'WAIT SCREEN') {
