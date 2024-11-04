@@ -3,7 +3,6 @@ import { Request,Response,NextFunction } from "express";
 import cors from "cors";
 import router from "./router/index.js";
 import  Log  from "./components/loger.js";
-import { randomUUID } from "crypto";
 import Token from './components/auth/token.js'
 import bell from "./components/bell.js";
 import {HTTP_PORT} from "./config.js";
@@ -22,9 +21,10 @@ server.response.fail = fail;
 server.use(Token.verifyMW)
 
 server.use((req,res,next)=>{
-    req.uuid = randomUUID();
     req.userIp = req.headers['x-real-ip'] as string || req.ip;
-    Log.info(`${req.userIp} ${req.method} ${req.url} userId:${req.token?.id} ${req.uuid} ${JSON.stringify(req.body)}`)
+    const accessLog = `${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || 'NOT LOGIN'} trace_id:${req.headers['t_id']} ${JSON.stringify(req.body)}`;
+    Log.silenceInfo(accessLog);
+    Log.debug(accessLog);
     next();
 })
 
