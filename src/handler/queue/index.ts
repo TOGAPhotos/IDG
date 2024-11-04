@@ -2,9 +2,9 @@ import {Request, Response} from "express";
 import UploadQueue from "../../dto/uploadQueue.js";
 import {UploadQueueCache} from "../../service/redis/uploadQueueCache.js";
 import Permission from "../../components/auth/permissions.js";
-import User from "../../dto/user.js";
-import {GetMinImage} from "../../components/compress.js";
-import { HTTP_STATUS } from "../../types/http_code.js";
+import User from "@/dto/user.js";
+import {GetMinImage} from "@/components/compress.js";
+import { HTTP_STATUS } from "@/types/http_code.js";
 
 export default class QueueHandler {
 
@@ -125,7 +125,6 @@ export default class QueueHandler {
 
     static async getQueue(req: Request, res: Response) {
         type _QueueType = 'normal' | 'priority' | 'stuck';
-
         const type =  req.query['type']  || 'normal' ;
         switch (type) {
             case 'screened':
