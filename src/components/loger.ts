@@ -13,7 +13,7 @@ const customFormat = format.combine(
 const defaultOptions = {
     format: customFormat,
     datePattern: "YYYY-MM-DD",
-    // zippedArchive: true,
+    zippedArchive: true,
     maxSize: "20m",
     // maxFiles: "14d",
 };
@@ -29,6 +29,11 @@ const Logger = createLogger({
         new transports.DailyRotateFile({
             filename: 'log/error-%DATE%.log',
             level: 'error',
+            ...defaultOptions,
+        }),
+        new transports.DailyRotateFile({
+            filename: 'log/debug-%DATE%.log',
+            level: 'debug',
             ...defaultOptions,
         }),
     ]
@@ -48,11 +53,11 @@ export default class Log {
 
     static info(message: string) {
         const _msg = message;
-        if(message.includes('PUT') || message.includes('POST')){
-            message = chalk.bgYellow.bold(message)
-        }else if (message.includes('DELETE')){
-            message = chalk.bgRed.bold(message)
-        }
+        // if(message.includes('PUT') || message.includes('POST')){
+        //     message = chalk.bgYellow.bold(message)
+        // }else if (message.includes('DELETE')){
+        //     message = chalk.bgRed.bold(message)
+        // }
         console.log(Time.getUTCTime()+': '+message)
         Logger.info(_msg);
     }
@@ -67,5 +72,7 @@ export default class Log {
         Logger.error(message);
     }
 
-
+    static silenceInfo(message: string) {
+        Logger.info(message);
+    }
 }
