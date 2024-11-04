@@ -1,5 +1,5 @@
 import {PrismaClient} from "@prisma/client";
-import Permission from "../components/auth/permissions.js";
+import Permission from "@/components/auth/permissions.js";
 
 export default class UploadQueue {
     static prisma = new PrismaClient();
@@ -42,7 +42,11 @@ export default class UploadQueue {
         if (type === 'all') {
             return UploadQueue.prisma.photo_queue.findMany();
         } else {
-            return UploadQueue.prisma.photo_queue.findMany({where: {queue_type: type}});
+            return UploadQueue.prisma.photo.findMany({where: {
+                status: 'WAIT SCREEN',
+                queue: type.toLocaleUpperCase(),
+                is_delete: false
+            }});
         }
     }
 

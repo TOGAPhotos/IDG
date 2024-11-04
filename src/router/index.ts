@@ -53,8 +53,9 @@ router.delete('/user/:id',Per.isAdminMW,UserHandler.delete)
 
 
 // router.post('/photo',Per.checkUserStatusMW,UploadPreProcess,photoUpload.array('file'),UploadHandler);
+router.post('/photo',Per.checkUserStatusMW,PhotoHandler.upload)
 router.put('/photo/:id', PhotoHandler.update);
-router.delete('/photo/:id', Per.isScreenerMW, PhotoHandler.delete);
+router.delete('/photo/:id', PhotoHandler.delete);
 
 // queue
 router.get('/queue/top',  Per.isScreenerMW,QueueHandler.getQueueTop);

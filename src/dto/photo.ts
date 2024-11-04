@@ -5,15 +5,15 @@ import {secureSqlString} from "../components/decorators/secureSqlString.js";
 interface PhotoInfo {
     userId:number,
     uploadTime:Date,
+    queue:string,
     reg:string,
     msn:string,
     airline:number,
-    airtype:string,
+    ac_type:string,
     airport:number,
     picType:string,
     photoTime:Date,
     remark:string,
-    allowSocialMedia:boolean
 }
 
 export default class Photo {
@@ -38,11 +38,8 @@ export default class Photo {
     static async deleteById(id: number) {
         try {
             await this.prisma.photo.update({where: {id: id}, data: {is_delete: true}});
-            await this.prisma.photo_queue.update({where: {photo_id: id}, data: {is_delete: true}});
         } catch (e) {
-            console.error(e);
             await this.prisma.photo.update({where: {id: id}, data: {is_delete: false}});
-            await this.prisma.photo_queue.update({where: {photo_id: id}, data: {is_delete: false}});
             throw new Error("删除失败");
         }
         return
@@ -52,7 +49,7 @@ export default class Photo {
         if(lastId === -1){
             return this.prisma.accept_photo.findMany({
                 take:num,
-                orderBy:{upload_time:'desc'}
+                orderBy:{id:'desc'}
             })
         }else{
             return this.prisma.accept_photo.findMany(
@@ -61,7 +58,7 @@ export default class Photo {
                         id: {lt:lastId}
                     },
                     take:num,
-                    orderBy:{upload_time:'desc'}
+                    orderBy:{id:'desc'}
             })
         }
     }
@@ -74,7 +71,7 @@ export default class Photo {
                 where: {
                     ac_reg: {contains: keyword}
             },
-            orderBy:{upload_time:'desc'},
+            orderBy:{id:'desc'},
             take:num
         });
         }else{
@@ -84,7 +81,7 @@ export default class Photo {
                     id:{lt:lastId}
                 },
                 take:num,
-                orderBy:{upload_time:'desc'}
+                orderBy:{id:'desc'}
             });
         }
     }
@@ -107,7 +104,7 @@ export default class Photo {
                     ac_type: {contains: keyword}
                 },
                 take:num,
-                orderBy:{upload_time:'desc'}
+                orderBy:{id:'desc'}
             });
         }else{
             return this.prisma.accept_photo.findMany({
@@ -116,7 +113,7 @@ export default class Photo {
                     id:{lt:lastId}
                 },
                 take:num,
-                orderBy:{upload_time:'desc'}
+                orderBy:{id:'desc'}
             });
         }
     }
@@ -126,17 +123,17 @@ export default class Photo {
         lastId = Number(lastId)
         if(lastId === -1){
         return this.prisma.accept_photo.findMany({
-            where: {
-                OR: [
-                    {airport_cn: {contains: keyword}},
-                    {airport_en: {contains: keyword}},
-                    {airport_iata_code: {contains: keyword}},
-                    {airport_icao_code: {contains: keyword}}
-                ]
-            },
-            orderBy:{upload_time:'desc'},
-            take:num,
-        });
+                where: {
+                    OR: [
+                        {airport_cn: {contains: keyword}},
+                        {airport_en: {contains: keyword}},
+                        {airport_iata_code: {contains: keyword}},
+                        {airport_icao_code: {contains: keyword}}
+                    ]
+                },
+                orderBy:{id:'desc'},
+                take:num,
+            });
         }else{
             return this.prisma.accept_photo.findMany({
                 where: {
@@ -148,7 +145,7 @@ export default class Photo {
                     ],
                     id:{lt:lastId}
                 },
-                orderBy:{upload_time:'desc'},
+                orderBy:{id:'desc'},
                 take:num
             });
         }
@@ -162,7 +159,7 @@ export default class Photo {
                 where: {
                     username: {contains: keyword}
                 },
-                orderBy:{upload_time:'desc'},
+                orderBy:{id:'desc'},
                 take:num
             });
         }else{
@@ -171,7 +168,7 @@ export default class Photo {
                     {contains: keyword},
                     id:{lt:lastId}
                 },
-                orderBy:{upload_time:'desc'},
+                orderBy:{id:'desc'},
                 take:num
             });
         }
@@ -185,19 +182,20 @@ export default class Photo {
                 upload_time:data.uploadTime,
                 ac_reg:data.reg,
                 ac_msn:data.msn,
-                airline:"data.airline",
-                ac_type:data.airtype,
+                airline_id:data.airline,
+                ac_type:data.ac_type,
                 airport_id:data.airport,
                 pic_type:data.picType,
                 photo_time:data.photoTime,
-                // remark:data.remark,
+                user_remark:data.remark,
+                queue:data.queue
                 // allow_social_media:data.allowSocialMedia
             }
         })
     }
 
     static async update(id:number,data:any){
-        this.prisma.photo.update({where: {id: id}, data: data})
+        return this.prisma.photo.update({where: {id: id}, data: data})
     }
 
 }
