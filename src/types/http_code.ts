@@ -4,5 +4,14 @@ export const enum HTTP_STATUS{
     UNAUTHORIZED = 401,
     FORBIDDEN = 403,
     NOT_FOUND = 404,
+    CONFLICT = 409,
     SERVER_ERROR = 500
+}
+export const ERROR_MSG = {
+    [HTTP_STATUS.BAD_REQUEST]:'请求错误',
+    [HTTP_STATUS.UNAUTHORIZED]:'未授权',
+    [HTTP_STATUS.FORBIDDEN]:'禁止操作',
+    [HTTP_STATUS.NOT_FOUND]:'未找到',
+    [HTTP_STATUS.CONFLICT]:'冲突',
+    [HTTP_STATUS.SERVER_ERROR]:'服务器错误'
 }

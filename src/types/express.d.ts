@@ -1,12 +1,3 @@
-interface SuccessRes{
-    (msg:any):void;
-    (msg:string,data: any):void
-}
-interface FailRes{
-    (statusCode:number,msg:string):void;
-    (statusCode:number,msg:string,data:any):void;
-}
-
 declare namespace Express {
     export interface Request {
         userIp?:string,
@@ -16,8 +7,16 @@ declare namespace Express {
     }
 
     export interface Response {
-        success:SuccessRes;
-        fail:FailRes;
+        success:{
+            // ():void;
+            (msg:any):void;
+            (msg:string,data: any):void
+        };
+        fail:{
+            (statusCode:number):void
+            (statusCode:number,msg:string):void;
+            (statusCode:number,msg:string,data:any):void
+        };
     }
 }
 
