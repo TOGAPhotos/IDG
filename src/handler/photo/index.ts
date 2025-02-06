@@ -9,6 +9,7 @@ import Permission from "@/components/auth/permissions.js";
 import {photoBaseFolder,PHOTO_FOLDER} from "@/config.js";
 import { HTTP_STATUS } from "@/types/http_code.js";
 import photoBucket from './cos.js'
+import QueueHandler from "../queue/index.js";
 
 export default class PhotoHandler {
 
@@ -155,22 +156,20 @@ export default class PhotoHandler {
         const userInfo = await User.getById(req.token.id);
         const photoInfo = await Photo.getById(photoId);
 
-        if (photoInfo) {
-            return res.status(HTTP_STATUS.NOT_FOUND).json({message: "已删除"});
-        }
-        
-        if (Permission.checkUserPermission(userInfo.role,'DATABASE') && req.token.id !== photoInfo['uploader']) {
-            return res.status(HTTP_STATUS.FORBIDDEN).json({message: '无权限'});
+        if (!photoInfo) {
+            return res.fail(HTTP_STATUS.NOT_FOUND, '已删除');
         }
 
-        if (photoInfo['in_upload_queue']) {
-            /**
-             * @todo 修改图片信息
-             * */
-            // const queueInfo = await prisma.upload_queue.findUnique({where: {photo_id: photoId}});
-            // if (queueInfo['screening']) {
-            //     return res.status(HTTP_STATUS.FORBIDDEN).json({message: '正在审核中'});
-            // }
+        if (
+            !( Permission.checkUserPermission(userInfo.role,'DATABASE') ||
+            req.token.id !== photoInfo['uploader'] )
+        ) {
+            return res.fail(HTTP_STATUS.FORBIDDEN)
+        }
+
+        const screener = await QueueHandler.uploadQueueCache.get(photoId);
+        if (screener !== null && Number(screener) !== req.token.id) {
+            return res.fail(HTTP_STATUS.CONFLICT, '图片正在审核中');
         }
         
         await Photo.update( photoId,req.body);
