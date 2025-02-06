@@ -57,7 +57,7 @@ export default class Permission{
             return res.fail(HTTP_STATUS.UNAUTHORIZED,"用户状态异常")
         }
         if( !Permission.isStaff(userInfo.role) ){
-            return res.fail(HTTP_STATUS.UNAUTHORIZED,"没有权限")
+            return res.fail(HTTP_STATUS.UNAUTHORIZED)
         }
 
         req.role = userInfo.role;
@@ -71,7 +71,7 @@ export default class Permission{
             return res.fail(HTTP_STATUS.UNAUTHORIZED,"用户状态异常")
         }
         if( !Permission.isScreener(userInfo.role) ){
-            return res.fail(HTTP_STATUS.UNAUTHORIZED,"没有权限")
+            return res.fail(HTTP_STATUS.UNAUTHORIZED)
         }
 
         req.role = userInfo.role;
@@ -84,7 +84,7 @@ export default class Permission{
             res.fail(HTTP_STATUS.UNAUTHORIZED,"用户状态异常")
         }
         if( !Permission.isSeniorScreener(userInfo.role) ){
-            res.fail(HTTP_STATUS.UNAUTHORIZED,"没有权限")
+            res.fail(HTTP_STATUS.UNAUTHORIZED)
         }
 
         req.role = userInfo.role;
