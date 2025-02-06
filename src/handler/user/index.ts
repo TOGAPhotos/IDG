@@ -138,19 +138,12 @@ export default class UserHandler{
         }
         
         UserHandler.delPrivateInfo(userInfo);
-        // if(req.query["type"] === 'info'){
-        //     return res.success("查询成功",userInfo)
-        // }else{
-        //     const photoList = await Photo.getByUserId(userId);
-        //     return res.success("查询成功",{userInfo:userInfo,photoList:photoList})
-        // }
+
         switch(req.query["type"]){
             case 'info':
                 return res.success("查询成功",userInfo);
             case 'username':
                 return res.success("查询成功",{username:userInfo.username});
-            case 'queue':
-
             default:
                 const photoList = await Photo.getByUserId(userId);
                 return res.success("查询成功",{userInfo:userInfo,photoList:photoList});
