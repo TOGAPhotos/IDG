@@ -21,7 +21,7 @@ export default class Photo {
 
     @checkNumberParams
     static async getById(id: number) {
-        return this.prisma.full_photo_info.findUnique({where: {photo_id: id}});
+        return this.prisma.full_photo_info.findUnique({where: {id: id}});
     }
 
     @checkNumberParams
