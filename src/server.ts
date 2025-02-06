@@ -5,14 +5,22 @@ import router from "./router/index.js";
 import  Log  from "./components/loger.js";
 import Token from './components/auth/token.js'
 import bell from "./components/bell.js";
-import {HTTP_PORT} from "./config.js";
+import {CORS_WHITE_LIST, HTTP_PORT, PRODUCTION_ENV} from "./config.js";
 import WebsiteHandler from "./handler/info/website.js";
 import {success,fail} from './exntend/response.js'
 import { HTTP_STATUS } from "./types/http_code.js";
 
 const server = express();
 
-server.use(cors())
+if(PRODUCTION_ENV){
+    server.use(cors({
+        origin: CORS_WHITE_LIST
+    }))
+}else{
+    server.use(cors())
+}
+
+
 server.use(express.json());
 
 server.response.success = success;
@@ -20,13 +28,7 @@ server.response.fail = fail;
 
 server.use(Token.verifyMW)
 
-server.use((req,res,next)=>{
-    req.userIp = req.headers['x-real-ip'] as string || req.ip;
-    const accessLog = `${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || 'NOT LOGIN'} trace_id:${req.headers['t_id']} ${JSON.stringify(req.body)}`;
-    Log.silenceInfo(accessLog);
-    Log.debug(accessLog);
-    next();
-})
+server.use(Log.accessLogMW);
 
 server.use('/api/v2',router);
 
