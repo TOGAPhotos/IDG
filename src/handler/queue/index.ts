@@ -12,7 +12,7 @@ export default class QueueHandler {
 
     static async getUserUploadQueue(req: Request, res: Response) {
         const result = await UploadQueue.getByUserId(req.token.id)
-        return res.json({message: '查询成功', photoQueue: result});
+        return res.success('查询成功', {photoQueue: result})
     }
 
     static async getQueuePhoto(req: Request, res: Response) {
@@ -37,6 +37,9 @@ export default class QueueHandler {
         
         for(let counter = 0;counter<MAX_TRY;counter++){
             let result = await UploadQueue.getTop(cursor,userInfo.role);
+            if(result.upload_user_id === userInfo.id){ // 跳过自己上传的图片
+                continue;
+            }
             const cacheInfo = await QueueHandler.uploadQueueCache.get(result.photo_id);
             if(cacheInfo === null || Number(cacheInfo) === req.token.id){
                 await QueueHandler.uploadQueueCache.set(result.photo_id,userInfo.id);
@@ -44,7 +47,7 @@ export default class QueueHandler {
             }
         }
 
-        return res.fail(HTTP_STATUS.SERVER_ERROR,'服务器错误');
+        return res.fail(HTTP_STATUS.SERVER_ERROR,'未找到');
     }
 
     static async beater(req: Request, res: Response) {
@@ -54,7 +57,7 @@ export default class QueueHandler {
         if (action === 'open') {
             const update = await QueueHandler.uploadQueueCache.update(queueId, req.token.id);
             if(!update){
-                return res.fail(HTTP_STATUS.BAD_REQUEST,'其他审图员正在审核中');
+                return res.fail(HTTP_STATUS.CONFLICT,'其他审图员正在审核中');
             }
         } else {
             await QueueHandler.uploadQueueCache.del(queueId);
@@ -144,6 +147,6 @@ export default class QueueHandler {
 
     static async userRejectQueue(req: Request, res: Response) {
         const result = await UploadQueue.rejectQueue(req.token.id);
-        return res.json({message: "查询成功", rejectQueue: result});
+        res.success('查询成功', {rejectList:result});
     }
 }
