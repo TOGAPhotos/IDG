@@ -132,17 +132,28 @@ export default class UserHandler{
 
         if(req.query["type"] === 'safe'){
             if(!Permission.isSeniorScreener(userInfo.role)){
-                return res.fail(HTTP_STATUS.UNAUTHORIZED,"没有权限")
+                return res.fail(HTTP_STATUS.UNAUTHORIZED)
             }
             return res.success("查询成功",userInfo)
         }
         
         UserHandler.delPrivateInfo(userInfo);
-        if(req.query["type"] === 'info'){
-            return res.success("查询成功",userInfo)
-        }else{
-            const photoList = await Photo.getByUserId(userId);
-            return res.success("查询成功",{userInfo:userInfo,photoList:photoList})
+        // if(req.query["type"] === 'info'){
+        //     return res.success("查询成功",userInfo)
+        // }else{
+        //     const photoList = await Photo.getByUserId(userId);
+        //     return res.success("查询成功",{userInfo:userInfo,photoList:photoList})
+        // }
+        switch(req.query["type"]){
+            case 'info':
+                return res.success("查询成功",userInfo);
+            case 'username':
+                return res.success("查询成功",{username:userInfo.username});
+            case 'queue':
+
+            default:
+                const photoList = await Photo.getByUserId(userId);
+                return res.success("查询成功",{userInfo:userInfo,photoList:photoList});
         }
 
     }
