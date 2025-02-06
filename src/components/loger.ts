@@ -1,7 +1,7 @@
 import {createLogger, format, transports} from 'winston';
 import 'winston-daily-rotate-file';
 import chalk from 'chalk';
-
+import { type Request, type Response, type NextFunction } from "express";
 import Time from "./time.js";
 import { PRODUCTION_ENV } from '@/config.js';
 
@@ -72,7 +72,20 @@ export default class Log {
         Logger.error(message);
     }
 
-    static silenceInfo(message: string) {
-        Logger.info(message);
+    static accessLogMW(){
+        if ( PRODUCTION_ENV ) {
+            return function(req:Request,res:Response,next:NextFunction){
+                req.userIp = req.headers['x-real-ip'] as string || req.ip;
+                Logger.info(`${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || 'NOT LOGIN'} trace_id:${req.headers['t_id']} ${JSON.stringify(req.body)}`)
+                next();
+            }
+        }else{
+            return function(req:Request,res:Response,next:NextFunction){
+                req.userIp = req.headers['x-real-ip'] as string || req.ip;
+                const accessLog = `${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || 'NOT LOGIN'} trace_id:${req.headers['t_id']} ${JSON.stringify(req.body)}`
+                Log.debug(accessLog);
+                next();
+            }
+        }
     }
 }

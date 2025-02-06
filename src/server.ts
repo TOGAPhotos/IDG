@@ -27,8 +27,7 @@ server.response.success = success;
 server.response.fail = fail;
 
 server.use(Token.verifyMW)
-
-server.use(Log.accessLogMW);
+server.use(Log.accessLogMW());
 
 server.use('/api/v2',router);
 
