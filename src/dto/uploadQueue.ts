@@ -5,11 +5,16 @@ export default class UploadQueue {
     static prisma = new PrismaClient();
 
     static async getByUserId(userId: number) {
-        return UploadQueue.prisma.full_photo_info.findMany({where: {upload_user_id: userId}});
+        return UploadQueue.prisma.full_photo_info.findMany({where:
+            {
+                upload_user_id: userId,
+                status:'WAIT SCREEN'
+            }
+        });
     }
 
     static async getById(photoId: number) {
-        return UploadQueue.prisma.full_photo_info.findUnique({where: {photo_id: photoId}});
+        return UploadQueue.prisma.full_photo_info.findUnique({where: {id: photoId}});
     }
 
     static async getTop(id: number, role: string) {
@@ -42,10 +47,10 @@ export default class UploadQueue {
         if (type === 'all') {
             return UploadQueue.prisma.photo_queue.findMany();
         } else {
-            return UploadQueue.prisma.photo.findMany({where: {
+            return UploadQueue.prisma.full_photo_info.findMany({where: {
                 status: 'WAIT SCREEN',
                 queue: type.toLocaleUpperCase(),
-                is_delete: false
+                // is_delete: false
             }});
         }
     }
@@ -73,9 +78,12 @@ export default class UploadQueue {
 
     static async rejectQueue(userId: number) {
         return this.prisma.full_photo_info.findMany({
-        where: {upload_user_id: userId,},
-        orderBy: {upload_time: "desc"},
-        take:10
+            where: {
+                upload_user_id: userId,
+                status:'REJECT'
+            },
+            orderBy: {upload_time: "asc"},
+            take:10
         });
     }
 }
