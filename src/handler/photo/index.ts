@@ -30,7 +30,7 @@ export default class PhotoHandler {
     }
 
     static async getList(req: Request, res: Response) {
-        let lastId = Number(req.query['lastId']);
+        let lastId = Number(req.query['lastId']) || -1;
         const list = await Photo.getAcceptPhotoList(lastId,50);
         res.success('查询成功', list);
     }
@@ -102,6 +102,13 @@ export default class PhotoHandler {
             });
         }catch{
             await Photo.deleteById(photoInfo['id']);
+            // const currentInfo = await User.getById(userId);
+            // if( userInfo.free_queue !== currentInfo.free_queue || userInfo.free_priority_queue !== currentInfo.free_priority_queue){
+            //     await User.updateById(userId, {
+            //         free_queue: userInfo.free_queue,
+            //         free_priority_queue: userInfo.free_priority_queue
+            //     });
+            // }
             return res.fail(HTTP_STATUS.SERVER_ERROR, '上传失败/COS错误');
         }
     }
