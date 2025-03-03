@@ -6,7 +6,6 @@ import User from "@/dto/user.js";
 import Photo from "@/dto/photo.js";
 import Permission from "@/components/auth/permissions.js";
 
-import {photoBaseFolder,PHOTO_FOLDER} from "@/config.js";
 import { HTTP_STATUS } from "@/types/http_code.js";
 import photoBucket from './cos.js'
 import QueueHandler from "../queue/index.js";
@@ -14,11 +13,12 @@ import QueueHandler from "../queue/index.js";
 export default class PhotoHandler {
 
     private static readonly photoBucket = photoBucket;
-    private static readonly photoFolder = `${photoBaseFolder}/photos`;
+    // private static readonly photoFolder = `${photoBaseFolder}/photos`;
     private static readonly queueType = {
         'PRIORITY': 'PRIO',
         'NORMAL': 'NORM'
     }
+
     static async get(req: Request, res: Response) {
         const id = Number(req.params['id']);
         const photoInfo = await Photo.getAcceptById(id);
@@ -91,7 +91,7 @@ export default class PhotoHandler {
             queue: req['queue'] === PhotoHandler.queueType.PRIORITY ? 'PRIORITY' : 'NORMAL',
         })
         try{
-            const uploadUrl = PhotoHandler.photoBucket.getUploadUrl(photoInfo['id']+'.jpg');
+            const uploadUrl = PhotoHandler.photoBucket.getUploadUrl("photos/"+photoInfo['id']+'.jpg');
             res.success('创建成功',{
                 uploadUrl,
                 photoId:photoInfo['id'],
@@ -126,6 +126,11 @@ export default class PhotoHandler {
             return res.fail(HTTP_STATUS.NOT_FOUND, '已删除');
         }
 
+        const screener = await QueueHandler.uploadQueueCache.get(photoId);
+        if (screener !== null && Number(screener) !== req.token.id) {
+            return res.fail(HTTP_STATUS.CONFLICT, '图片正在审核中');
+        }
+
         if (
             !(Permission.checkUserPermission(userInfo.role, Permission.screener1) ||
                 userId === photoInfo.upload_user_id)
@@ -135,10 +140,7 @@ export default class PhotoHandler {
 
         try {
             await Photo.deleteById(photoId);
-            await fs.unlink(`${this.photoFolder}/${photoId}.jpg`);
-            if (photoInfo.status === 'ACCEPT') {
-                await fs.unlink(`${photoBaseFolder}/min/photos/${photoId}.jpg`);
-            }
+            await PhotoHandler.photoBucket.deleteObject(photoInfo['id']+'.jpg');
         } catch (e) {
             console.log('recover photo');
             await Photo.update(photoId,{is_delete:false});
