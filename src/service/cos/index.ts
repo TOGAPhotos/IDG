@@ -43,4 +43,12 @@ export default class COSStorage {
         });
     }
 
+    async deleteObject(key:string) {
+        return this.cos.deleteObject({
+            Bucket: this.bucket,
+            Region: this.region,
+            Key: key
+        })
+    }
+
 }
