@@ -103,8 +103,8 @@ export default class QueueHandler {
             }
 
         } else if (
-            queuePhoto['screener_1'] !== null &&
-            queuePhoto['screener_2'] === null &&
+            queuePhoto.screener_1 !== null &&
+            queuePhoto.screener_2 === null &&
             Permission.isSeniorScreener(screenerInfo.role)
         ) {
             screenData = {
@@ -115,14 +115,11 @@ export default class QueueHandler {
             }
             finishScreen = true;
         }else{
-            return res.status(HTTP_STATUS.BAD_REQUEST).json({message: '错误请求'});
+            return res.fail(HTTP_STATUS.BAD_REQUEST,'错误请求');
         }
         await UploadQueue.update(queueId, screenData);
         if(finishScreen){
-            if (Number(req.body["result"]) === 1) {
-                await GetMinImage(`/photos/${queuePhoto['photo_id']}.jpg`);
-            }
-            await User.updatePassingRate(queuePhoto['user_id']);
+            await User.updatePassingRate(queuePhoto.upload_user_id);
         }
     }
 
