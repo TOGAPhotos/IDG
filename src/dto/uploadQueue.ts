@@ -69,16 +69,6 @@ export default class UploadQueue {
         })
     }
 
-    static async create(photoId: number, type: string, message: string) {
-        return this.prisma.photo_queue.create({
-            data: {
-                photo_id: photoId,
-                queue_type: type,
-                message_to_screener:message
-            }
-        })
-    }
-
     static async rejectQueue(userId: number) {
         return this.prisma.full_photo_info.findMany({
             where: {
