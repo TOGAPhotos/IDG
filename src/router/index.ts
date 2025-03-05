@@ -62,6 +62,7 @@ router.get('/queue',Per.isScreenerMW,QueueHandler.getQueue)
 router.get('/queue/photo/:id',Per.isScreenerMW,QueueHandler.getQueuePhoto);
 router.put('/queue/photo/:id',Per.isScreenerMW,QueueHandler.beater);
 router.post('/queue/photo/:id',Per.isScreenerMW,QueueHandler.processScreenResult);
+router.post('/queue/user/:id',Per.isSeniorScreenerMW,QueueHandler.rejcetQueue)
 
 router.get('/queue/upload',QueueHandler.getUserUploadQueue)
 router.get('/queue/reject',QueueHandler.userRejectQueue);
