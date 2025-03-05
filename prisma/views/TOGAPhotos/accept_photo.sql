@@ -1,5 +1,5 @@
 SELECT
-  `TOGAPhotos`.`full_photo_info`.`photo_id` AS `id`,
+  `TOGAPhotos`.`full_photo_info`.`id` AS `id`,
   `TOGAPhotos`.`full_photo_info`.`upload_user_id` AS `upload_user_id`,
   `TOGAPhotos`.`full_photo_info`.`username` AS `username`,
   `TOGAPhotos`.`full_photo_info`.`ac_type` AS `ac_type`,
