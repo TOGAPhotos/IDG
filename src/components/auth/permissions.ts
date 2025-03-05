@@ -77,6 +77,21 @@ export default class Permission{
         req.role = userInfo.role;
         next()
     }
+
+    static async isSeniorScreenerMW(req:Request, res:Response, next:NextFunction){
+        const userInfo = await User.getById(req.token.id);
+
+        if( !Permission.checkUserStatus(userInfo) ){
+            return res.fail(HTTP_STATUS.UNAUTHORIZED,"用户状态异常")
+        }
+        if( !Permission.isSeniorScreener(userInfo.role) ){
+            return res.fail(HTTP_STATUS.UNAUTHORIZED)
+        }
+
+        req.role = userInfo.role;
+        next()
+    }
+
     static async isAdminMW(req:Request, res:Response, next:NextFunction){
         const userInfo = await User.getById(req.token.id);
 
