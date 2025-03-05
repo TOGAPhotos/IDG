@@ -5,7 +5,8 @@ export const enum HTTP_STATUS{
     FORBIDDEN = 403,
     NOT_FOUND = 404,
     CONFLICT = 409,
-    SERVER_ERROR = 500
+    SERVER_ERROR = 500,
+    LOOP_DETECTED = 508
 }
 export const ERROR_MSG = {
     [HTTP_STATUS.BAD_REQUEST]:'请求错误',
@@ -13,5 +14,6 @@ export const ERROR_MSG = {
     [HTTP_STATUS.FORBIDDEN]:'禁止操作',
     [HTTP_STATUS.NOT_FOUND]:'未找到',
     [HTTP_STATUS.CONFLICT]:'冲突',
-    [HTTP_STATUS.SERVER_ERROR]:'服务器错误'
+    [HTTP_STATUS.SERVER_ERROR]:'服务器错误',
+    [HTTP_STATUS.LOOP_DETECTED]:'循环超过限制'
 }
