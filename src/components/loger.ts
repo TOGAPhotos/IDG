@@ -3,7 +3,7 @@ import 'winston-daily-rotate-file';
 import chalk from 'chalk';
 import { type Request, type Response, type NextFunction } from "express";
 import Time from "./time.js";
-import { PRODUCTION_ENV } from '@/config.js';
+import { PRODUCTION_ENV } from '../config.js';
 
 const customFormat = format.combine(
     format.timestamp({format: "MMM-DD-YYYY HH:mm:ss"}),
