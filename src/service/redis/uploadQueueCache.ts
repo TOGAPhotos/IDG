@@ -25,7 +25,7 @@ export class UploadQueueCache {
     async update(queueId:number,screenerId:number):Promise<boolean>{
         const key = this.genKey(queueId)
         const cacheInfo = await this.conn.get(key)
-        if( Number(cacheInfo) === screenerId){
+        if( cacheInfo === null || Number(cacheInfo) === screenerId){
             this.conn.set(key,screenerId)
             this.conn.expire(key,60*5)
             return true
