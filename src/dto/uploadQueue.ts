@@ -40,7 +40,10 @@ export default class UploadQueue {
     }
 
     static async update(queueId: number, data: any) {
-        return UploadQueue.prisma.photo_queue.update({where: {queue_id: queueId}, data: {screener_1: data}});
+        return UploadQueue.prisma.full_photo_info.update({
+            where: {id: queueId}, 
+            data: data
+        });
     }
 
     static async getQueue(type: 'normal'|'priority'|'stuck'|'all') {

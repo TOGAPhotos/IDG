@@ -33,10 +33,9 @@ export default class User {
                 OR: [{status: "ACCEPT"}, {status: "REJECT"}]
             },
             orderBy: {
-                photo_id: 'desc'
+                id: 'desc'
             },
             take: 50,
-
         })
         let passingRate = 0;
         list.map((photo) => {

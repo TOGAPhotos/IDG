@@ -83,7 +83,7 @@ export default class QueueHandler {
             reason: string,
             screener_message: string,
             screener_2?: number,
-            need_screener_2?: number
+            need_screener_2?: boolean
         }
 
         if (queuePhoto['screener_1'] === null) {
@@ -92,11 +92,11 @@ export default class QueueHandler {
                 result: req.body['result'],
                 reason: req.body['reason'],
                 screener_message: req.body["screener_message"],
-                need_screener_2: req.body['need_screener_2']
+                need_screener_2: req.body['need_screener_2'] === 1
             }
             if (
                 Permission.isSeniorScreener(screenerInfo.role) &&
-                req.body["need_screener_2"] === 0
+                !req.body["need_screener_2"]
             ) {
                 screenData.screener_2 = req.token.id;
                 finishScreen = true;
@@ -119,6 +119,7 @@ export default class QueueHandler {
         }
         await UploadQueue.update(queueId, screenData);
         if(finishScreen){
+            await UploadQueue.update(queueId, {status: req.body['result']});
             await User.updatePassingRate(queuePhoto.upload_user_id);
         }
     }
