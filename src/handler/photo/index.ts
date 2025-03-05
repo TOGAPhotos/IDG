@@ -13,7 +13,6 @@ import QueueHandler from "../queue/index.js";
 export default class PhotoHandler {
 
     private static readonly photoBucket = photoBucket;
-    // private static readonly photoFolder = `${photoBaseFolder}/photos`;
     private static readonly queueType = {
         'PRIORITY': 'PRIO',
         'NORMAL': 'NORM'
@@ -24,7 +23,7 @@ export default class PhotoHandler {
         const photoInfo = await Photo.getAcceptById(id);
 
         if (photoInfo === null ) {
-            return res.fail(HTTP_STATUS.BAD_REQUEST, '图片不存在');
+            return res.fail(HTTP_STATUS.NOT_FOUND, '图片不存在');
         }
         res.success('获取成功', photoInfo);
     }
@@ -86,9 +85,10 @@ export default class PhotoHandler {
             ac_type:req.body['ac_type'],
             airport:req.body['airport'],
             picType:req.body['picType'],
-            photoTime:req.body['photoTime'],
+            photoTime:new Date(req.body['photoTime']),
             remark:req.body['remark'],
             queue: req['queue'] === PhotoHandler.queueType.PRIORITY ? 'PRIORITY' : 'NORMAL',
+            exif: req.body['exif']
         })
         try{
             const uploadUrl = PhotoHandler.photoBucket.getUploadUrl("photos/"+photoInfo['id']+'.jpg');
@@ -117,8 +117,10 @@ export default class PhotoHandler {
         const userId = req.token.id;
         const photoId = Number(req.params['id']);
 
-        const userInfo = await User.getById(userId);
-        const photoInfo = await Photo.getById(photoId);
+        const [userInfo,photoInfo] = await Promise.all([
+            User.getById(userId),
+            Photo.getById(photoId),
+        ])
 
         Log.info(`access_id:${req.uuid} user_id:${userId} username:${userInfo['username']} 尝试删除图片 ${photoId}`);
 
@@ -139,8 +141,10 @@ export default class PhotoHandler {
         }
 
         try {
-            await Photo.deleteById(photoId);
-            await PhotoHandler.photoBucket.deleteObject(photoInfo['id']+'.jpg');
+            await Promise.all([
+                Photo.deleteById(photoId),
+                PhotoHandler.photoBucket.deleteObject(`photos/${photoId}.jpg`)
+            ])
         } catch (e) {
             console.log('recover photo');
             await Photo.update(photoId,{is_delete:false});
@@ -162,8 +166,10 @@ export default class PhotoHandler {
     static async update(req: Request, res: Response) {
         let photoId = Number(req.params['id']);
 
-        const userInfo = await User.getById(req.token.id);
-        const photoInfo = await Photo.getById(photoId);
+        const [userInfo,photoInfo] = await Promise.all([
+            User.getById(req.token.id),
+            Photo.getById(photoId),
+        ])
 
         if (!photoInfo) {
             return res.fail(HTTP_STATUS.NOT_FOUND, '已删除');
