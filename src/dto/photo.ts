@@ -14,6 +14,7 @@ interface PhotoInfo {
     picType:string,
     photoTime:Date,
     remark:string,
+    exif:string
 }
 
 export default class Photo {
@@ -188,7 +189,8 @@ export default class Photo {
                 pic_type:data.picType,
                 photo_time:data.photoTime,
                 user_remark:data.remark,
-                queue:data.queue
+                queue:data.queue,
+                exif:data.exif
                 // allow_social_media:data.allowSocialMedia
             }
         })
