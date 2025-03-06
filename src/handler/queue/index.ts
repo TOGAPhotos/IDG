@@ -67,10 +67,12 @@ export default class QueueHandler {
     static async processScreenResult(req: Request, res: Response) {
         const queueId = Number(req.params['id']);
         const screenerId = req.token.id
-        const screener = await User.getById(screenerId);
         let finishScreen = false;
 
-        const queuePhoto = await UploadQueue.getById(queueId);
+        const [screener,queuePhoto] = await Promise.all([
+            User.getById(screenerId),
+            UploadQueue.getById(queueId)
+        ])
 
         if (queuePhoto.screener_1 !== null && queuePhoto.screener_2 !== null) {
             return res.status(HTTP_STATUS.BAD_REQUEST).json({message: '已完成审核'});
@@ -112,8 +114,14 @@ export default class QueueHandler {
         }
         await UploadQueue.update(queueId, screenData);
         if(finishScreen){
-            await UploadQueue.update(queueId, {status: req.body['result']});
-            await User.updatePassingRate(queuePhoto.upload_user_id);
+            await UploadQueue.update(queueId, {status: screenData.result});
+            await Promise.allSettled([
+                User.updatePassingRate(queuePhoto.upload_user_id),
+                User.updateById(queuePhoto.upload_user_id,{
+                    free_queue: {increment: 1},
+                    // free_priority_queue: {increment: queuePhoto.queue === 'PRIORITY' ? 1 : 0}
+                })
+            ])
         }
         return res.success('success', {id:queueId, ...screenData});
     }
@@ -127,7 +135,7 @@ export default class QueueHandler {
                 screening !== null && 
                 Number(screening) !== req.token.id
             ){
-                return {id:photo, result:false}
+                return {id:photo.id, result:false}
             }
             await UploadQueue.update(photo.id, {
                 screener_1: req.token.id,
@@ -139,6 +147,14 @@ export default class QueueHandler {
             return {id:photo.id, result:true}
         })
         const results = await Promise.allSettled(updateTasks);
+        const rejectPhotoCount = results.reduce((acc,result)=>{
+            if(result.status === "rejected") return acc;
+            return acc += result.value.result ? 1 : 0
+        },0);
+        await User.updateById(userId,{
+            free_queue: {increment: rejectPhotoCount},
+            free_priority_queue: 0
+        })
         return res.success('success',results);
     }
 
