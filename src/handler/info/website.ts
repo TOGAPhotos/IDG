@@ -30,14 +30,34 @@ export default class WebsiteHandler{
             await WebsiteHandler.updateBasicInfo()
         })
     }
+    
     static async get(req:Request,res:Response){
-        res.success("网站正常",{
-            photoList: WebsiteHandler.photoList,
-            userNum: WebsiteHandler.userNum,
-            uploadQueueLen: WebsiteHandler.uploadQueueLen,
-            photoNum: WebsiteHandler.photoNum,
-            randomPhotoList: WebsiteHandler.randomPhotoList,
-        })
+        const type = req.query.type || ""
+        let data = {}
+        switch(type){
+            case "photos":
+                data = WebsiteHandler.photoList
+                break;
+            case "random":
+                data = WebsiteHandler.randomPhotoList
+                break;
+            case "statistics":
+                data = {
+                    userNum: WebsiteHandler.userNum,
+                    uploadQueueLen: WebsiteHandler.uploadQueueLen,
+                    photoNum: WebsiteHandler.photoNum
+                }
+                break;
+            default:
+                data = {
+                    photoList: WebsiteHandler.photoList,
+                    userNum: WebsiteHandler.userNum,
+                    uploadQueueLen: WebsiteHandler.uploadQueueLen,
+                    photoNum: WebsiteHandler.photoNum,
+                    randomPhotoList: WebsiteHandler.randomPhotoList,
+                }
+        }
+        res.success("网站正常",data)
     }
 
 }
