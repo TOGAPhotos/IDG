@@ -65,6 +65,7 @@ model photo {
   user_remark      String?   @db.VarChar(255)
   message          String?   @db.VarChar(255)
   photo_time       DateTime? @db.Date
+  exif             Json?
   upload_time      DateTime? @default(dbgenerated("(now())")) @db.Date
   screener_1       Int?
   screener_2       Int?
@@ -187,6 +188,7 @@ view accept_photo {
   airport_en        String?   @db.VarChar(255)
   airport_icao_code String?   @db.VarChar(127)
   airport_iata_code String?   @db.VarChar(127)
+  exif              Json?
 }
 
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -212,6 +214,7 @@ view full_photo_info {
   pic_type          String?   @db.VarChar(255)
   user_remark       String?   @db.VarChar(255)
   photo_time        DateTime? @db.Date
+  exif              Json?
   upload_time       DateTime? @default(dbgenerated("(now())")) @db.Date
   airport_cn        String?   @db.VarChar(255)
   airport_en        String?   @db.VarChar(255)

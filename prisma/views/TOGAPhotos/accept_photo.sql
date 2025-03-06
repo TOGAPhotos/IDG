@@ -14,7 +14,8 @@ SELECT
   `TOGAPhotos`.`full_photo_info`.`airport_cn` AS `airport_cn`,
   `TOGAPhotos`.`full_photo_info`.`airport_en` AS `airport_en`,
   `TOGAPhotos`.`full_photo_info`.`airport_icao_code` AS `airport_icao_code`,
-  `TOGAPhotos`.`full_photo_info`.`airport_iata_code` AS `airport_iata_code`
+  `TOGAPhotos`.`full_photo_info`.`airport_iata_code` AS `airport_iata_code`,
+  `TOGAPhotos`.`full_photo_info`.`exif` AS `exif`
 FROM
   `TOGAPhotos`.`full_photo_info`
 WHERE

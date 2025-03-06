@@ -19,6 +19,7 @@ SELECT
   `p`.`pic_type` AS `pic_type`,
   `p`.`user_remark` AS `user_remark`,
   `p`.`photo_time` AS `photo_time`,
+  `p`.`exif` AS `exif`,
   `p`.`upload_time` AS `upload_time`,
   `a`.`airport_cn` AS `airport_cn`,
   `a`.`airport_en` AS `airport_en`,
