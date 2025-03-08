@@ -40,6 +40,6 @@ export default function StartHTTPServer(){
     server.listen(HTTP_PORT,async()=>{
         await WebsiteHandler.scheduleUpdate();
         // await bell('TOGAPhotos后端服务器',`${new Date().toString()}服务器启动`);
-        Log.info('HTTP Server Start On localhost:3000');
+        Log.info('HTTP Server Start On localhost:'+HTTP_PORT);
     });
 }
