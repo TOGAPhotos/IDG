@@ -40,15 +40,17 @@ export default class PhotoHandler {
         let lastId = Number(req.query['lastId']) || -1;
         const num = Number(req.query['num']) || 20;
 
-
         let result;
         switch (type) {
+            case 'blurry':
+                result = await Photo.blurrySearch(keyword, lastId, num);
+                break;
             case 'reg':
                 result = await Photo.searchByRegKeyword(keyword, lastId, num);
                 break;
-            // case 'airline':
-            //     result = await Photo.searchByAirlineKeyword(keyword, lastId);
-            //     break;
+            case 'airline':
+                result = await Photo.searchByAirlineKeyword(keyword, lastId,num);
+                break;
             case 'airtype':
                 result = await Photo.searchByAirtypeKeyword(keyword, lastId, num);
                 break;
@@ -88,7 +90,8 @@ export default class PhotoHandler {
             photoTime:new Date(req.body['photoTime']),
             remark:req.body['remark'],
             queue: req['queue'] === PhotoHandler.queueType.PRIORITY ? 'PRIORITY' : 'NORMAL',
-            exif: req.body['exif']
+            exif: req.body['exif'],
+            watermark: req.body['watermark']
         })
         try{
             const uploadUrl = PhotoHandler.photoBucket.getUploadUrl("photos/"+photoInfo['id']+'.jpg');

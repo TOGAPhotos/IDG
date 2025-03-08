@@ -14,7 +14,8 @@ interface PhotoInfo {
     picType:string,
     photoTime:Date,
     remark:string,
-    exif:string
+    exif:string,
+    watermark:string
 }
 
 export default class Photo {
@@ -64,6 +65,46 @@ export default class Photo {
         }
     }
 
+    static async blurrySearch(keyword: string, lastId:number, num:number){
+        lastId = Number(lastId)
+        if(lastId === -1){
+            return this.prisma.accept_photo.findMany({
+                where: {
+                    OR: [
+                        {ac_reg: {contains: keyword}},
+                        {ac_msn: {contains: keyword}},
+                        {ac_type: {contains: keyword}},
+                        {airport_cn: {contains: keyword}},
+                        {airport_en: {contains: keyword}},
+                        {airport_iata_code: {contains: keyword}},
+                        {airport_icao_code: {contains: keyword}},
+                        {username: {contains: keyword}}
+                    ]
+                },
+                orderBy:{id:'desc'},
+                take:num
+            });
+        }else{
+            return this.prisma.accept_photo.findMany({
+                where: {
+                    OR: [
+                        {ac_reg: {contains: keyword}},
+                        {ac_msn: {contains: keyword}},
+                        {ac_type: {contains: keyword}},
+                        {airport_cn: {contains: keyword}},
+                        {airport_en: {contains: keyword}},
+                        {airport_iata_code: {contains: keyword}},
+                        {airport_icao_code: {contains: keyword}},
+                        {username: {contains: keyword}}
+                    ],
+                    id:{lt:lastId}
+                },
+                orderBy:{id:'desc'},
+                take:num
+            });
+        }
+    }
+
     // @secureSqlString
     static async searchByRegKeyword(keyword: string,lastId:number,num:number) {
         lastId = Number(lastId)
@@ -88,14 +129,33 @@ export default class Photo {
     }
 
     // @secureSqlString
-    // static async searchByAirlineKeyword(keyword: string,lastId:number) {
-    //     lastId = Number(lastId)
-    //     if(lastId === -1){
-    //         return this.prisma.accept_photo.findMany({where: {OR: [{airline_en_name: {contains: keyword}},{airline_cn_name: {contains: keyword}}]},orderBy:{upload_time:'desc'}});
-    //     }else{
-    //         return this.prisma.accept_photo.findMany({where: {OR: [{airline_en_name: {contains: keyword}},{airline_cn_name: {contains: keyword}}], photo_id:{lt:lastId}},orderBy:{upload_time:'desc'}});
-    //     }
-    // }
+    static async searchByAirlineKeyword(keyword: string,lastId:number,num:number) {
+        lastId = Number(lastId)
+        if(lastId === -1){
+            return this.prisma.accept_photo.findMany({
+                where: {
+                    OR:[
+                        {airline_cn: {contains: keyword}},
+                        {airline_en: {contains: keyword},},
+                    ],
+                },
+                orderBy:{id:'desc'},
+                take:num
+            });
+        }else{
+            return this.prisma.accept_photo.findMany({
+                where: {
+                    OR:[
+                        {airline_cn: {contains: keyword}},
+                        {airline_en: {contains: keyword},},
+                    ],
+                    id:{lt:lastId}
+                },
+                orderBy:{id:'desc'},
+                take:num
+            });
+        }
+    }
 
     static async searchByAirtypeKeyword(keyword: string,lastId:number,num:number) {
         lastId = Number(lastId)
@@ -190,7 +250,8 @@ export default class Photo {
                 photo_time:data.photoTime,
                 user_remark:data.remark,
                 queue:data.queue,
-                exif:data.exif
+                exif:data.exif,
+                watermark:data.watermark
                 // allow_social_media:data.allowSocialMedia
             }
         })
