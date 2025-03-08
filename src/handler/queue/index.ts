@@ -16,15 +16,17 @@ export default class QueueHandler {
 
     static async getQueuePhoto(req: Request, res: Response) {
         const queueId = Number(req.params['id']);
-        const screenCache = await QueueHandler.uploadQueueCache.get(queueId);
+        const readOnly = req.query['readonly'] === '1';
 
-        if(screenCache !== null && Number(screenCache) !== req.token.id){
-            return res.fail(HTTP_STATUS.CONFLICT,'其他审图员正在审核中');
-        }else{
+        if (!readOnly) {
+            const screenCache = await QueueHandler.uploadQueueCache.get(queueId);
+            if (screenCache !== null && Number(screenCache) !== req.token.id) {
+                return res.fail(HTTP_STATUS.CONFLICT, '其他审图员正在审核中');
+            }
             await QueueHandler.uploadQueueCache.set(queueId, req.token.id);
         }
-        const result = await UploadQueue.getById(queueId)
 
+        const result = await UploadQueue.getById(queueId);
         return res.success('查询成功', result);
     }
 
@@ -39,10 +41,10 @@ export default class QueueHandler {
             if(result.upload_user_id === screener.id){ // 跳过自己上传的图片
                 continue;
             }
-            const cacheInfo = await QueueHandler.uploadQueueCache.get(result.photo_id);
+            const cacheInfo = await QueueHandler.uploadQueueCache.get(result.id);
             if(cacheInfo === null || Number(cacheInfo) === req.token.id){
-                await QueueHandler.uploadQueueCache.set(result.photo_id,screener.id);
-                return res.success("查询成功",{photoId:result.photo_id});
+                await QueueHandler.uploadQueueCache.set(result.id,screener.id);
+                return res.success("查询成功",{photoId:result.id});
             }
         }
 
@@ -64,10 +66,32 @@ export default class QueueHandler {
         return res.success('success',action);
     }
 
+    static async stuckPhoto(req: Request, res: Response) {
+        const queueId = Number(req.params['id']);
+        const queuePhoto = await UploadQueue.getById(queueId);
+        if(queuePhoto.status !== 'WAIT SCREEN'){
+            return res.fail(HTTP_STATUS.BAD_REQUEST,'图片已审核');
+        }
+        try{
+            await UploadQueue.update(queueId, {
+                status: 'STUCK',
+                reason: req.body['reason'],
+            });
+        }catch(e){
+            console.log(e);
+            return res.fail(HTTP_STATUS.SERVER_ERROR,'操作失败');
+        }
+        return res.success('success');
+    }
+
     static async processScreenResult(req: Request, res: Response) {
         const queueId = Number(req.params['id']);
         const screenerId = req.token.id
         let finishScreen = false;
+
+        if(req.body['result'] === "STUCK"){
+            return QueueHandler.stuckPhoto(req,res);
+        }
 
         const [screener,queuePhoto] = await Promise.all([
             User.getById(screenerId),
