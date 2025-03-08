@@ -21,7 +21,7 @@ export default class UploadQueue {
         if (Permission.isSeniorScreener(role)) {
             return UploadQueue.prisma.queue_photo.findFirst({
                 where: {
-                    photo_id: {gt: id},
+                    id: {gt: id},
                     OR: [
                         {screener_1: null}, 
                         {screener_2: null},
@@ -31,7 +31,7 @@ export default class UploadQueue {
         } else {
             return UploadQueue.prisma.queue_photo.findFirst({
                 where: {
-                    photo_id: {gt: id}, 
+                    id: {gt: id}, 
                     screener_1: null
                 }
             })
@@ -40,7 +40,7 @@ export default class UploadQueue {
     }
 
     static async update(queueId: number, data: any) {
-        return UploadQueue.prisma.full_photo_info.update({
+        return UploadQueue.prisma.photo.update({
             where: {id: queueId}, 
             data: data
         });
@@ -49,13 +49,17 @@ export default class UploadQueue {
     static async getQueue(type: 'normal'|'priority'|'stuck'|'all') {
         if (type === 'all') {
             return UploadQueue.prisma.photo_queue.findMany();
-        } else {
-            return UploadQueue.prisma.full_photo_info.findMany({where: {
-                status: 'WAIT SCREEN',
-                queue: type.toLocaleUpperCase(),
-                // is_delete: false
-            }});
         }
+        const query = {
+            status: "WAIT SCREEN",
+            queue: type.toLocaleUpperCase(),
+        }
+        if(type === 'stuck'){
+            query.status = "STUCK"
+            delete query.queue
+        }
+        console.log(query)
+        return UploadQueue.prisma.queue_photo.findMany({where: query});
     }
 
     static async recentScreenPhoto() {
