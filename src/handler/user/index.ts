@@ -103,9 +103,12 @@ export default class UserHandler{
 
         if(data["username"] && updateUser.username !== data["username"]){
             const usernameCheck = await User.getByUsername(data["username"]);
-            console.log(usernameCheck);
+            
             if(usernameCheck.length > 0){
-                return res.fail(HTTP_STATUS.BAD_REQUEST,'用户名已注册');
+                for( let u of usernameCheck){
+                    if(u.username !== data["username"]) continue;
+                    return res.fail(HTTP_STATUS.BAD_REQUEST,'用户名已注册');
+                }
             }
         }
 
