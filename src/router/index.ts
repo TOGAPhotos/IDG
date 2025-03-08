@@ -73,7 +73,7 @@ router.put('/airport/:id',  Per.isScreenerMW, AirportHandler.update);
 router.delete('/airport/:id',  Per.isScreenerMW, AirportHandler.delete);
 
 
-router.post('/airline',  Per.isStaffMW,AirlineHandler.create);
+router.post('/airline',AirlineHandler.create);
 router.put('/airline/:id',  Per.isStaffMW , AirlineHandler.update);
 router.delete('/airline/:id',  Per.isStaffMW, AirlineHandler.delete);
 
@@ -85,7 +85,7 @@ router.delete('/aircraft/:id',  Per.isScreenerMW, AircraftHandler.delete);
 
 // airtype.ts
 router.get('/airtypes', AirtypeHandler.list);
-router.post('/airtypes', Per.isScreenerMW, AirtypeHandler.create);
+router.post('/airtype', Per.isScreenerMW, AirtypeHandler.create);
 router.put('/airtype/:id', Per.isScreenerMW, AirtypeHandler.update);
 router.delete('/airtype/:sub_type', Per.isScreenerMW, AirtypeHandler.delete);
 
