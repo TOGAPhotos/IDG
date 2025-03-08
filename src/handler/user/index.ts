@@ -52,9 +52,9 @@ export default class UserHandler{
         if( !emailRegex.test(email) ){
             return res.fail(HTTP_STATUS.BAD_REQUEST,'邮箱格式错误');
         }
-        if(password !== passwordR){
-            return res.fail(HTTP_STATUS.BAD_REQUEST,'两次密码不一致');
-        }
+        // if(password !== passwordR){
+        //     return res.fail(HTTP_STATUS.BAD_REQUEST,'两次密码不一致');
+        // }
         if(username.length > 20){
             return res.fail(HTTP_STATUS.BAD_REQUEST,'用户名过长');
         }
@@ -74,7 +74,8 @@ export default class UserHandler{
             username:username,
             token: Token.create(user['id']),
             id: user['id'],
-            permission: Permission.user
+            permission: Permission.user,
+            expireTime: Time.getTimeStamp() + TOKEN_EXPIRE_TIME * 1000,
         })
 
     }

@@ -19,4 +19,4 @@ process.on('exit', code => bell('TOGAPhotos API离线',"退出代码"+code))
 StartHTTPServer();
 
 // 启动消息队列消费者
-const mailService = new RegisterService('mail', './dist/service/mail/index.js');
+// const mailService = new RegisterService('mail', './dist/service/mail/index.js');

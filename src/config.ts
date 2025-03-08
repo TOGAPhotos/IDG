@@ -2,7 +2,7 @@ import 'dotenv/config'
 
 export const PRODUCTION_ENV = (process.env.RUNNING_ENV || 'PRODUCTION') === "PRODUCTION"
 
-export const HTTP_PORT = Number(process.env.HTTP_PORT) || 3000;
+export const HTTP_PORT = Number(process.env.HTTP_PORT) || 3500;
 
 export const TOKEN_EXPIRE_TIME =  60 * 60 * 24 * 30;
 
