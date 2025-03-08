@@ -14,7 +14,7 @@ SELECT
   `p`.`ac_type` AS `ac_type`,
   `p`.`ac_reg` AS `ac_reg`,
   `p`.`ac_msn` AS `ac_msn`,
-  `p`.`airline` AS `airline`,
+  `p`.`airline_id` AS `airline_id`,
   `p`.`airport_id` AS `airport_id`,
   `p`.`pic_type` AS `pic_type`,
   `p`.`user_remark` AS `user_remark`,
@@ -24,16 +24,23 @@ SELECT
   `a`.`airport_cn` AS `airport_cn`,
   `a`.`airport_en` AS `airport_en`,
   `a`.`icao_code` AS `airport_icao_code`,
-  `a`.`iata_code` AS `airport_iata_code`
+  `a`.`iata_code` AS `airport_iata_code`,
+  `TOGAPhotos`.`airline`.`airline_cn` AS `airline_cn`,
+  `TOGAPhotos`.`airline`.`airline_en` AS `airline_en`,
+  `TOGAPhotos`.`airline`.`icao_code` AS `airline_icao_code`,
+  `TOGAPhotos`.`airline`.`iata_code` AS `airline_iata_code`
 FROM
   (
     (
-      `TOGAPhotos`.`photo` `p`
-      JOIN `TOGAPhotos`.`airport` `a` ON((`p`.`airport_id` = `a`.`id`))
+      (
+        `TOGAPhotos`.`photo` `p`
+        LEFT JOIN `TOGAPhotos`.`airport` `a` ON((`p`.`airport_id` = `a`.`id`))
+      )
+      LEFT JOIN `TOGAPhotos`.`user` ON(
+        (`p`.`upload_user_id` = `TOGAPhotos`.`user`.`id`)
+      )
     )
-    JOIN `TOGAPhotos`.`user` ON(
-      (`p`.`upload_user_id` = `TOGAPhotos`.`user`.`id`)
-    )
+    LEFT JOIN `TOGAPhotos`.`airline` ON((`p`.`airline_id` = `TOGAPhotos`.`airline`.`id`))
   )
 WHERE
   (`p`.`is_delete` = 0)

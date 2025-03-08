@@ -1,5 +1,5 @@
 SELECT
-  `TOGAPhotos`.`full_photo_info`.`id` AS `photo_id`,
+  `TOGAPhotos`.`full_photo_info`.`id` AS `id`,
   `TOGAPhotos`.`full_photo_info`.`status` AS `status`,
   `TOGAPhotos`.`full_photo_info`.`queue` AS `queue`,
   `TOGAPhotos`.`full_photo_info`.`message` AS `message`,
@@ -12,7 +12,11 @@ SELECT
   `TOGAPhotos`.`full_photo_info`.`ac_type` AS `ac_type`,
   `TOGAPhotos`.`full_photo_info`.`ac_reg` AS `ac_reg`,
   `TOGAPhotos`.`full_photo_info`.`ac_msn` AS `ac_msn`,
-  `TOGAPhotos`.`full_photo_info`.`airline` AS `airline`,
+  `TOGAPhotos`.`full_photo_info`.`airline_id` AS `airline_id`,
+  `TOGAPhotos`.`full_photo_info`.`airline_cn` AS `airline_cn`,
+  `TOGAPhotos`.`full_photo_info`.`airline_en` AS `airline_en`,
+  `TOGAPhotos`.`full_photo_info`.`airline_icao_code` AS `airline_icao_code`,
+  `TOGAPhotos`.`full_photo_info`.`airline_iata_code` AS `airline_iata_code`,
   `TOGAPhotos`.`full_photo_info`.`airport_id` AS `airport_id`,
   `TOGAPhotos`.`full_photo_info`.`pic_type` AS `pic_type`,
   `TOGAPhotos`.`full_photo_info`.`user_remark` AS `user_remark`,
@@ -26,5 +30,10 @@ FROM
   `TOGAPhotos`.`full_photo_info`
 WHERE
   (
-    `TOGAPhotos`.`full_photo_info`.`status` = 'WAIT SCREEN'
+    (
+      `TOGAPhotos`.`full_photo_info`.`status` <> 'ACCEPT'
+    )
+    AND (
+      `TOGAPhotos`.`full_photo_info`.`status` <> 'REJECT'
+    )
   )
