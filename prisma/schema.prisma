@@ -85,8 +85,8 @@ model user {
   role                String?  @db.VarChar(127)
   airport_id          Int?
   cover_photo_id      Int?
-  allow_toga_use      Boolean?
-  allow_third_use     Boolean?
+  allow_toga_use      Boolean? @default(true)
+  allow_third_use     Boolean? @default(true)
   passing_rate        Int      @default(0) @db.TinyInt
   total_queue         Int      @default(5) @db.TinyInt
   free_queue          Int      @default(5) @db.TinyInt
@@ -98,36 +98,6 @@ model user {
   status              String?  @default("NORMAL") @db.VarChar(31)
   suspension_days     Int?     @default(0)
   is_deleted          Boolean  @default(false)
-  notam               notam[]
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model photo_queue {
-  queue_id             Int      @id @default(autoincrement())
-  photo_id             Int      @unique(map: "photo_queue_pk")
-  queue_type           String?  @default("NORMAL") @db.VarChar(31)
-  status               String?  @default("WAIT SCREEN") @db.VarChar(127)
-  message_to_screener  String?  @db.VarChar(255)
-  screener_1           Int?
-  screener_2           Int?
-  need_senior_screener Boolean? @default(true)
-  reason               String?  @db.VarChar(512)
-  screener_remark      String?  @db.VarChar(255)
-  result               String?  @default("REJECT") @db.VarChar(128)
-  is_delete            Boolean?
-}
-
-model notam {
-  id          Int       @id @default(autoincrement())
-  title       String    @db.VarChar(255)
-  content     String    @db.Text
-  create_time DateTime? @default(now()) @db.Timestamp(0)
-  create_user Int
-  show        Boolean   @default(true)
-  is_delete   Boolean   @default(false)
-  user        user      @relation(fields: [create_user], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "create_user")
-
-  @@index([create_user], map: "create_user")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -142,31 +112,6 @@ model aircraft {
   delivery_date DateTime? @db.Date
   remark        String?   @db.VarChar(256)
   is_delete     Boolean   @default(false)
-}
-
-/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
-model photo_backup {
-  id             Int       @default(0)
-  status         String?   @db.VarChar(255)
-  upload_user_id Int
-  ac_type        String?   @db.VarChar(255)
-  ac_reg         String?   @db.VarChar(255)
-  ac_msn         String?   @db.VarChar(255)
-  airline        String?   @db.VarChar(255)
-  airline_id     Int?
-  airport_id     Int?
-  pic_type       String?   @db.VarChar(255)
-  user_remark    String?   @db.VarChar(255)
-  message        Int?
-  photo_time     DateTime? @db.Date
-  upload_time    DateTime? @db.Date
-  screener_1     Int?
-  screener_2     Int?
-  reason         String?   @db.VarChar(255)
-  comment        Int?
-  is_delete      Boolean?  @default(false)
-
-  @@ignore
 }
 
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
