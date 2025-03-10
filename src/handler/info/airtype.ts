@@ -23,9 +23,11 @@ export default class AirtypeHandler{
         }
 
         const { type, sub_type, manufacturer_cn, manufacturer_en,icao_code } = req.body;
-        await Airtype.create(manufacturer_cn, manufacturer_en,type, sub_type,icao_code,status);
+        await Airtype.create(manufacturer_cn, manufacturer_en,type, sub_type,icao_code,status,user.id);
         res.success('创建成功');
-        await AirtypeHandler.searchCache.flush();
+        if(Permission.isStaff(user.role)){
+            await AirtypeHandler.searchCache.flush();
+        }
     }
 
     static async search(req:Request, res:Response){
@@ -64,8 +66,9 @@ export default class AirtypeHandler{
     }
 
     static async delete(req:Request, res:Response){
-        const subType = req.params.subType;
-        await Airtype.delete(subType);
+        const id = Number(req.params.id);
+
+        await Airtype.delete(id);
         res.success('删除成功');
         await AirtypeHandler.searchCache.flush();
     }
