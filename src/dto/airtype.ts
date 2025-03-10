@@ -26,8 +26,7 @@ export class Airtype{
         return res.length > 0;
     }
 
-    @secureSqlString
-    static async create(manufacturerCn:string,manufacturerEn:string,type:string,subType:string,icao:string,status:string) {
+    static async create(manufacturerCn:string,manufacturerEn:string,type:string,subType:string,icao:string,status:string,userId:number) {
         await prisma.airtype.create({
             data: {
                 manufacturer_cn: manufacturerCn, 
@@ -36,6 +35,7 @@ export class Airtype{
                 sub_type: subType,
                 icao_code:icao,
                 status:status as 'AVAILABLE'|'WAITING',
+                create_user:userId,
             },
         });
     }
@@ -48,9 +48,8 @@ export class Airtype{
         return prisma.airtype.findMany({orderBy:{sub_type:'asc'}});
     }
 
-    @secureSqlString
-    static async delete(subType:string) {
-        await prisma.airtype.delete({where:{sub_type:subType}});
+    static async delete(id:number) {
+        await prisma.airtype.delete({where:{id:id}});
     }
 
     static async update(id:number, data:any) {
