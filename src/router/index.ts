@@ -85,7 +85,7 @@ router.delete('/aircraft/:id',  Per.isScreenerMW, AircraftHandler.delete);
 
 // airtype.ts
 router.get('/airtypes', AirtypeHandler.list);
-router.post('/airtype', Per.isScreenerMW, AirtypeHandler.create);
+router.post('/airtype', AirtypeHandler.create);
 router.put('/airtype/:id', Per.isScreenerMW, AirtypeHandler.update);
 router.delete('/airtype/:sub_type', Per.isScreenerMW, AirtypeHandler.delete);
 
