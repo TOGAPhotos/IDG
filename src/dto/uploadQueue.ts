@@ -48,7 +48,7 @@ export default class UploadQueue {
 
     static async getQueue(type: 'normal'|'priority'|'stuck'|'all') {
         if (type === 'all') {
-            return UploadQueue.prisma.photo_queue.findMany();
+            return UploadQueue.prisma.queue_photo.findMany();
         }
         const query = {
             status: "WAIT SCREEN",
