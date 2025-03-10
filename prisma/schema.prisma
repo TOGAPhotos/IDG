@@ -40,7 +40,7 @@ model airtype {
   manufacturer_cn String?         @db.VarChar(255)
   manufacturer_en String?         @db.VarChar(255)
   type            String?         @db.VarChar(255)
-  sub_type        String?         @unique(map: "airtype_pk") @db.VarChar(255)
+  sub_type        String?         @db.VarChar(255)
   icao_code       String?         @db.VarChar(255)
   status          airtype_status? @default(WAITING)
   create_user     Int?
@@ -112,6 +112,17 @@ model aircraft {
   delivery_date DateTime? @db.Date
   remark        String?   @db.VarChar(256)
   is_delete     Boolean   @default(false)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model notam {
+  id          Int       @id @default(autoincrement())
+  title       String?   @db.VarChar(255)
+  content     String?   @db.Text
+  create_time DateTime? @db.Timestamp(0)
+  create_user Int?
+  show        Boolean?
+  is_delete   Boolean?
 }
 
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
