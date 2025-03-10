@@ -104,7 +104,7 @@ export default class QueueHandler {
 
         let screenData: {
             screener_1?: number,
-            result: number,
+            result: string,
             reason: string,
             screener_message: string,
             screener_2?: number,
@@ -143,6 +143,7 @@ export default class QueueHandler {
                 User.updatePassingRate(queuePhoto.upload_user_id),
                 User.updateById(queuePhoto.upload_user_id,{
                     free_queue: {increment: 1},
+                    total_photo:{increment: screenData.result === 'ACCEPT' ? 1 : 0},
                     // free_priority_queue: {increment: queuePhoto.queue === 'PRIORITY' ? 1 : 0}
                 })
             ])
