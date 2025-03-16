@@ -1,4 +1,4 @@
-import Log from "@/components/loger.js";
+import Log from "../../components/loger.js";
 import COS from "cos-nodejs-sdk-v5";
 type CosParams = {
     secretId: string;
@@ -8,27 +8,26 @@ type CosParams = {
     region: string;
 };
 
-export default class COSStorage {
-    private cos: COS;
-    private bucket: string;
-    private region: string;
+export default class COSStorage extends COS {
+    public readonly bucket: string;
+    public readonly region: string;
 
     constructor({
         secretId,secretKey,
         domain,
         bucket,region,
     }: CosParams) {
-        this.cos = new COS({
+        super({
             SecretId: secretId,
             SecretKey: secretKey,
             Domain: domain,
-        });
+        })
         this.bucket = bucket;
         this.region = region;
     }
 
     getUploadUrl(key:string) {
-        return this.cos.getObjectUrl({
+        return this.getObjectUrl({
             Bucket: this.bucket,
             Region: this.region,
             Key: key,
@@ -44,10 +43,27 @@ export default class COSStorage {
     }
 
     async deleteObject(key:string) {
-        return this.cos.deleteObject({
+        return this.delete({
             Bucket: this.bucket,
             Region: this.region,
             Key: key
+        })
+    }
+
+    streamDownload(key:string) {
+        return this.getObjectStream({
+            Bucket: this.bucket,
+            Region: this.region,
+            Key: key
+        })
+    }
+
+    async upload(key:string,body:COS.UploadBody){
+        return this.putObject({
+            Bucket: this.bucket,
+            Region: this.region,
+            Key: key,
+            Body:body
         })
     }
 
