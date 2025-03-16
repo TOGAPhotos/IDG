@@ -17,6 +17,9 @@ import WebsiteHandler from "../handler/info/website.js";
 
 const router = Router();
 
+
+router.put('/cos',PhotoHandler.updateObjectStatus)
+
 router.get("/website",WebsiteHandler.get);
 
 router.post("/user/login",UserHandler.login)
