@@ -12,11 +12,16 @@ console.log(startConsoleStr);
 // 全局错误处理
 process.on('uncaughtException', ErrorHandler.syncError);
 process.on('unhandledRejection', ErrorHandler.asyncError);
-process.on('exit', code => bell('TOGAPhotos API离线',"退出代码"+code))
+process.on('exit', code => {
+    bell('TOGAPhotos API离线',"退出代码"+code)
+    RegisterService.stopAll();
+})
 
 
 // 启动HTTP服务器
 StartHTTPServer();
 
 // 启动消息队列消费者
-// const mailService = new RegisterService('mail', './dist/service/mail/index.js');
+const mailService = new RegisterService('mail', './dist/service/mail/index.js');
+const imageProcessService = new RegisterService('imageProcess', './dist/service/imageProcesser/index.js');
+
