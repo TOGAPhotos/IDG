@@ -3,7 +3,8 @@ declare namespace Express {
         userIp?:string,
         uuid?:string
         token?: { id:number } | null,
-        role?: string
+        role?: string,
+        tId:string,
     }
 
     export interface Response {
