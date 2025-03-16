@@ -3,8 +3,7 @@ import Logger from "../../components/loger.js"
 
 export class MessageQueueConnection {
 
-    protected readonly queue: string;
-    private conn: amqplib.Connection | null;
+    private conn: amqplib.ChannelModel | null;
 
     constructor() {
         this.conn = null
