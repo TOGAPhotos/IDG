@@ -22,7 +22,7 @@ export default class MessageQueueConsumer extends MessageQueueWorker {
                 await callback(msg);
                 this.channel.getChannel().ack(msg);
             }catch(e){
-                Logger.error(`消息处理失败\n`+e);
+                Logger.error(`消息处理失败 `+e);
                 return;
             }
         }
