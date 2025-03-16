@@ -76,13 +76,15 @@ export default class Log {
         if ( PRODUCTION_ENV ) {
             return function(req:Request,res:Response,next:NextFunction){
                 req.userIp = req.headers['x-real-ip'] as string || req.ip;
-                Logger.info(`${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || 'NOT LOGIN'} trace_id:${req.headers['t_id']} ${JSON.stringify(req.body)}`)
+                req.tId = req.headers['t_id'] as string || 'NO_TRACE_ID';
+                Logger.info(`${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || 'NOT LOGIN'} trace_id:${req.tId} ${JSON.stringify(req.body)}`)
                 next();
             }
         }else{
             return function(req:Request,res:Response,next:NextFunction){
                 req.userIp = req.headers['x-real-ip'] as string || req.ip;
-                const accessLog = `${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || 'NOT LOGIN'} trace_id:${req.headers['t_id']} ${JSON.stringify(req.body)}`
+                req.tId = req.headers['t_id'] as string || 'NO_TRACE_ID';
+                const accessLog = `${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || 'NOT LOGIN'} trace_id:${req.tId} ${JSON.stringify(req.body)}`
                 Log.debug(accessLog);
                 next();
             }
