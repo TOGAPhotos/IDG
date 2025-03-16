@@ -40,6 +40,12 @@ export default class RegisterService{
         }
     }
 
+    public static stopAll(){
+        RegisterService.serviceMap.forEach(worker=>{
+            worker.terminate();
+        });
+    }
+
     constructor(name:string,scriptPath:string,options?: WorkerOptions){
         this.name = name;
         if(RegisterService.nameList.includes(name)){
