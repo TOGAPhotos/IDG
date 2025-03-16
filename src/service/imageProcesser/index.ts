@@ -40,6 +40,7 @@ export class CopyrightOverlayConfig{
         this.outputFile = file+fileSuffix
         this.username = username;
         this.watermark = watermarkConfig;
+        
         if(textConfig){
             this.textConfig = textConfig;
         }else{
@@ -65,6 +66,7 @@ export class ImageProcess{
         watermarkConfig:watermarkConfig,
         textConfig:textConfig
     ){
+        Log.debug(JSON.stringify(textConfig.fontSize))
         const _text = `图片版权归属 ${username}`
         const canvas = createCanvas(width, height+20);
         const ctx = canvas.getContext('2d')
@@ -76,6 +78,8 @@ export class ImageProcess{
     
         ctx.globalAlpha = watermarkConfig.alpha
         ctx.drawImage(watermarkImg,watermarkConfig.x,watermarkConfig.y,watermarkImg.width*watermarkConfig.scale,watermarkImg.height*watermarkConfig.scale)
+        
+        ctx.globalAlpha = Math.min(1,watermarkConfig.alpha + 0.1)
         ctx.fillStyle = 'white'
         const overlayFontSize = watermarkImg.height*watermarkConfig.scale / 4
         ctx.font = `${overlayFontSize}px ${textConfig.fontFamily}`
@@ -108,6 +112,7 @@ export class ImageProcess{
         if( !width || !height || !format){
             throw new Error("图片信息获取失败")
         }
+        Log.debug(JSON.stringify(config.textConfig))
         const overlay = await ImageProcess.$createCopyrightOverlay(
             width,height,
             config.username,
@@ -127,15 +132,16 @@ export class ImageProcess{
     }
 }
 
-// parentPort.on('message', async (url:string) => ImageProcess.ThumbnailTask(url)); 
-
 const mq = new MessageQueueConsumer("imageProcess");
 mq.consume(async (msg) => {
+    Log.debug(msg.content.toString());
     const {task,params}:{task:string,params:CopyrightOverlayConfig} = JSON.parse(msg.content.toString());
     if(task === 'T1-copyrightOverlay'){
         try{
+            Log.debug(`ImageProcess: ${params.inputFile} -> ${params.outputFile}`);
             await ImageProcess.copyrightOverlay(params);
         }catch(e){
+            Log.debug(e)
             throw new Error(JSON.stringify(e));
         }
     }
