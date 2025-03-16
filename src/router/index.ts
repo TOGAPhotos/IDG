@@ -18,7 +18,7 @@ import WebsiteHandler from "../handler/info/website.js";
 const router = Router();
 
 
-router.put('/cos',PhotoHandler.updateObjectStatus)
+router.put('/cos/photos',PhotoHandler.updateObjectStatus)
 
 router.get("/website",WebsiteHandler.get);
 
