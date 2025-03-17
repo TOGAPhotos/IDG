@@ -1,4 +1,3 @@
-import fs from "fs/promises";
 import type { Request, Response} from "express";
 import Log from "@/components/loger.js";
 
@@ -9,6 +8,8 @@ import Permission from "@/components/auth/permissions.js";
 import { HTTP_STATUS } from "@/types/http_code.js";
 import photoBucket from './cos.js'
 import QueueHandler from "../queue/index.js";
+import MessageQueueProducer from "@/service/messageQueue/producer.js";
+import { CopyrightOverlayConfig } from "@/service/imageProcesser/index.js";
 
 export default class PhotoHandler {
 
@@ -17,6 +18,7 @@ export default class PhotoHandler {
         'PRIORITY': 'PRIO',
         'NORMAL': 'NORM'
     }
+    private static imageProcessQueue = new MessageQueueProducer("imageProcess");
 
     static async get(req: Request, res: Response) {
         const id = Number(req.params['id']);
@@ -77,22 +79,27 @@ export default class PhotoHandler {
         ){
             return res.fail(HTTP_STATUS.FORBIDDEN, '队列已满');
         }
-        
-        const photoInfo = await Photo.create({
-            userId:userId,
-            uploadTime:req.body['uploadTime'],
-            reg:req.body['reg'],
-            msn:req.body['msn'],
-            airline:req.body['airline'],
-            ac_type:req.body['ac_type'],
-            airport:req.body['airport'],
-            picType:req.body['picType'],
-            photoTime:new Date(req.body['photoTime']),
-            remark:req.body['remark'],
-            queue: req['queue'] === PhotoHandler.queueType.PRIORITY ? 'PRIORITY' : 'NORMAL',
-            exif: req.body['exif'],
-            watermark: req.body['watermark']
-        })
+        let photoInfo;
+        try {
+            photoInfo = await Photo.create({
+                userId:userId,
+                uploadTime:req.body['uploadTime'],
+                reg:req.body['reg'],
+                msn:req.body['msn'],
+                airline:req.body['airline'],
+                ac_type:req.body['ac_type'],
+                airport:req.body['airport'],
+                picType:req.body['picType'],
+                photoTime:new Date(req.body['photoTime']),
+                remark:req.body['remark'],
+                queue: req['queue'] === PhotoHandler.queueType.PRIORITY ? 'PRIORITY' : 'NORMAL',
+                exif: req.body['exif'],
+                watermark: req.body['watermark']
+            })
+        } catch (e) {
+            Log.error(e);
+            return res.fail(HTTP_STATUS.SERVER_ERROR, '数据库错误');
+        }
         try{
             const uploadUrl = PhotoHandler.photoBucket.getUploadUrl("photos/"+photoInfo['id']+'.jpg');
             res.success('创建成功',{
@@ -105,13 +112,6 @@ export default class PhotoHandler {
             });
         }catch{
             await Photo.deleteById(photoInfo['id']);
-            // const currentInfo = await User.getById(userId);
-            // if( userInfo.free_queue !== currentInfo.free_queue || userInfo.free_priority_queue !== currentInfo.free_priority_queue){
-            //     await User.updateById(userId, {
-            //         free_queue: userInfo.free_queue,
-            //         free_priority_queue: userInfo.free_priority_queue
-            //     });
-            // }
             return res.fail(HTTP_STATUS.SERVER_ERROR, '上传失败/COS错误');
         }
     }
@@ -125,7 +125,7 @@ export default class PhotoHandler {
             Photo.getById(photoId),
         ])
 
-        Log.info(`access_id:${req.uuid} user_id:${userId} username:${userInfo['username']} 尝试删除图片 ${photoId}`);
+        Log.info(`trace_id:${req.tId} user_id:${userId} username:${userInfo['username']} 尝试删除图片 ${photoId}`);
 
         if (photoInfo === null) {
             return res.fail(HTTP_STATUS.NOT_FOUND, '已删除');
@@ -146,10 +146,14 @@ export default class PhotoHandler {
         try {
             await Promise.all([
                 Photo.deleteById(photoId),
-                PhotoHandler.photoBucket.deleteObject(`photos/${photoId}.jpg`)
+                //@ts-ignore
+                PhotoHandler.photoBucket.deleteObject({
+                    Bucket: PhotoHandler.photoBucket.bucket,
+                    Region: PhotoHandler.photoBucket.region,
+                    Key: `photos/${photoId}.jpg`
+                })
             ])
         } catch (e) {
-            console.log('recover photo');
             await Photo.update(photoId,{is_delete:false});
             Log.error(e)
             return res.fail(HTTP_STATUS.SERVER_ERROR, '删除失败');
@@ -162,8 +166,7 @@ export default class PhotoHandler {
             }
             await User.updateById(userId, data);
         }
-
-        return res.json({message: '删除成功'});
+        res.success('删除成功');
     }
 
     static async update(req: Request, res: Response) {
@@ -193,5 +196,38 @@ export default class PhotoHandler {
         await Photo.update( photoId,req.body);
         return res.success("更新成功");
         
+    }
+
+    static async updateObjectStatus(req: Request, res: Response) {
+
+        const { status,photo_id:photoId } = req.query as { object: string, status: string, photo_id: string | null };
+        if( !photoId || isNaN(Number(photoId)) ){
+            return res.fail(HTTP_STATUS.BAD_REQUEST, '参数错误');
+        }
+        const photoInfo = await Photo.getById(Number(photoId));
+        if( !photoInfo ){
+            return res.fail(HTTP_STATUS.NOT_FOUND, '图片不存在');
+        }
+
+        if(status === 'available'){
+            Log.debug(`ImageProcess: ${photoId}`)
+            const watermark = JSON.parse(<string>photoInfo.watermark)
+            await PhotoHandler.imageProcessQueue.send(JSON.stringify({
+                task:'T1-copyrightOverlay',
+                params: new CopyrightOverlayConfig({
+                    file:`photos/${photoInfo.id}.jpg`,
+                    fileSuffix:`.watermark.jpg`,
+                    username:photoInfo.username,
+                    watermarkConfig: {
+                        x: watermark['x'] as number,
+                        y: watermark['y'] as number,
+                        scale: watermark['s'] as number,
+                        alpha: watermark['a'] as number,
+
+                    },
+                })
+            }));
+        }
+        return res.success('更新成功');
     }
 }
