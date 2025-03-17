@@ -132,6 +132,7 @@ view full_photo_info {
   status            String?   @default("WAIT SCREEN") @db.VarChar(255)
   queue             String?   @db.VarChar(255)
   message           String?   @db.VarChar(255)
+  watermark         Json?
   screener_1        Int?
   screener_2        Int?
   need_screener_2   Boolean?

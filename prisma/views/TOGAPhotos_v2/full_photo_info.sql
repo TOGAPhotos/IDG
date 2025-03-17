@@ -3,6 +3,7 @@ SELECT
   `p`.`status` AS `status`,
   `p`.`queue` AS `queue`,
   `p`.`message` AS `message`,
+  `p`.`watermark` AS `watermark`,
   `p`.`screener_1` AS `screener_1`,
   `p`.`screener_2` AS `screener_2`,
   `p`.`need_screener_2` AS `need_screener_2`,
