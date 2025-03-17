@@ -1,5 +1,6 @@
 import amqplib from 'amqplib';
 import Logger from "../../components/loger.js"
+import 'dotenv/config';
 
 export class MessageQueueConnection {
 
