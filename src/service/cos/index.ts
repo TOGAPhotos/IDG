@@ -42,13 +42,18 @@ export default class COSStorage extends COS {
         });
     }
 
-    async deleteObject(key:string) {
-        return this.delete({
-            Bucket: this.bucket,
-            Region: this.region,
-            Key: key
-        })
-    }
+    // async deleteObject(key:string) {
+    //     return this.delete({
+    //         Bucket: this.bucket,
+    //         Region: this.region,
+    //         Key: key
+    //     },(err,data)=>{
+    //         if(err){
+    //             Log.error('COS Storage Error: Func deleteObject'+err.message);
+    //             throw err;
+    //         }
+    //     })
+    // }
 
     streamDownload(key:string) {
         return this.getObjectStream({
