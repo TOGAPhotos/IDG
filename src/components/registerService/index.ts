@@ -1,5 +1,4 @@
 import {SHARE_ENV, Worker} from "worker_threads";
-
 import Log from "../loger.js";
 import bell from "../bell.js";
 import { WORKER_REPORT_INTERVAL } from "../../config.js";
@@ -10,9 +9,8 @@ setInterval(()=>{
     const offlineList = RegisterService.getService('offline');
     const onlineList = RegisterService.getService('online');
 
-    if(offlineList.length === 0){
-        Log.success(`All ${onlineList.length} service(s) online`);
-    }else{
+    Log.success(`All ${onlineList.length} service(s) online`);
+    if(offlineList.length > 0){
         Log.error('Offline service:'+offlineList.join(','));
     }
 
@@ -26,10 +24,11 @@ export default class RegisterService{
 
     public worker:Worker;
     private name:string;
+    private scriptPath: string;
 
     static getService(status:WorkerStatus = 'online'){
         return Array.from(RegisterService.statusMap)
-            .filter(([name,stat])=>stat===status)
+            .filter(([_,stat])=>stat===status)
             .map(([name])=>name);
     }
 
@@ -46,8 +45,20 @@ export default class RegisterService{
         });
     }
 
+    // public static rebuildService(name:string){
+    //     const worker = RegisterService.serviceMap.get(name);
+    //     if(worker){
+    //         worker.terminate();
+    //         RegisterService.serviceMap.delete(name);
+    //         RegisterService.nameList = RegisterService.nameList.filter(n=>n!==name);
+    //         RegisterService.statusMap.delete(name);
+    //     }
+
+    // }
+
     constructor(name:string,scriptPath:string,options?: WorkerOptions){
         this.name = name;
+        this.scriptPath = scriptPath;
         if(RegisterService.nameList.includes(name)){
             Log.error('Service name repeat');
             throw new Error('Service name repeat');
