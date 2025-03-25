@@ -7,14 +7,3 @@ export function checkNumberParams(...args: any[]) {
 
     return args as number[];
 }
-
-export function checkSqlString(...args: any[]) {
-    args.forEach(arg => {
-        arg = arg.toString();
-        arg.replace(/--/g, "")
-            .replace(/'/g, "''")
-            .replace(/%/g, "");
-        return arg as string;
-    })
-    return args as string[];
-}
