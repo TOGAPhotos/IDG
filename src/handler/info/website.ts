@@ -1,63 +1,52 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import nodeSchedule from "node-schedule";
-export default class WebsiteHandler{
+import { UrlCache } from '@/components/decorators/cache.js';
+
+export default class WebsiteHandler {
     private static prisma = new PrismaClient()
 
-    private static photoList = [];
-    private static randomPhotoList = [];
-    private static userNum = 0;
-    private static uploadQueueLen = 0;
-    private static photoNum = 0;
-    
-    private static async updatePhotoList(){
-        WebsiteHandler.photoList = await this.prisma.accept_photo.findMany({take:40,orderBy:{upload_time:'desc'}})
-        WebsiteHandler.randomPhotoList = await this.prisma.$queryRawUnsafe(`SELECT * FROM accept_photo ORDER BY RAND() LIMIT 8`)
+    private static async getPhotoList() {
+        return await WebsiteHandler.prisma.accept_photo.findMany({ take: 40, orderBy: { upload_time: 'desc' } })
 
     }
 
-    private static async updateBasicInfo(){
-        WebsiteHandler.userNum = await this.prisma.user.count({where:{is_deleted:false}})
-        WebsiteHandler.uploadQueueLen = await this.prisma.queue_photo.count()
-        WebsiteHandler.photoNum = await this.prisma.accept_photo.count()
+    private static async getRandomPhotos() {
+        return await WebsiteHandler.prisma.$queryRawUnsafe(`SELECT * FROM accept_photo ORDER BY RAND() LIMIT 8`)
     }
 
-    static async scheduleUpdate(){
-        await WebsiteHandler.updatePhotoList()
-        await WebsiteHandler.updateBasicInfo()
-        nodeSchedule.scheduleJob('0 */5 * * * *', async ()=>{
-            await WebsiteHandler.updatePhotoList()
-            await WebsiteHandler.updateBasicInfo()
-        })
+    private static async getBasicInfo() {
+        return {
+            userNum: await WebsiteHandler.prisma.user.count({ where: { is_deleted: false } }),
+            uploadQueueLen: await WebsiteHandler.prisma.queue_photo.count(),
+            photoNum: await WebsiteHandler.prisma.accept_photo.count()
+        }
     }
-    
-    static async get(req:Request,res:Response){
+
+
+    @UrlCache(180)
+    static async get(req: Request, res: Response) {
         const type = req.query.type || ""
         let data = {}
-        switch(type){
+        switch (type) {
             case "photos":
-                data = WebsiteHandler.photoList
+                data = await WebsiteHandler.getPhotoList()
                 break;
             case "random":
-                data = WebsiteHandler.randomPhotoList
+                data = await WebsiteHandler.getRandomPhotos()
                 break;
             case "statistics":
-                data = {
-                    userNum: WebsiteHandler.userNum,
-                    uploadQueueLen: WebsiteHandler.uploadQueueLen,
-                    photoNum: WebsiteHandler.photoNum
-                }
+                data = await WebsiteHandler.getBasicInfo()
                 break;
             default:
-                data = {
-                    photoList: WebsiteHandler.photoList,
-                    userNum: WebsiteHandler.userNum,
-                    uploadQueueLen: WebsiteHandler.uploadQueueLen,
-                    photoNum: WebsiteHandler.photoNum,
-                    randomPhotoList: WebsiteHandler.randomPhotoList,
-                }
+                data = await Promise.all([
+                    WebsiteHandler.getPhotoList(),
+                    WebsiteHandler.getBasicInfo(),
+                    WebsiteHandler.getRandomPhotos()
+                ])
+                break;
         }
-        res.success("网站正常",data)
+        res.success("网站正常", data)
     }
 
 }
