@@ -1,5 +1,5 @@
 import {Redis} from "ioredis";
-
+import 'dotenv/config';
 export default class SearchCache {
     private conn: Redis;
     constructor(dbId:number){
