@@ -1,36 +1,36 @@
-import {PrismaClient} from '@prisma/client';
-import {checkNumberParams} from "../components/decorators/checkNumberParams.js";
-import {secureSqlString} from "../components/decorators/secureSqlString.js";
+import { PrismaClient } from '@prisma/client';
+import { checkNumberParams } from "../components/decorators/checkNumberParams.js";
+import { safeSQL } from "../components/decorators/safeSQL.js";
 
 const prisma = new PrismaClient();
 
 export default class User {
 
-    @secureSqlString
-    static async create(userEmail:string,username:string,password:string){
+    @safeSQL
+    static async create(userEmail: string, username: string, password: string) {
         return prisma.user.create({
-            data:{
-                user_email:userEmail,
-                username:username,
-                password:password,
+            data: {
+                user_email: userEmail,
+                username: username,
+                password: password,
             }
         })
     }
 
     // @checkNumberParams
     static async updateById(id: number, data: any) {
-        return prisma.user.update({where: {id: id}, data: data});
+        return prisma.user.update({ where: { id: id }, data: data });
     }
 
     @checkNumberParams
     static async updatePassingRate(userId: number) {
         const list = await prisma.full_photo_info.findMany({
-            select:{
-                status:true,
+            select: {
+                status: true,
             },
             where: {
                 upload_user_id: userId,
-                OR: [{status: "ACCEPT"}, {status: "REJECT"}]
+                OR: [{ status: "ACCEPT" }, { status: "REJECT" }]
             },
             orderBy: {
                 id: 'desc'
@@ -45,41 +45,41 @@ export default class User {
         });
         passingRate = Math.round(passingRate / list.length * 100);
         await prisma.user.update({
-            where: {id: userId},
-            data: {passing_rate: passingRate}
+            where: { id: userId },
+            data: { passing_rate: passingRate }
         });
     }
 
     // @checkNumberParams
     static async getById(id: number) {
-        const res = await prisma.user.findUnique({where: {id: id}})
+        const res = await prisma.user.findUnique({ where: { id: id } })
         if (res === null) {
             throw new Error('用户不存在');
         }
         return res;
     }
 
-    @secureSqlString
+    @safeSQL
     static async getByEmail(email: string) {
-        return prisma.user.findMany({where: {user_email: email,is_deleted:false}});
+        return prisma.user.findMany({ where: { user_email: email, is_deleted: false } });
     }
 
-    @secureSqlString
+    @safeSQL
     static getByUsername(username: string) {
-        return prisma.user.findMany({where: {username: {contains: username}}});
+        return prisma.user.findMany({ where: { username: { contains: username } } });
     }
 
-    static getList(limit:number){
-        return prisma.user.findMany({where:{is_deleted:false},take:limit})
+    static getList(limit: number) {
+        return prisma.user.findMany({ where: { is_deleted: false }, take: limit })
     }
 
-    @secureSqlString
+    @safeSQL
     static async search(keyword: string) {
         return prisma.user.findMany({
             where: {
                 OR: [
-                    {username: {contains: keyword}},
-                    {user_email: {contains: keyword}}
+                    { username: { contains: keyword } },
+                    { user_email: { contains: keyword } }
                 ]
             }
         });
@@ -88,8 +88,8 @@ export default class User {
     @checkNumberParams
     static async delete(id: number) {
         return prisma.user.update({
-            where: {id: id},
-            data: {is_deleted: true}
+            where: { id: id },
+            data: { is_deleted: true }
         });
     }
 }

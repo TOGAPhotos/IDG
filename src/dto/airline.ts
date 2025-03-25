@@ -1,86 +1,87 @@
 import { PrismaClient } from '@prisma/client';
-import { secureSqlString } from "../components/decorators/secureSqlString.js";
-import { checkNumberParams } from "../components/params-check.js";
+import { safeSQL } from "../components/decorators/safeSQL.js";
 const prisma = new PrismaClient();
 
-export class Airline{
+export class Airline {
 
-    @secureSqlString
-    static async searchByKeyword(keyword:string) {
-        try{
+    @safeSQL
+    static async searchByKeyword(keyword: string) {
+        try {
             return await prisma.airline.findMany({
-                where:{
-                    OR:[
-                        {airline_cn:{contains:keyword}},
-                        {airline_en:{contains:keyword}},
-                        {iata_code:{contains:keyword}},
-                        {icao_code:{contains:keyword}}
+                where: {
+                    OR: [
+                        { airline_cn: { contains: keyword } },
+                        { airline_en: { contains: keyword } },
+                        { iata_code: { contains: keyword } },
+                        { icao_code: { contains: keyword } }
                     ],
-                    status:'AVAILABLE',
-                    is_delete:false
+                    status: 'AVAILABLE',
+                    is_delete: false
                 }
             })
-        }catch{
+        } catch {
             throw new Error('查询错误')
         }
 
     }
 
 
-    static async deleteById(id:number) {
-        return prisma.airline.update({where:{id:id}, data:{is_delete:true}})
+    static async deleteById(id: number) {
+        return prisma.airline.update({ where: { id: id }, data: { is_delete: true } })
     }
 
-    static async preCheck(userId:number) {
+    static async preCheck(userId: number) {
         return prisma.airline.findMany({
-            where:{
-                create_user:userId,
-                status:'WAITING',
-                is_delete:false
+            where: {
+                create_user: userId,
+                status: 'WAITING',
+                is_delete: false
             }
         });
     }
 
-    static async create(airlineCnName:string,airlineEnName:string,iata:string,icao:string,addUser:number,status:string) {
+    @safeSQL
+    static async create(airlineCnName: string, airlineEnName: string, iata: string, icao: string, addUser: number, status: string) {
         return prisma.airline.create({
-            data:{
-                airline_cn:airlineCnName,
-                airline_en:airlineEnName,
-                iata_code:iata,
-                icao_code:icao,
-                create_user:addUser,
-                status:status
+            data: {
+                airline_cn: airlineCnName,
+                airline_en: airlineEnName,
+                iata_code: iata,
+                icao_code: icao,
+                create_user: addUser,
+                status: status
             }
         })
     }
 
     static async getList() {
         return prisma.airline.findMany({
-            where:{
-                is_delete:false,
-                status:'AVAILABLE'    
+            where: {
+                is_delete: false,
+                status: 'AVAILABLE'
             }
         })
     }
 
     static async getReviewList() {
         return prisma.airline.findMany({
-            where:{
-                is_delete:false,
-                status:'WAITING'
-                
+            where: {
+                is_delete: false,
+                status: 'WAITING'
+
             }
         })
     }
 
-    static async update(id:number,data:any) {
+    @safeSQL
+    static async update(id: number, data: any) {
         return prisma.airline.update({
-            where:{id:id}, 
-            data:data
+            where: { id: id },
+            data: data
         })
     }
 
-    static async getById(id:number) {
-        return prisma.airline.findUnique({where:{id:id}})
+    static async getById(id: number) {
+        return prisma.airline.findUnique({ where: { id: id } })
     }
 }
