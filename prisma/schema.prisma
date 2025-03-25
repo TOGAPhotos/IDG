@@ -125,6 +125,16 @@ model notam {
   is_delete   Boolean?
 }
 
+model direct_message {
+  id               Int       @id @default(autoincrement())
+  sender_user_id   Int
+  contact_info     String?   @db.VarChar(255)
+  receiver_user_id Int?
+  content          String?   @db.VarChar(255)
+  create_time      DateTime? @default(now()) @db.DateTime(0)
+  status           String?   @default("WAITING") @db.VarChar(255)
+}
+
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view full_photo_info {

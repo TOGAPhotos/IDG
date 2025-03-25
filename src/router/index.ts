@@ -13,6 +13,7 @@ import AirlineHandler from "../handler/info/airline.js";
 
 import NotamHandler from "../handler/notam/handler.js";
 import WebsiteHandler from "../handler/info/website.js";
+import DirectMessageHandler from "../handler/dm/index.js";
 
 
 const router = Router();
@@ -91,6 +92,8 @@ router.get('/airtypes', AirtypeHandler.list);
 router.post('/airtype', AirtypeHandler.create);
 router.put('/airtype/:id', Per.isScreenerMW, AirtypeHandler.update);
 router.delete('/airtype/:sub_type', Per.isScreenerMW, AirtypeHandler.delete);
+
+router.post('/dm',DirectMessageHandler.create)
 
 // notam
 router.post('/notam',Per.isAdminMW,NotamHandler.create)
