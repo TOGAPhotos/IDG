@@ -8,7 +8,6 @@ export const TOKEN_EXPIRE_TIME =  60 * 60 * 24 * 30;
 
 export const WORKER_REPORT_INTERVAL = 1000 * 60 * 10;
 
-export const photoBaseFolder = '/opt/1panel/apps/openresty/openresty/www/sites/photo.tp.794td.cn/index'
 export const PHOTO_FOLDER = process.env.PHOTO_PATH
 
 export const BELL_URL = process.env.BELL_URL;
