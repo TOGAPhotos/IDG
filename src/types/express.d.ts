@@ -9,7 +9,6 @@ declare namespace Express {
 
     export interface Response {
         success:{
-            // ():void;
             (msg:any):void;
             (msg:string,data: any):void
         };
