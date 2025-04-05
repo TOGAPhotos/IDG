@@ -2,7 +2,6 @@ import { MessageQueueConnection, MessageQueueWorker } from "./basic.js";
 import type { MessageHandler } from "./type.js";
 import Logger from '../../components/loger.js';
 import HandlerError from "./erroe.js";
-import Photo from "@/dto/photo.js";
 
 export default class MessageQueueConsumer extends MessageQueueWorker {
 
