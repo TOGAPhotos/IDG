@@ -1,4 +1,4 @@
-import type { Request, Response} from "express";
+import type { Request, Response } from "express";
 import Log from "@/components/loger.js";
 
 import User from "@/dto/user.js";
@@ -9,7 +9,8 @@ import { HTTP_STATUS } from "@/types/http_code.js";
 import photoBucket from './cos.js'
 import QueueHandler from "../queue/index.js";
 import MessageQueueProducer from "@/service/messageQueue/producer.js";
-import { CopyrightOverlayConfig } from "@/service/imageProcesser/index.js";
+import { PhotoCopyrightOverlayConfig } from "@/service/imageProcesser/index.js";
+import { DefaultErrorFallback } from "@/components/decorators/defaultErrorHandler.js";
 
 export default class PhotoHandler {
 
@@ -20,11 +21,12 @@ export default class PhotoHandler {
     }
     private static imageProcessQueue = new MessageQueueProducer("imageProcess");
 
+    @DefaultErrorFallback
     static async get(req: Request, res: Response) {
         const id = Number(req.params['id']);
         const photoInfo = await Photo.getAcceptById(id);
 
-        if (photoInfo === null ) {
+        if (photoInfo === null) {
             return res.fail(HTTP_STATUS.NOT_FOUND, '图片不存在');
         }
         res.success('获取成功', photoInfo);
@@ -32,10 +34,11 @@ export default class PhotoHandler {
 
     static async getList(req: Request, res: Response) {
         let lastId = Number(req.query['lastId']) || -1;
-        const list = await Photo.getAcceptPhotoList(lastId,50);
+        const list = await Photo.getAcceptPhotoList(lastId, 50);
         res.success('查询成功', list);
     }
 
+    @DefaultErrorFallback
     static async search(req: Request, res: Response) {
         const type = req.query['type'] as string;
         const keyword = req.query['keyword'] as string;
@@ -51,7 +54,7 @@ export default class PhotoHandler {
                 result = await Photo.searchByRegKeyword(keyword, lastId, num);
                 break;
             case 'airline':
-                result = await Photo.searchByAirlineKeyword(keyword, lastId,num);
+                result = await Photo.searchByAirlineKeyword(keyword, lastId, num);
                 break;
             case 'airtype':
                 result = await Photo.searchByAirtypeKeyword(keyword, lastId, num);
@@ -73,25 +76,25 @@ export default class PhotoHandler {
         const userId = req.token.id;
         const userInfo = await User.getById(userId);
 
-        if( ( req['queue'] === PhotoHandler.queueType.PRIORITY && 
-            userInfo?.free_priority_queue <= 0 ) ||
+        if ((req['queue'] === PhotoHandler.queueType.PRIORITY &&
+            userInfo?.free_priority_queue <= 0) ||
             (userInfo?.free_queue <= 0)
-        ){
+        ) {
             return res.fail(HTTP_STATUS.FORBIDDEN, '队列已满');
         }
         let photoInfo;
         try {
             photoInfo = await Photo.create({
-                userId:userId,
-                uploadTime:req.body['uploadTime'],
-                reg:req.body['reg'],
-                msn:req.body['msn'],
-                airline:req.body['airline'],
-                ac_type:req.body['ac_type'],
-                airport:req.body['airport'],
-                picType:req.body['picType'],
-                photoTime:new Date(req.body['photoTime']),
-                remark:req.body['remark'],
+                userId: userId,
+                uploadTime: req.body['uploadTime'],
+                reg: req.body['reg'],
+                msn: req.body['msn'],
+                airline: req.body['airline'],
+                ac_type: req.body['ac_type'],
+                airport: req.body['airport'],
+                picType: req.body['picType'],
+                photoTime: new Date(req.body['photoTime']),
+                remark: req.body['remark'],
                 queue: req['queue'] === PhotoHandler.queueType.PRIORITY ? 'PRIORITY' : 'NORMAL',
                 exif: req.body['exif'],
                 watermark: req.body['watermark']
@@ -100,17 +103,17 @@ export default class PhotoHandler {
             Log.error(e);
             return res.fail(HTTP_STATUS.SERVER_ERROR, '数据库错误');
         }
-        try{
-            const uploadUrl = PhotoHandler.photoBucket.getUploadUrl("photos/"+photoInfo['id']+'.jpg');
-            res.success('创建成功',{
+        try {
+            const uploadUrl = PhotoHandler.photoBucket.getUploadUrl("photos/" + photoInfo['id'] + '.jpg');
+            res.success('创建成功', {
                 uploadUrl,
-                photoId:photoInfo['id'],
+                photoId: photoInfo['id'],
             })
             await User.updateById(userId, {
-                free_queue: {decrement: 1},
-                free_priority_queue: {decrement: req['queue'] === PhotoHandler.queueType.PRIORITY ? 1 : 0}
+                free_queue: { decrement: 1 },
+                free_priority_queue: { decrement: req['queue'] === PhotoHandler.queueType.PRIORITY ? 1 : 0 }
             });
-        }catch{
+        } catch {
             await Photo.deleteById(photoInfo['id']);
             return res.fail(HTTP_STATUS.SERVER_ERROR, '上传失败/COS错误');
         }
@@ -120,7 +123,7 @@ export default class PhotoHandler {
         const userId = req.token.id;
         const photoId = Number(req.params['id']);
 
-        const [userInfo,photoInfo] = await Promise.all([
+        const [userInfo, photoInfo] = await Promise.all([
             User.getById(userId),
             Photo.getById(photoId),
         ])
@@ -154,15 +157,15 @@ export default class PhotoHandler {
                 })
             ])
         } catch (e) {
-            await Photo.update(photoId,{is_delete:false});
+            await Photo.update(photoId, { is_delete: false });
             Log.error(e)
             return res.fail(HTTP_STATUS.SERVER_ERROR, '删除失败');
         }
 
         if (photoInfo.status === 'WAIT SCREEN') {
-            let data = {free_queue: {increment: 1}}
+            let data = { free_queue: { increment: 1 } }
             if (photoInfo.queue === "PRIORITY") {
-                data["free_priority_queue"] = {increment: 1}
+                data["free_priority_queue"] = { increment: 1 }
             }
             await User.updateById(userId, data);
         }
@@ -172,7 +175,7 @@ export default class PhotoHandler {
     static async update(req: Request, res: Response) {
         let photoId = Number(req.params['id']);
 
-        const [userInfo,photoInfo] = await Promise.all([
+        const [userInfo, photoInfo] = await Promise.all([
             User.getById(req.token.id),
             Photo.getById(photoId),
         ])
@@ -182,8 +185,8 @@ export default class PhotoHandler {
         }
 
         if (
-            !( Permission.checkUserPermission(userInfo.role,'DATABASE') ||
-            req.token.id !== photoInfo['uploader'] )
+            !(Permission.checkUserPermission(userInfo.role, 'DATABASE') ||
+                req.token.id !== photoInfo['uploader'])
         ) {
             return res.fail(HTTP_STATUS.FORBIDDEN)
         }
@@ -192,42 +195,42 @@ export default class PhotoHandler {
         if (screener !== null && Number(screener) !== req.token.id) {
             return res.fail(HTTP_STATUS.CONFLICT, '图片正在审核中');
         }
-        
-        await Photo.update( photoId,req.body);
+
+        await Photo.update(photoId, req.body);
         return res.success("更新成功");
-        
+
     }
 
     static async updateObjectStatus(req: Request, res: Response) {
 
-        const { status,photo_id:photoId } = req.query as { object: string, status: string, photo_id: string | null };
-        if( !photoId || isNaN(Number(photoId)) ){
+        const { status, photo_id: photoId } = req.query as { object: string, status: string, photo_id: string | null };
+        if (!photoId || isNaN(Number(photoId))) {
             return res.fail(HTTP_STATUS.BAD_REQUEST, '参数错误');
         }
-        const photoInfo = await Photo.getById(Number(photoId));
-        if( !photoInfo ){
+        let photoInfo;
+        try {
+            photoInfo = await Photo.update(Number(photoId), { storage_status: 'UPLOAD' });
+        } catch (e) {
             return res.fail(HTTP_STATUS.NOT_FOUND, '图片不存在');
         }
 
-        if(status === 'available'){
-            Log.debug(`ImageProcess: ${photoId}`)
+        if (status === 'available') {
             const watermark = JSON.parse(<string>photoInfo.watermark)
             await PhotoHandler.imageProcessQueue.send(JSON.stringify({
-                task:'T1-copyrightOverlay',
-                params: new CopyrightOverlayConfig({
-                    file:`photos/${photoInfo.id}.jpg`,
-                    fileSuffix:`.watermark.jpg`,
-                    username:photoInfo.username,
+                task: 'T1-copyrightOverlay',
+                params: new PhotoCopyrightOverlayConfig({
+                    photoId: photoInfo.id,
+                    username: photoInfo.username,
                     watermarkConfig: {
                         x: watermark['x'] as number,
                         y: watermark['y'] as number,
                         scale: watermark['s'] as number,
                         alpha: watermark['a'] as number,
-
                     },
                 })
             }));
         }
-        return res.success('更新成功');
+        res.success('更新成功');
+
     }
 }
