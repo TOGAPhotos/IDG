@@ -1,5 +1,3 @@
-import amqplib from "amqplib";
+import type{ConsumeMessage} from "amqplib";
 
-interface MQConsumerCallback {
-    (msg: amqplib.ConsumeMessage): Promise<void> | void;
-}
+type MessageHandler = (msg: ConsumeMessage) => Promise<void> | void;
