@@ -1,16 +1,16 @@
 import type { Request, Response } from "express";
-import Log from "@/components/loger.js";
+import Log from "../../components/loger.js";
 
-import User from "@/dto/user.js";
-import Photo from "@/dto/photo.js";
-import Permission from "@/components/auth/permissions.js";
+import User from "../../dto/user.js";
+import Photo from "../../dto/photo.js";
+import Permission from "../../components/auth/permissions.js";
 
-import { HTTP_STATUS } from "@/types/http_code.js";
+import { HTTP_STATUS } from "../../types/http_code.js";
 import photoBucket from './cos.js'
 import QueueHandler from "../queue/index.js";
-import MessageQueueProducer from "@/service/messageQueue/producer.js";
+import MessageQueueProducer from "../../service/messageQueue/producer.js";
 import { PhotoCopyrightOverlayConfig } from "@/service/imageProcesser/index.js";
-import { DefaultErrorFallback } from "@/components/decorators/defaultErrorHandler.js";
+import { DefaultErrorFallback } from "../../components/decorators/defaultErrorHandler.js";
 
 export default class PhotoHandler {
 
@@ -218,9 +218,12 @@ export default class PhotoHandler {
         if (!photoId || isNaN(Number(photoId))) {
             return res.fail(HTTP_STATUS.BAD_REQUEST, '参数错误');
         }
-        let photoInfo;
+        let photoInfo, userInfo;
         try {
-            photoInfo = await Photo.update(Number(photoId), { storage_status: 'UPLOAD' });
+            [photoInfo, userInfo] = await Promise.all([
+                Photo.update(Number(photoId), { storage_status: 'UPLOAD' }),
+                User.getById(req.token.id),
+            ])
         } catch (e) {
             return res.fail(HTTP_STATUS.NOT_FOUND, '图片不存在');
         }
@@ -231,7 +234,7 @@ export default class PhotoHandler {
                 task: 'T1-copyrightOverlay',
                 params: new PhotoCopyrightOverlayConfig({
                     photoId: photoInfo.id,
-                    username: photoInfo.username,
+                    username: userInfo.username,
                     watermarkConfig: {
                         x: watermark['x'] as number,
                         y: watermark['y'] as number,
