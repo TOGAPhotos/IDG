@@ -30,20 +30,20 @@ export class FileCopyrightOverlayConfig {
 
     constructor({
         file,
-        fileSuffix,
+        outputFile,
         username,
         watermarkConfig,
         textConfig
     }: {
         photoId?: number | null,
         file: string,
-        fileSuffix: string,
+        outputFile: string,
         username: string,
         watermarkConfig: watermarkConfig,
         textConfig?: textConfig
     }) {
         this.inputFile = file;
-        this.outputFile = file + fileSuffix
+        this.outputFile = outputFile
         this.username = username;
         this.watermark = watermarkConfig;
 
@@ -70,8 +70,8 @@ export class PhotoCopyrightOverlayConfig extends FileCopyrightOverlayConfig {
         textConfig?: textConfig
     }) {
         super({
-            file: `photos/${photoId}.jpg`,
-            fileSuffix: '.watermark.jpg',
+            file: `photos/${photoId}.raw`,
+            outputFile: `photos/${photoId}.jpg`,
             username: username,
             watermarkConfig: watermarkConfig,
             textConfig: textConfig
