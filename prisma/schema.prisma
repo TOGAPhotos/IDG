@@ -139,6 +139,7 @@ model direct_message {
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view full_photo_info {
   id                Int       @id @default(0)
+  storage_status    String?   @default("WAIT") @db.VarChar(255)
   status            String?   @default("WAIT SCREEN") @db.VarChar(255)
   queue             String?   @db.VarChar(255)
   message           String?   @db.VarChar(255)
@@ -176,6 +177,7 @@ view full_photo_info {
 view accept_photo {
   id                Int       @id @default(0)
   upload_user_id    Int
+  storage_status    String?   @default("WAIT") @db.VarChar(255)
   username          String?   @db.VarChar(50)
   ac_type           String?   @db.VarChar(255)
   ac_reg            String?   @db.VarChar(255)
