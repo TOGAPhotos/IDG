@@ -29,6 +29,17 @@ export default class PhotoHandler {
         if (photoInfo === null) {
             return res.fail(HTTP_STATUS.NOT_FOUND, '图片不存在');
         }
+
+        if (
+            photoInfo.storage_status !== 'COMPLETE' &&
+            req.token?.id !== photoInfo.upload_user_id
+        ) {
+            const u = await User.getById(req.token.id)
+            if (!Permission.isStaff(u.role)) {
+                return res.fail(HTTP_STATUS.SERVER_ERROR, '图片未完成处理');
+            }
+        }
+
         res.success('获取成功', photoInfo);
     }
 
@@ -104,7 +115,7 @@ export default class PhotoHandler {
             return res.fail(HTTP_STATUS.SERVER_ERROR, '数据库错误');
         }
         try {
-            const uploadUrl = PhotoHandler.photoBucket.getUploadUrl("photos/" + photoInfo['id'] + '.jpg');
+            const uploadUrl = PhotoHandler.photoBucket.getUploadUrl("photos/" + photoInfo['id'] + '.raw');
             res.success('创建成功', {
                 uploadUrl,
                 photoId: photoInfo['id'],
