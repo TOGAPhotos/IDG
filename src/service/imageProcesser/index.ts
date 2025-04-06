@@ -49,7 +49,7 @@ export class FileCopyrightOverlayConfig {
 
         this.textConfig = textConfig || {
             fontSize: 20,
-            fontFamily: "Microsoft YaHei",
+            fontFamily: "Source Han Sans CN",
         }
     }
 }
