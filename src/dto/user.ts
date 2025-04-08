@@ -69,19 +69,28 @@ export default class User {
         return prisma.user.findMany({ where: { username: { contains: username } } });
     }
 
-    static getList(limit: number) {
-        return prisma.user.findMany({ where: { is_deleted: false }, take: limit })
+    static getList(offset = 0, limit = 200) {
+        return prisma.user.findMany({
+            where: {
+                is_deleted: false,
+                id: { gt: offset }
+            },
+            take: limit
+        })
     }
 
     @safeSQL
-    static async search(keyword: string) {
+    static async search(keyword: string, offset = 0, limit = 200) {
         return prisma.user.findMany({
             where: {
                 OR: [
                     { username: { contains: keyword } },
                     { user_email: { contains: keyword } }
-                ]
-            }
+                ],
+                id: { gt: offset },
+                is_deleted: false
+            },
+            take: limit
         });
     }
 
