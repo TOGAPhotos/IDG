@@ -5,7 +5,7 @@ import COSStorage from "../cos/index.js";
 import 'dotenv/config';
 import MessageQueueConsumer from "../messageQueue/consume.js";
 import HandlerError from "../messageQueue/erroe.js";
-import Photo from "@/dto/photo.js";
+import Photo from "../../dto/photo.js";
 
 type textConfig = {
     fontSize: number,
