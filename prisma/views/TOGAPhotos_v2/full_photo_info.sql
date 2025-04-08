@@ -1,5 +1,6 @@
 SELECT
   `p`.`id` AS `id`,
+  `p`.`storage_status` AS `storage_status`,
   `p`.`status` AS `status`,
   `p`.`queue` AS `queue`,
   `p`.`message` AS `message`,

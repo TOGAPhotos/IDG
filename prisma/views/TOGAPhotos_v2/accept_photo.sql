@@ -1,6 +1,7 @@
 SELECT
   `TOGAPhotos_v2`.`full_photo_info`.`id` AS `id`,
   `TOGAPhotos_v2`.`full_photo_info`.`upload_user_id` AS `upload_user_id`,
+  `TOGAPhotos_v2`.`full_photo_info`.`storage_status` AS `storage_status`,
   `TOGAPhotos_v2`.`full_photo_info`.`username` AS `username`,
   `TOGAPhotos_v2`.`full_photo_info`.`ac_type` AS `ac_type`,
   `TOGAPhotos_v2`.`full_photo_info`.`ac_reg` AS `ac_reg`,

@@ -82,7 +82,7 @@ model user {
   user_email          String   @db.VarChar(120)
   username            String   @db.VarChar(50)
   password            String   @db.VarChar(256)
-  role                String?  @db.VarChar(127)
+  role                String?  @default("USER") @db.VarChar(127)
   airport_id          Int?
   cover_photo_id      Int?
   allow_toga_use      Boolean? @default(true)
@@ -128,6 +128,7 @@ model notam {
 model direct_message {
   id               Int       @id @default(autoincrement())
   sender_user_id   Int
+  photo_id         Int?
   contact_info     String?   @db.VarChar(255)
   receiver_user_id Int?
   content          String?   @db.VarChar(255)
@@ -139,6 +140,7 @@ model direct_message {
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view full_photo_info {
   id                Int       @id @default(0)
+  storage_status    String?   @default("WAIT") @db.VarChar(255)
   status            String?   @default("WAIT SCREEN") @db.VarChar(255)
   queue             String?   @db.VarChar(255)
   message           String?   @db.VarChar(255)
@@ -176,6 +178,7 @@ view full_photo_info {
 view accept_photo {
   id                Int       @id @default(0)
   upload_user_id    Int
+  storage_status    String?   @default("WAIT") @db.VarChar(255)
   username          String?   @db.VarChar(50)
   ac_type           String?   @db.VarChar(255)
   ac_reg            String?   @db.VarChar(255)
