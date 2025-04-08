@@ -165,7 +165,13 @@ export default class PhotoHandler {
                     Bucket: PhotoHandler.photoBucket.bucket,
                     Region: PhotoHandler.photoBucket.region,
                     Key: `photos/${photoId}.jpg`
-                })
+                }),
+                //@ts-ignore
+                PhotoHandler.photoBucket.deleteObject({
+                    Bucket: PhotoHandler.photoBucket.bucket,
+                    Region: PhotoHandler.photoBucket.region,
+                    Key: `photos/${photoId}.raw`
+                }),
             ])
         } catch (e) {
             await Photo.update(photoId, { is_delete: false });
@@ -183,6 +189,7 @@ export default class PhotoHandler {
         res.success('删除成功');
     }
 
+    @DefaultErrorFallback
     static async update(req: Request, res: Response) {
         let photoId = Number(req.params['id']);
 
