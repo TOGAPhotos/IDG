@@ -1,4 +1,3 @@
-import prisma from "./prisma.js";
 import { Request,Response } from "express"
 
 export async function DeleteVote(req:Request, res:Response) {

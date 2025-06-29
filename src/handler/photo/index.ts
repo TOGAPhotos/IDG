@@ -34,6 +34,9 @@ export default class PhotoHandler {
             photoInfo.storage_status !== 'COMPLETE' &&
             req.token?.id !== photoInfo.upload_user_id
         ) {
+            if(!req.token?.id){
+                return res.fail(HTTP_STATUS.SERVER_ERROR, '请先登录');
+            }
             const u = await User.getById(req.token.id)
             if (!Permission.isStaff(u.role)) {
                 return res.fail(HTTP_STATUS.SERVER_ERROR, '图片未完成处理');

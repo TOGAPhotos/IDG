@@ -7,12 +7,12 @@ export default class WebsiteHandler {
     private static prisma = new PrismaClient()
 
     private static async getPhotoList() {
-        return await WebsiteHandler.prisma.accept_photo.findMany({ take: 40, orderBy: { upload_time: 'desc' } })
+        return WebsiteHandler.prisma.accept_photo.findMany({ take: 40, orderBy: { upload_time: 'desc' } })
 
     }
 
     private static async getRandomPhotos() {
-        return await WebsiteHandler.prisma.$queryRawUnsafe(`SELECT * FROM accept_photo ORDER BY RAND() LIMIT 8`)
+        return WebsiteHandler.prisma.$queryRawUnsafe(`SELECT * FROM accept_photo ORDER BY RAND() LIMIT 8`)
     }
 
     private static async getBasicInfo() {
@@ -26,7 +26,7 @@ export default class WebsiteHandler {
 
     @UrlCache(180)
     static async get(req: Request, res: Response) {
-        const type = req.query.type || ""
+        const type = req.query?.type || ""
         let data = {}
         switch (type) {
             case "photos":
