@@ -65,11 +65,13 @@ export default class UploadQueue {
     static async recentScreenPhoto() {
         return UploadQueue.prisma.full_photo_info.findMany({
             where:{
-                OR:[{status: "ACCEPT"}, {status: "REJECT"}],
-                // is_delete:false,
+                OR:[
+                    {status: "ACCEPT"},
+                    {status: "REJECT"}
+                ],
             },
             orderBy:{upload_time:"desc"},
-            take:200
+            take:50
         })
     }
 

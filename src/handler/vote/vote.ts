@@ -1,4 +1,3 @@
-import prisma from "./prisma.js";
 import { Request,Response } from "express"
 import CalculateVote from "./calculate.js";
 import Permission from "../../components/auth/permissions.js";

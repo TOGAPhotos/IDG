@@ -11,6 +11,13 @@ export default class QueueHandler {
 
     static async getUserUploadQueue(req: Request, res: Response) {
         const result = await UploadQueue.getByUserId(req.token.id)
+        result.forEach((photo)=>{
+            delete photo.screener_1;
+            delete photo.screener_2;
+            delete photo.result;
+            delete photo.screener_message;
+            delete photo.reason;
+        })
         return res.success('查询成功', {photoQueue: result})
     }
 
@@ -78,7 +85,6 @@ export default class QueueHandler {
                 reason: req.body['reason'],
             });
         }catch(e){
-            console.log(e);
             return res.fail(HTTP_STATUS.SERVER_ERROR,'操作失败');
         }
         return res.success('success');
@@ -151,7 +157,7 @@ export default class QueueHandler {
         return res.success('success', {id:queueId, ...screenData});
     }
 
-    static async rejcetQueue(req: Request, res: Response) {
+    static async rejectQueue(req: Request, res: Response) {
         const userId = Number(req.params['id']);
         const uploadQueue = await UploadQueue.getByUserId(userId);
         const updateTasks = uploadQueue.map(async (photo)=>{
