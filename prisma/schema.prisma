@@ -136,6 +136,83 @@ model direct_message {
   status           String?   @default("WAITING") @db.VarChar(255)
 }
 
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model photo_from_v1 {
+  id                Int?
+  uploader          Int?
+  in_upload_queue   Boolean?
+  aircraft_info     Int?
+  airport_info      Int?
+  pic_type          String?   @db.VarChar(255)
+  reg               String?   @db.VarChar(125)
+  msn               String?   @db.VarChar(100)
+  airtype           String?   @db.VarChar(125)
+  airline           String?   @db.VarChar(125)
+  remark            String?   @db.VarChar(256)
+  photo_url         String?   @db.Text
+  allow_socialmedia Boolean?
+  upload_time       BigInt?
+  result            Int?      @db.TinyInt
+  vote              Int?
+  photo_time        DateTime? @db.Date
+  update_time       DateTime? @db.DateTime(0)
+  is_delete         Boolean?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model upload_queue {
+  id               Int?
+  queue            String?   @db.VarChar(10)
+  user_id          Int?
+  photo_id         Int?
+  comment          String?   @db.VarChar(256)
+  screener_1       Int?
+  screener_2       Int?
+  need_screener_2  Int?      @db.TinyInt
+  screening        Boolean?
+  screener         Int?
+  last_screen_time BigInt?
+  reason           String?   @db.VarChar(512)
+  result           Int?      @db.TinyInt
+  screener_message String?   @db.VarChar(256)
+  upload_time      DateTime? @db.DateTime(0)
+  is_delete        Boolean?
+
+  @@ignore
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model user_from_v1 {
+  id                  Int?
+  user_email          String?   @db.VarChar(120)
+  username            String?   @db.VarChar(50)
+  password            String?   @db.VarChar(256)
+  role                Int?      @db.TinyInt
+  passing_rate        Int?      @db.TinyInt
+  total_queue         Int?      @db.TinyInt
+  free_queue          Int?      @db.TinyInt
+  priority_queue      Int?      @db.TinyInt
+  free_priority_queue Int?
+  total_photo         Int?
+  create_time         DateTime? @db.DateTime(0)
+  update_time         DateTime? @db.DateTime(0)
+  status              Int?      @db.TinyInt
+  suspension_days     Int?
+  email_verify        Boolean?
+  email_verify_token  String?   @db.VarChar(150)
+  is_deleted          Boolean?
+  n_status            String?   @default("NORMAL") @db.VarChar(255)
+  n_role              String?   @default("USER") @db.VarChar(255)
+  allow_toga_use      Boolean?  @default(true)
+  allow_third_use     Boolean?  @default(false)
+  airport_id          Int?
+  cover_photo_id      Int?
+
+  @@ignore
+}
+
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view full_photo_info {
