@@ -1,5 +1,7 @@
-import {PrismaClient} from "@prisma/client";
+import {Prisma, PrismaClient} from "@prisma/client";
 import Permission from "@/components/auth/permissions.js";
+
+type PhotoInfo = Prisma.photoGetPayload<null>
 
 export default class UploadQueue {
     static prisma = new PrismaClient();
@@ -14,7 +16,7 @@ export default class UploadQueue {
     }
 
     static async getPhotosQueueByUserId(userId: number) {
-        return UploadQueue.prisma.$queryRaw`WITH all_wait_screen_photos AS (SELECT id, ROW_NUMBER() OVER (ORDER BY id) AS global_row_num FROM photo WHERE is_delete = 0 AND status = 'WAIT SCREEN') SELECT a.global_row_num AS position_in_queue, p.* FROM photo p JOIN all_wait_screen_photos a ON p.id = a.id WHERE p.upload_user_id = ${userId} AND p.is_delete = 0 AND p.status = 'WAIT SCREEN' ORDER BY p.id;`
+        return UploadQueue.prisma.$queryRaw`WITH all_wait_screen_photos AS (SELECT id, ROW_NUMBER() OVER (ORDER BY id) AS global_row_num FROM photo WHERE is_delete = 0 AND status = 'WAIT SCREEN') SELECT a.global_row_num AS position_in_queue, p.* FROM photo p JOIN all_wait_screen_photos a ON p.id = a.id WHERE p.upload_user_id = ${userId} AND p.is_delete = 0 AND p.status = 'WAIT SCREEN' ORDER BY p.id;` as unknown as PhotoInfo[];
     }
 
     static async getById(photoId: number) {
