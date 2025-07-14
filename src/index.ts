@@ -1,3 +1,12 @@
+declare global {
+    interface BigInt {
+        toJSON(): string;
+    }
+}
+
+BigInt.prototype.toJSON = function () {
+    return this.toString();
+};
 
 import bell from "./components/bell.js";
 import StartHTTPServer from "./server.js";

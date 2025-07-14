@@ -13,6 +13,10 @@ export default class UploadQueue {
         });
     }
 
+    static async getPhotosQueueByUserId(userId: number) {
+        return UploadQueue.prisma.$queryRaw`WITH all_wait_screen_photos AS (SELECT id, ROW_NUMBER() OVER (ORDER BY id) AS global_row_num FROM photo WHERE is_delete = 0 AND status = 'WAIT SCREEN') SELECT a.global_row_num AS position_in_queue, p.* FROM photo p JOIN all_wait_screen_photos a ON p.id = a.id WHERE p.upload_user_id = ${userId} AND p.is_delete = 0 AND p.status = 'WAIT SCREEN' ORDER BY p.id;`
+    }
+
     static async getById(photoId: number) {
         return UploadQueue.prisma.full_photo_info.findUnique({where: {id: photoId}});
     }
