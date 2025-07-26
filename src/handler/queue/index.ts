@@ -10,7 +10,7 @@ export default class QueueHandler {
     static uploadQueueCache = new UploadQueueCache()
 
     static async getUserUploadQueue(req: Request, res: Response) {
-        const result = await UploadQueue.getByUserId(req.token.id)
+        const result = await UploadQueue.getPhotosQueueByUserId(req.token.id)
         result.forEach((photo)=>{
             delete photo.screener_1;
             delete photo.screener_2;
