@@ -3,12 +3,12 @@ name: Deploy
 on:
   # pull_request:
   #   branches:
-  #   - main
+  #   - deploy
   push:
     branches:
       - deploy
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
     - name: SSH Remote Commands
