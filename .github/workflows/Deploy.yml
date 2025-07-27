@@ -21,9 +21,10 @@ jobs:
         script: |
           cd ~/IDG
           git checkout deploy
+          git reset --hard HEAD
           git pull
           npm install
-          npm run db
+          npx prisma generate
           npm run build
           npx pm2 restart togaserver.config.cjs
 
