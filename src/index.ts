@@ -1,4 +1,4 @@
-import Log from "@/components/loger.js";
+import Log from "./components/loger.js";
 import bell from "./components/bell.js";
 import StartHTTPServer from "./server.js";
 
