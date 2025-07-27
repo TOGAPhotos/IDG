@@ -5,9 +5,9 @@ import { TOKEN_EXPIRE_TIME } from "../../config.js";
 import Token from "../../components/auth/token.js";
 import Time from "../../components/time.js";
 import Permission from "../../components/auth/permissions.js";
-import { emailRegex } from "../../components/regexp.js";
 import Photo from "../../dto/photo.js";
 import { HTTP_STATUS } from "../../types/http_code.js";
+import * as z from "zod/mini";
 
 export default class UserHandler {
   static async login(req: Request, res: Response) {
@@ -59,7 +59,7 @@ export default class UserHandler {
     } = req.body;
 
     // 基础检查
-    if (!emailRegex.test(email)) {
+    if (!z.email().safeParse(email).success) {
       return res.fail(HTTP_STATUS.BAD_REQUEST, "邮箱格式错误");
     }
     // if(password !== passwordR){
