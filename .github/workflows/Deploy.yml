@@ -25,5 +25,5 @@ jobs:
           npm install
           npm run db
           npm run build
-          pm2 restart togaserver.config.cjs
+          npx pm2 restart togaserver.config.cjs
 
