@@ -1,20 +1,18 @@
 import { SHARE_ENV, Worker } from "worker_threads";
 import Log from "../loger.js";
 import bell from "../bell.js";
-import { WORKER_REPORT_INTERVAL } from "../../config.js";
 
 type WorkerStatus = "online" | "offline" | "error";
 
-setInterval(()=>{
-    const offlineList = RegisterService.getService('offline');
-    const onlineList = RegisterService.getService('online');
+export const workerCheck = () => {
+  const offlineList = RegisterService.getService("offline");
+  const onlineList = RegisterService.getService("online");
 
-    Log.success(`All ${onlineList.length} service(s) online`);
-    if(offlineList.length > 0){
-        Log.error('Offline service:'+offlineList.join(','));
-    }
-
-},WORKER_REPORT_INTERVAL);
+  Log.success(`All ${onlineList.length} service(s) online`);
+  if (offlineList.length > 0) {
+    Log.error("Offline service:" + offlineList.join(","));
+  }
+};
 
 export default class RegisterService {
   private static nameList: string[] = [];
