@@ -1,6 +1,6 @@
 export default class HandlerError extends Error {
-    constructor(message: string) {
-        super(message);
-        this.name = "HandlerError";
-    }
+  constructor(message: string) {
+    super(message);
+    this.name = "HandlerError";
+  }
 }

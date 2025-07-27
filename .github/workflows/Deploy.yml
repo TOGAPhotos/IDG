@@ -3,12 +3,12 @@ name: Deploy
 on:
   # pull_request:
   #   branches:
-  #   - main
+  #   - deploy
   push:
     branches:
       - deploy
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
     - name: SSH Remote Commands
@@ -25,5 +25,5 @@ jobs:
           npm install
           npm run db
           npm run build
-          pm2 restart togaserver.config.cjs
+          npx pm2 restart togaserver.config.cjs
 
