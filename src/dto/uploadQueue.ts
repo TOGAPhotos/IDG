@@ -1,5 +1,5 @@
 import { Prisma, PrismaClient } from "@prisma/client";
-import Permission from "@/components/auth/permissions.js";
+import Permission from "../components/auth/permissions.js";
 
 type PhotoInfo = Prisma.photoGetPayload<null>;
 

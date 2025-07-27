@@ -1,4 +1,4 @@
-import Log from "@/components/loger.js";
+import Log from "../../components/loger.js";
 import { Request } from "express";
 
 export function ReqBodyCheck(...args: string[]) {

@@ -2,8 +2,8 @@ import { Request, Response } from "express";
 import UploadQueue from "../../dto/uploadQueue.js";
 import { UploadQueueCache } from "../../service/redis/uploadQueueCache.js";
 import Permission from "../../components/auth/permissions.js";
-import User from "@/dto/user.js";
-import { HTTP_STATUS } from "@/types/http_code.js";
+import User from "../../dto/user.js";
+import { HTTP_STATUS } from "../../types/http_code.js";
 
 export default class QueueHandler {
   static uploadQueueCache = new UploadQueueCache();

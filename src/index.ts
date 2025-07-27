@@ -6,7 +6,7 @@ import "dotenv/config";
 import ErrorHandler from "./components/errorHandler.js";
 import { startConsoleStr } from "./config.js";
 import RegisterService from "./components/registerService/index.js";
-import { registerScheduleJob } from "@/components/schedule.js";
+import { registerScheduleJob } from "./components/schedule.js";
 
 declare global {
   interface BigInt {

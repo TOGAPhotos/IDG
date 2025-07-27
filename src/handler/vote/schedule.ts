@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import Log from "../../components/loger.js";
-import Photo from "@/dto/photo.js";
+import Photo from "../../dto/photo.js";
 const prisma = new PrismaClient();
 
 export async function tallySCVote() {

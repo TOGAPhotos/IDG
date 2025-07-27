@@ -1,4 +1,4 @@
-import { ERROR_MSG } from "@/types/http_code.js";
+import { ERROR_MSG } from "../types/http_code.js";
 
 export function success(msg: any): void;
 export function success(msg: string, data: any): void;

@@ -1,4 +1,4 @@
-import COSStorage from "@/service/cos/index.js";
+import COSStorage from "../../service/cos/index.js";
 import "dotenv/config";
 
 const photoBucket = new COSStorage({

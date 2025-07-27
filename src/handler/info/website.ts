@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
-import { UrlCache } from "@/components/decorators/cache.js";
+import { UrlCache } from "../../components/decorators/cache.js";
 
 export default class WebsiteHandler {
   private static prisma = new PrismaClient();

@@ -1,6 +1,6 @@
 import nodeSchedule from "node-schedule";
-import { tallySCVote } from "@/handler/vote/schedule.js";
-import { workerCheck } from "@/components/registerService/index.js";
+import { tallySCVote } from "../handler/vote/schedule.js";
+import { workerCheck } from "../components/registerService/index.js";
 
 export function registerScheduleJob() {
   nodeSchedule.scheduleJob("*/1 * * * *", tallySCVote);

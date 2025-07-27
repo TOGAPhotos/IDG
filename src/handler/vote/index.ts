@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import Vote from "../../dto/vote.js";
 import type { VoteEventStatus } from "../../dto/vote.d.js";
-import { HTTP_STATUS } from "@/types/http_code.js";
-import { ReqQueryCheck } from "@/components/decorators/ReqCheck.js";
-import Photo from "@/dto/photo.js";
+import { HTTP_STATUS } from "../../types/http_code.js";
+import { ReqQueryCheck } from "../../components/decorators/ReqCheck.js";
+import Photo from "../../dto/photo.js";
 
 export default class VoteHandler {
   public static async getVote(req: Request, res: Response) {

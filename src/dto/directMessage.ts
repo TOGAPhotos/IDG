@@ -1,4 +1,4 @@
-import { safeSQL } from "@/components/decorators/safeSQL.js";
+import { safeSQL } from "../components/decorators/safeSQL.js";
 import { PrismaClient } from "@prisma/client";
 
 type DirectMessageStatus = "WAITING" | "ERROR" | "SUCCESS";

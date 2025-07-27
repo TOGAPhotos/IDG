@@ -9,7 +9,7 @@ import { HTTP_STATUS } from "../../types/http_code.js";
 import photoBucket from "./cos.js";
 import QueueHandler from "../queue/index.js";
 import MessageQueueProducer from "../../service/messageQueue/producer.js";
-import { PhotoCopyrightOverlayConfig } from "@/service/imageProcesser/index.js";
+import { PhotoCopyrightOverlayConfig } from "../../service/imageProcesser/index.js";
 
 export default class PhotoHandler {
   private static readonly photoBucket = photoBucket;

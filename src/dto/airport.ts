@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { safeSQL } from "@/components/decorators/safeSQL.js";
+import { safeSQL } from "../components/decorators/safeSQL.js";
 
 const prisma = new PrismaClient();
 
