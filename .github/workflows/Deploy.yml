@@ -27,4 +27,9 @@ jobs:
           npx prisma generate
           npm run build
           npx pm2 restart togaserver.config.cjs
-
+    - name: Notification
+      uses: easychen/github-action-server-chan@v1.0.0
+      with:
+        sendkey: ${{ secrets.SENDKEY }}
+        title: "TOGA Backend CI/CD work Notification"
+        desp: "Result:${{job.status}}"
