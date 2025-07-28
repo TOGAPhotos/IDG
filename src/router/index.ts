@@ -44,7 +44,6 @@ router.get("/notam", NotamHandler.get);
 
 router.use(Per.isLoginMW);
 router.get("/users", Per.isAdminMW, UserHandler.getUserList);
-router.get("/user/search/:keyword", Per.isScreenerMW, UserHandler.search);
 router.put("/user/:id", UserHandler.update);
 router.delete("/user/:id", Per.isAdminMW, UserHandler.delete);
 

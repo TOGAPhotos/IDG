@@ -125,8 +125,8 @@ export default class UserHandler {
   }
 
   static async search(req: Request, res: Response) {
-    let { keyword } = req.query;
-    const userList = await User.search(<string>keyword);
+    let { search } = req.query;
+    const userList = await User.search(<string>search);
     userList.forEach((info) => UserHandler.safeUserInfo(info));
     return res.success("查询成功", userList);
   }
@@ -168,6 +168,9 @@ export default class UserHandler {
   static async getUserList(req: Request, res: Response) {
     const limit = Number(req.query["limit"]) || 200;
     const offset = Number(req.query["offset"]) || 0;
+    if (req.query["search"]){
+      return UserHandler.search(req, res);
+    }
     const list = await User.getList(offset, limit);
     list.forEach((info) => UserHandler.safeUserInfo(info));
     return res.success("查询成功", list);
