@@ -50,7 +50,7 @@ export class FileCopyrightOverlayConfig {
 
     this.textConfig = textConfig || {
       fontSize: 20,
-      fontFamily: "Alibaba PuHuiTi 3.0",
+      fontFamily: "Source Han Sans CN",
     };
   }
 }
