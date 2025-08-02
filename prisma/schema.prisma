@@ -10,16 +10,17 @@ datasource db {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model aircraft {
-  id            Int       @id @unique(map: "id") @default(autoincrement())
-  msn           String?   @db.VarChar(20)
-  ln            String?   @db.VarChar(20)
-  reg           String    @db.VarChar(20)
+  id            Int     @id @unique(map: "id") @default(autoincrement())
+  msn           String? @db.VarChar(20)
+  ln            String? @db.VarChar(20)
+  test_reg      String? @db.VarChar(63)
+  reg           String  @db.VarChar(63)
   airline_id    Int?
-  airline       String?   @db.VarChar(60)
-  air_type      String?   @db.VarChar(25)
-  delivery_date DateTime? @db.Date
-  remark        String?   @db.VarChar(256)
-  is_delete     Boolean   @default(false)
+  airline       String? @db.VarChar(60)
+  air_type      String? @db.VarChar(25)
+  delivery_date String? @db.VarChar(255)
+  remark        String? @db.VarChar(256)
+  is_delete     Boolean @default(false)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
