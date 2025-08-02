@@ -16,6 +16,8 @@ export default class QueueHandler {
       delete photo.result;
       delete photo.screener_message;
       delete photo.reason;
+      delete photo.exif;
+      delete photo.watermark;
     });
     return res.success("查询成功", { photoQueue: result });
   }
