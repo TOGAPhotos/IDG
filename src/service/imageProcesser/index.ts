@@ -50,7 +50,7 @@ export class FileCopyrightOverlayConfig {
 
     this.textConfig = textConfig || {
       fontSize: 20,
-      fontFamily: "Source Han Sans CN",
+      fontFamily: "Alibaba PuHuiTi 3.0",
     };
   }
 }
@@ -100,7 +100,7 @@ export class ImageProcess {
     const canvas = createCanvas(width, height + 20);
     const ctx = canvas.getContext("2d");
     const watermarkImg = await loadImage(
-      "https://cos-0688-tp-cdn.794td.cn/watermark_testing.png",
+      "https://cos-0688-tp-cdn.794td.cn/watermark.png",
     );
 
     // prepare a transparent background with same width and height +20px
@@ -141,7 +141,7 @@ export class ImageProcess {
     // fill Text below the watermark
     ctx.fillText(
       watermarkText,
-      watermarkConfig.x,
+      watermarkConfig.x + 5,
       watermarkConfig.y +
         watermarkImg.height * watermarkConfig.scale +
         overlayFontSize,
