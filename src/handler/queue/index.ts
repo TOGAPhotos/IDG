@@ -39,7 +39,7 @@ export default class QueueHandler {
   }
 
   static async getQueueTop(req: Request, res: Response) {
-    const cursor = Number(req.query["cursor"]) || 0;
+    let cursor = Number(req.query["cursor"]) || 0;
     const screener = await User.getById(req.token.id);
 
     const MAX_TRY = 10;
@@ -55,6 +55,7 @@ export default class QueueHandler {
         await QueueHandler.uploadQueueCache.set(result.id, screener.id);
         return res.success("查询成功", { photoId: result.id });
       }
+      cursor = result?.id || cursor;
     }
 
     return res.fail(HTTP_STATUS.LOOP_DETECTED);
