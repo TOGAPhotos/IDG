@@ -21,6 +21,19 @@ interface PhotoInfo {
 export default class Photo {
   private static prisma = new PrismaClient();
 
+  public static searchSelectConfig = {
+    id: true,
+    username: true,
+    ac_type: true,
+    ac_reg: true,
+    airline_cn: true,
+    airline_en: true,
+    airline_iata_code:true,
+    airline_icao_code:true,
+    airport_cn: true,
+    airport_en: true,
+  }
+
   @checkNumberParams
   static async getById(id: number) {
     return this.prisma.full_photo_info.findUnique({ where: { id: id } });
@@ -76,6 +89,7 @@ export default class Photo {
     lastId = Number(lastId);
     if (lastId === -1) {
       return this.prisma.accept_photo.findMany({
+      select: Photo.searchSelectConfig,
         where: {
           OR: [
             { ac_reg: { contains: keyword } },
@@ -93,6 +107,7 @@ export default class Photo {
       });
     } else {
       return this.prisma.accept_photo.findMany({
+        select: Photo.searchSelectConfig,
         where: {
           OR: [
             { ac_reg: { contains: keyword } },
@@ -122,6 +137,7 @@ export default class Photo {
     if (lastId === -1) {
       return this.prisma.accept_photo.findMany({
         where: {
+          select: Photo.searchSelectConfig,
           ac_reg: { contains: keyword },
         },
         orderBy: { id: "desc" },
@@ -129,6 +145,7 @@ export default class Photo {
       });
     } else {
       return this.prisma.accept_photo.findMany({
+        select: Photo.searchSelectConfig,
         where: {
           ac_reg: { contains: keyword },
           id: { lt: lastId },
@@ -148,6 +165,7 @@ export default class Photo {
     lastId = Number(lastId);
     if (lastId === -1) {
       return this.prisma.accept_photo.findMany({
+        select: Photo.searchSelectConfig,
         where: {
           OR: [
             { airline_cn: { contains: keyword } },
@@ -159,6 +177,7 @@ export default class Photo {
       });
     } else {
       return this.prisma.accept_photo.findMany({
+        select: Photo.searchSelectConfig,
         where: {
           OR: [
             { airline_cn: { contains: keyword } },
@@ -180,6 +199,7 @@ export default class Photo {
     lastId = Number(lastId);
     if (lastId === -1) {
       return this.prisma.accept_photo.findMany({
+        select: Photo.searchSelectConfig,
         where: {
           ac_type: { contains: keyword },
         },
@@ -188,6 +208,7 @@ export default class Photo {
       });
     } else {
       return this.prisma.accept_photo.findMany({
+        select: Photo.searchSelectConfig,
         where: {
           ac_type: { contains: keyword },
           id: { lt: lastId },
@@ -206,6 +227,7 @@ export default class Photo {
     lastId = Number(lastId);
     if (lastId === -1) {
       return this.prisma.accept_photo.findMany({
+        select: Photo.searchSelectConfig,
         where: {
           OR: [
             { airport_cn: { contains: keyword } },
@@ -219,6 +241,7 @@ export default class Photo {
       });
     } else {
       return this.prisma.accept_photo.findMany({
+        select: Photo.searchSelectConfig,
         where: {
           OR: [
             { airport_cn: { contains: keyword } },
@@ -243,6 +266,7 @@ export default class Photo {
     lastId = Number(lastId);
     if (lastId === -1) {
       return this.prisma.accept_photo.findMany({
+        select: Photo.searchSelectConfig,
         where: {
           username: { contains: keyword },
         },
@@ -251,6 +275,7 @@ export default class Photo {
       });
     } else {
       return this.prisma.accept_photo.findMany({
+        select: Photo.searchSelectConfig,
         where: {
           username: { contains: keyword },
           id: { lt: lastId },

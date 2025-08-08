@@ -7,6 +7,18 @@ export default class WebsiteHandler {
 
   private static async getPhotoList() {
     return WebsiteHandler.prisma.accept_photo.findMany({
+      select:{
+        id: true,
+        username: true,
+        ac_type: true,
+        ac_reg: true,
+        airline_cn: true,
+        airline_en: true,
+        airline_iata_code:true,
+        airline_icao_code:true,
+        airport_cn: true,
+        airport_en: true,
+      },
       take: 40,
       orderBy: { upload_time: "desc" },
     });
