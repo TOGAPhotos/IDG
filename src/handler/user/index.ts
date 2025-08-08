@@ -8,6 +8,7 @@ import Permission from "../../components/auth/permissions.js";
 import Photo from "../../dto/photo.js";
 import { HTTP_STATUS } from "../../types/http_code.js";
 import * as z from "zod/mini";
+import Log from "../../components/loger.js";
 
 export default class UserHandler {
   static async login(req: Request, res: Response) {
@@ -101,13 +102,21 @@ export default class UserHandler {
       User.getById(id),
     ]);
 
-    if (!(req.token.id === id)) {
-      if (!Permission.isDatabase(actionUser.role)) {
+    const data = req.body;
+
+    if( !Permission.isAdmin(actionUser.role) ){
+      if (id !== req.token.id) {
         return res.fail(HTTP_STATUS.UNAUTHORIZED, "没有权限");
       }
+      const updateKeys = Object.keys(data)
+      const allowedKeys = ["username", "allow_third_use", "allow_toga_use", "airport_id", "cover_photo_id"];
+      for (let key of updateKeys) {
+        if (!allowedKeys.includes(key)) {
+          Log.error(`用户 ${id} 尝试更新不允许的字段: ${key}`);
+          return res.fail(HTTP_STATUS.BAD_REQUEST, `不允许更新字段: ${key}`);
+        }
+      }
     }
-
-    const data = req.body;
 
     if (data["username"] && updateUser.username !== data["username"]) {
       const usernameCheck = await User.getByUsername(data["username"]);
