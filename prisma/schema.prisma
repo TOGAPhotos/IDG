@@ -10,17 +10,17 @@ datasource db {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model aircraft {
-  id            Int     @id @unique(map: "aircraft_pk_2") @default(autoincrement())
-  msn           String? @db.VarChar(20)
-  ln            String? @db.VarChar(20)
-  test_reg      String? @db.VarChar(63)
-  reg           String? @db.VarChar(63)
+  id            Int      @id @unique(map: "aircraft_pk_2") @default(autoincrement())
+  msn           String?  @db.VarChar(20)
+  ln            String?  @db.VarChar(20)
+  test_reg      String?  @db.VarChar(63)
+  reg           String?  @db.VarChar(63)
   airline_id    Int?
-  airline       String? @db.VarChar(60)
-  air_type      String? @db.VarChar(25)
-  delivery_date String? @db.VarChar(255)
-  remark        String? @db.VarChar(256)
-  is_delete     Int?    @db.TinyInt
+  airline       String?  @db.VarChar(60)
+  air_type      String?  @db.VarChar(25)
+  delivery_date String?  @db.VarChar(255)
+  remark        String?  @db.VarChar(256)
+  is_delete     Boolean?
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -34,19 +34,19 @@ model airline {
   status      String?   @default("AVAILABLE") @db.VarChar(255)
   create_user Int?
   create_time DateTime? @db.DateTime(0)
-  is_delete   Int?      @db.TinyInt
+  is_delete   Boolean?
 }
 
 model airport {
-  id         Int      @id @unique(map: "airport_pk") @default(autoincrement())
-  airport_cn String?  @db.VarChar(255)
-  airport_en String?  @db.VarChar(255)
-  iata_code  String?  @db.VarChar(127)
-  icao_code  String?  @db.VarChar(127)
-  remark     String?  @db.VarChar(256)
-  status     String?  @default("AVAILABLE") @db.VarChar(255)
-  add_user   Int?
-  is_delete  Boolean? @default(false)
+  id          Int      @id @unique(map: "airport_pk") @default(autoincrement())
+  airport_cn  String?  @db.VarChar(255)
+  airport_en  String?  @db.VarChar(255)
+  iata_code   String?  @db.VarChar(127)
+  icao_code   String?  @db.VarChar(127)
+  remark      String?  @db.VarChar(256)
+  status      String?  @default("AVAILABLE") @db.VarChar(255)
+  create_user Int?
+  is_delete   Boolean? @default(false)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -87,7 +87,7 @@ model notam {
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model photo {
   id               Int                  @id @unique(map: "photo_pk_2") @default(autoincrement())
-  status           photo_status?        @default(WAIT_SCREEN)
+  status           String?              @default("WAIT SCREEN") @db.VarChar(63)
   queue            String?              @db.VarChar(10)
   upload_user_id   Int?
   storage_status   photo_storage_status @default(WAIT)
@@ -111,7 +111,7 @@ model photo {
   result           Int?                 @db.TinyInt
   reason           String?              @db.VarChar(512)
   screener_message String?              @db.VarChar(256)
-  is_delete        Int?                 @db.TinyInt
+  is_delete        Boolean?
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -130,14 +130,14 @@ model user {
   total_photo         Int?
   create_time         DateTime? @db.DateTime(0)
   update_time         DateTime? @db.DateTime(0)
-  suspension_date     DateTime? @db.Date
+  suspension_date     Int?
   email_verify        Int?      @db.TinyInt
   email_verify_token  String?   @db.VarChar(150)
   allow_toga_use      Boolean?  @default(true)
   allow_third_use     Boolean?  @default(false)
   airport_id          Int?
   cover_photo_id      Int?
-  is_deleted          Int?      @db.TinyInt
+  is_deleted          Boolean?
 }
 
 model vote_list {
@@ -156,12 +156,12 @@ model vote_list {
 }
 
 model vote_record {
-  id          Int     @id @unique(map: "vote_record_pk_2") @default(autoincrement())
+  id          Int      @id @unique(map: "vote_record_pk_2") @default(autoincrement())
   user        Int?
-  tally       Float?  @db.Float
+  tally       Float?   @db.Float
   vote_event  Int?
   create_time BigInt?
-  is_delete   Int?    @db.TinyInt
+  is_delete   Boolean?
 }
 
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
@@ -196,7 +196,7 @@ view accept_photo {
 view full_photo_info {
   id                Int                            @id @default(0)
   storage_status    full_photo_info_storage_status @default(WAIT)
-  status            full_photo_info_status?        @default(WAIT_SCREEN)
+  status            String?                        @default("WAIT SCREEN") @db.VarChar(63)
   queue             String?                        @db.VarChar(10)
   message           String?                        @db.VarChar(256)
   watermark         Json?
@@ -231,33 +231,33 @@ view full_photo_info {
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view queue_photo {
-  id                Int                 @id @default(0)
-  status            queue_photo_status? @default(WAIT_SCREEN)
-  queue             String?             @db.VarChar(10)
-  message           String?             @db.VarChar(256)
+  id                Int       @id @default(0)
+  status            String?   @default("WAIT SCREEN") @db.VarChar(63)
+  queue             String?   @db.VarChar(10)
+  message           String?   @db.VarChar(256)
   screener_1        Int?
   screener_2        Int?
-  reason            String?             @db.VarChar(512)
-  screener_message  String?             @db.VarChar(256)
+  reason            String?   @db.VarChar(512)
+  screener_message  String?   @db.VarChar(256)
   upload_user_id    Int?
-  username          String?             @db.VarChar(50)
-  ac_type           String?             @db.VarChar(255)
-  ac_reg            String?             @db.VarChar(125)
-  ac_msn            String?             @db.VarChar(100)
+  username          String?   @db.VarChar(50)
+  ac_type           String?   @db.VarChar(255)
+  ac_reg            String?   @db.VarChar(125)
+  ac_msn            String?   @db.VarChar(100)
   airline_id        Int?
-  airline_cn        String?             @db.VarChar(255)
-  airline_en        String?             @db.VarChar(255)
-  airline_icao_code String?             @db.VarChar(255)
-  airline_iata_code String?             @db.VarChar(255)
+  airline_cn        String?   @db.VarChar(255)
+  airline_en        String?   @db.VarChar(255)
+  airline_icao_code String?   @db.VarChar(255)
+  airline_iata_code String?   @db.VarChar(255)
   airport_id        Int?
-  pic_type          String?             @db.VarChar(255)
-  user_remark       String?             @db.VarChar(256)
-  photo_time        DateTime?           @db.Date
+  pic_type          String?   @db.VarChar(255)
+  user_remark       String?   @db.VarChar(256)
+  photo_time        DateTime? @db.Date
   upload_time       BigInt?
-  airport_cn        String?             @db.VarChar(255)
-  airport_en        String?             @db.VarChar(255)
-  airport_icao_code String?             @db.VarChar(127)
-  airport_iata_code String?             @db.VarChar(127)
+  airport_cn        String?   @db.VarChar(255)
+  airport_en        String?   @db.VarChar(255)
+  airport_icao_code String?   @db.VarChar(127)
+  airport_iata_code String?   @db.VarChar(127)
 }
 
 enum vote_list_type {
@@ -277,37 +277,19 @@ enum vote_list_status {
   END
 }
 
+enum photo_storage_status {
+  WAIT
+  COMPLETE
+  ERROR
+}
+
 enum full_photo_info_storage_status {
   WAIT
   COMPLETE
   ERROR
 }
 
-enum photo_status {
-  WAIT_SCREEN @map("WAIT SCREEN")
-  ACCEPT
-  REJECT
-}
-
-enum queue_photo_status {
-  WAIT_SCREEN @map("WAIT SCREEN")
-  ACCEPT
-  REJECT
-}
-
 enum accept_photo_storage_status {
-  WAIT
-  COMPLETE
-  ERROR
-}
-
-enum full_photo_info_status {
-  WAIT_SCREEN @map("WAIT SCREEN")
-  ACCEPT
-  REJECT
-}
-
-enum photo_storage_status {
   WAIT
   COMPLETE
   ERROR

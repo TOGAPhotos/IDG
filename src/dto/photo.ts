@@ -85,8 +85,8 @@ export default class Photo {
     }
   }
 
+  @safeSQL
   static async blurrySearch(keyword: string, lastId: number, num: number) {
-    lastId = Number(lastId);
     if (lastId === -1) {
       return this.prisma.accept_photo.findMany({
       select: Photo.searchSelectConfig,
@@ -127,17 +127,16 @@ export default class Photo {
     }
   }
 
-  // @secureSqlString
+  @safeSQL
   static async searchByRegKeyword(
     keyword: string,
     lastId: number,
     num: number,
   ) {
-    lastId = Number(lastId);
     if (lastId === -1) {
       return this.prisma.accept_photo.findMany({
+        select: Photo.searchSelectConfig,
         where: {
-          select: Photo.searchSelectConfig,
           ac_reg: { contains: keyword },
         },
         orderBy: { id: "desc" },
@@ -156,13 +155,12 @@ export default class Photo {
     }
   }
 
-  // @secureSqlString
+  @safeSQL
   static async searchByAirlineKeyword(
     keyword: string,
     lastId: number,
     num: number,
   ) {
-    lastId = Number(lastId);
     if (lastId === -1) {
       return this.prisma.accept_photo.findMany({
         select: Photo.searchSelectConfig,
@@ -191,12 +189,12 @@ export default class Photo {
     }
   }
 
+  @safeSQL
   static async searchByAirtypeKeyword(
     keyword: string,
     lastId: number,
     num: number,
   ) {
-    lastId = Number(lastId);
     if (lastId === -1) {
       return this.prisma.accept_photo.findMany({
         select: Photo.searchSelectConfig,
@@ -290,7 +288,7 @@ export default class Photo {
     return this.prisma.photo.create({
       data: {
         upload_user_id: data.userId,
-        upload_time: data.uploadTime,
+        upload_time: Date.now(),
         ac_reg: data.reg,
         ac_msn: data.msn,
         airline_id: data.airline,
@@ -302,7 +300,6 @@ export default class Photo {
         queue: data.queue,
         exif: data.exif,
         watermark: data.watermark,
-        // allow_social_media:data.allowSocialMedia
       },
     });
   }

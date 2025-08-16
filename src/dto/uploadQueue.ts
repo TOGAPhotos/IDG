@@ -2,6 +2,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import Permission from "../components/auth/permissions.js";
 
 type PhotoInfo = Prisma.photoGetPayload<null>;
+type QueueQuery = Prisma.queue_photoSelect<null>
 
 export default class UploadQueue {
   static prisma = new PrismaClient();
@@ -28,7 +29,7 @@ export default class UploadQueue {
                        JOIN all_wait_screen_photos a ON p.id = a.id
                        JOIN airport ON p.airport_id = airport.id
                        JOIN airline ON p.airline_id = airline.id
-                WHERE p.upload_user_id = 464 AND p.is_delete = 0 AND p.status = 'WAIT SCREEN' ORDER BY p.id;
+                WHERE p.upload_user_id = ${userId} AND p.is_delete = 0 AND p.status = 'WAIT SCREEN' ORDER BY p.id;
       ` as unknown as PhotoInfo[];
   }
 
@@ -63,20 +64,21 @@ export default class UploadQueue {
     });
   }
 
-  static async getQueue(type: "normal" | "priority" | "stuck" | "all") {
+  static async getQueue(type: "normal" | "priority" | "stuck" | "all",userId:number) {
     if (type === "all") {
       return UploadQueue.prisma.queue_photo.findMany();
     }
     const query = {
       status: "WAIT SCREEN",
       queue: type.toLocaleUpperCase(),
-    };
+    }
     if (type === "stuck") {
       query.status = "STUCK";
       delete query.queue;
     }
-    console.log(query);
-    return UploadQueue.prisma.queue_photo.findMany({ where: query });
+    return UploadQueue.prisma.queue_photo.findMany({
+      where: query
+    });
   }
 
   static async recentScreenPhoto() {
