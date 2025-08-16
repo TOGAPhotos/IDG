@@ -16,7 +16,6 @@ export default class User {
     });
   }
 
-  // @checkNumberParams
   static async updateById(id: number, data: any) {
     return prisma.user.update({ where: { id: id }, data: data });
   }
@@ -49,7 +48,7 @@ export default class User {
     });
   }
 
-  // @checkNumberParams
+
   static async getById(id: number) {
     const res = await prisma.user.findUnique({ where: { id: id } });
     if (res === null) {
