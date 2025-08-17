@@ -20,7 +20,7 @@ jobs:
         port: ${{ secrets.PORT }}
         script: |
           cd ~/IDG
-          git checkout deploy
+          git checkout deploy/production
           git reset --hard HEAD
           git pull
           npm install
