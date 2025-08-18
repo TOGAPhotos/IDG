@@ -18,7 +18,11 @@ export default class AirportHandler {
   }
 
   static async get(req: Request, res: Response) {
-    const dbResult = await Airport.getById(Number(req.params.id));
+    const airportId = Number(req.params.id);
+    if (isNaN(airportId)) {
+      return res.fail(HTTP_STATUS.BAD_REQUEST, "机场ID无效");
+    }
+    const dbResult = await Airport.getById(airportId);
 
     if (dbResult === null) {
       return res.status(HTTP_STATUS.NOT_FOUND).json({ message: "机场不存在" });
