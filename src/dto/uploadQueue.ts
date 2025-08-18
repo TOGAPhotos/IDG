@@ -94,7 +94,7 @@ export default class UploadQueue {
         upload_user_id: userId,
         status: "REJECT",
       },
-      orderBy: { upload_time: "asc" },
+      orderBy: { id: "desc" },
       take: 10,
     });
   }
