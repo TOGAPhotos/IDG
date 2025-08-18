@@ -77,6 +77,7 @@ router.delete("/airline/:id", Per.isStaffMW, AirlineHandler.delete);
 
 // router.get('/aircrafts',  AircraftHandler.getAircraftList);
 router.post("/aircrafts", Per.isStaff, AircraftHandler.create);
+router.get("/aircraft/:id", Per.isStaff,AircraftHandler.get);
 router.put("/aircraft/:id", Per.isStaff, AircraftHandler.update);
 router.delete("/aircraft/:id", Per.isScreenerMW, AircraftHandler.delete);
 
