@@ -107,8 +107,8 @@ model photo {
   message          String?              @db.VarChar(256)
   screener_1       Int?
   screener_2       Int?
-  need_screener_2  Int?                 @db.TinyInt
-  result           Int?                 @db.TinyInt
+  need_screener_2  Boolean?
+  result           String               @default("REJECT") @db.VarChar(255)
   reason           String?              @db.VarChar(512)
   screener_message String?              @db.VarChar(256)
   is_delete        Boolean?             @default(false)
@@ -202,8 +202,8 @@ view full_photo_info {
   watermark         Json?
   screener_1        Int?
   screener_2        Int?
-  need_screener_2   Int?                           @db.TinyInt
-  result            Int?                           @db.TinyInt
+  need_screener_2   Boolean?
+  result            String                         @default("REJECT") @db.VarChar(255)
   reason            String?                        @db.VarChar(512)
   screener_message  String?                        @db.VarChar(256)
   upload_user_id    Int?
