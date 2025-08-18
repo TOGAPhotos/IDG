@@ -38,6 +38,10 @@ export default class QueueHandler {
 
     for (let counter = 0; counter < MAX_TRY; counter++) {
       let result = await UploadQueue.getTop(cursor, screener.role);
+      if( result === null) {
+        // 如果没有更多图片了，返回空结果
+        return res.success("暂无图片待审核", { photoId: null });
+      }
       cursor = result?.id || cursor;
       if (result.upload_user_id === screener.id || result.screener_1 === screener.id) {
         // 跳过自己上传或一审的图片

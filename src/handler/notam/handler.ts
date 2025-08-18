@@ -20,9 +20,9 @@ export default class NotamHandler {
 
   static async create(req: Request, res: Response) {
     const { title, content } = req.body;
-    const createrId = req.token.id;
+    const userId = req.token.id;
 
-    await Notam.create(title, content, createrId);
+    await Notam.create(title, content, userId);
     await notamCache.renewCache();
 
     return res.success("创建成功");
