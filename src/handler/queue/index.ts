@@ -10,15 +10,6 @@ export default class QueueHandler {
 
   static async getUserUploadQueue(req: Request, res: Response) {
     const result = await UploadQueue.getPhotosQueueByUserId(req.token.id);
-    result.forEach((photo) => {
-      delete photo.screener_1;
-      delete photo.screener_2;
-      delete photo.result;
-      delete photo.screener_message;
-      delete photo.reason;
-      delete photo.exif;
-      delete photo.watermark;
-    });
     return res.success("查询成功", { photoQueue: result });
   }
 
@@ -46,8 +37,8 @@ export default class QueueHandler {
 
     for (let counter = 0; counter < MAX_TRY; counter++) {
       let result = await UploadQueue.getTop(cursor, screener.role);
-      if (result.upload_user_id === screener.id) {
-        // 跳过自己上传的图片
+      if (result.upload_user_id === screener.id || result.screener_1 === screener.id) {
+        // 跳过自己上传或一审的图片
         continue;
       }
       const cacheInfo = await QueueHandler.uploadQueueCache.get(result.id);
@@ -157,7 +148,7 @@ export default class QueueHandler {
         User.updateById(queuePhoto.upload_user_id, {
           free_queue: { increment: 1 },
           total_photo: { increment: screenData.result === "ACCEPT" ? 1 : 0 },
-          // free_priority_queue: {increment: queuePhoto.queue === 'PRIORITY' ? 1 : 0}
+          free_priority_queue: {increment: queuePhoto.queue === 'PRIORITY' ? 1 : 0}
         }),
       ]);
     }
@@ -195,12 +186,13 @@ export default class QueueHandler {
 
   static async getQueue(req: Request, res: Response) {
     type _QueueType = "normal" | "priority" | "stuck";
+    const userId = req.token.id;
     const type = req.query["type"] || "normal";
     switch (type) {
       case "screened":
         return await QueueHandler.getScreenedPhoto(req, res);
       default:
-        const dbRes = await UploadQueue.getQueue(<_QueueType>type);
+        const dbRes = await UploadQueue.getQueue(<_QueueType>type,userId);
         return res.success("查询成功", dbRes);
     }
   }

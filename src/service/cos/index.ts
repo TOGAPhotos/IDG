@@ -23,8 +23,7 @@ export default class COSStorage extends COS {
   }
 
   getUploadUrl(key: string) {
-    return this.getObjectUrl(
-      {
+    return this.getObjectUrl({
         Bucket: this.bucket,
         Region: this.region,
         Key: key,
