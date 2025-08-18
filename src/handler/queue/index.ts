@@ -20,6 +20,7 @@ export default class QueueHandler {
 
     if (!readOnly) {
       const screenCache = await QueueHandler.uploadQueueCache.get(queueId);
+      Log.debug(JSON.stringify(screenCache));
       if (screenCache !== null && Number(screenCache) !== req.token.id) {
         return res.fail(HTTP_STATUS.CONFLICT, "其他审图员正在审核中");
       }
