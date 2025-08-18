@@ -20,16 +20,13 @@ export default class UploadQueue {
     return UploadQueue.prisma
       .$queryRaw`WITH all_wait_screen_photos AS
                        (SELECT id, ROW_NUMBER() OVER (ORDER BY id) AS global_row_num
-                        FROM photo WHERE is_delete = 0 AND status = 'WAIT SCREEN')
-                SELECT a.global_row_num AS position_in_queue, p.*, 
-                       airport_cn,airport_en,
-                       airport.icao_code AS airport_icao_code ,airport.iata_code AS airport_iata_code,
-                       airline_cn, airline_en
-                FROM photo p
+                        FROM queue_photo)
+                SELECT p.id, p.username, p.ac_msn, ac_reg, p.airline_cn, p.airline_en,
+                       p.airport_cn, p.airport_en, p.airport_iata_code,p.airport_icao_code, 
+                       p.ac_type, p.pic_type, p.photo_time
+                FROM queue_photo p
                        JOIN all_wait_screen_photos a ON p.id = a.id
-                       JOIN airport ON p.airport_id = airport.id
-                       JOIN airline ON p.airline_id = airline.id
-                WHERE p.upload_user_id = ${userId} AND p.is_delete = 0 AND p.status = 'WAIT SCREEN' ORDER BY p.id;
+                WHERE p.upload_user_id = ${userId};
       ` as unknown as PhotoInfo[];
   }
 
