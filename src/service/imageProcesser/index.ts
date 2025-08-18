@@ -162,6 +162,10 @@ export class ImageProcess {
 
   static async copyrightOverlay(config: CopyrightOverlayConfig) {
     Log.debug(`ImageProcess: ${config.inputFile} -> ${config.outputFile}`);
+    if ( "photoId" in config && !config.photoId) {
+      const photo = await Photo.getById(config.photoId);
+      if (!photo){ return }
+    }
     try {
       const downloadStream = ImageProcess.cos.streamDownload(config.inputFile);
       downloadStream.on("error", (e) => {
@@ -193,7 +197,7 @@ export class ImageProcess {
     } catch (e) {
       if ("photoId" in config) {
         await Photo.update(config.photoId, {
-          storage_status: "ERROR:CP_OVERLAY",
+          storage_status: "ERROR",
         });
       }
       throw new HandlerError(`图片${config.inputFile}处理失败: ${e.message}`);
