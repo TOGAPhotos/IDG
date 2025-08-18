@@ -6,7 +6,10 @@ export class Airtype {
   @safeSQL
   static async searchByKeyword(keyword: string) {
     return prisma.airtype.findMany({
-      where: { sub_type: { contains: keyword } },
+      where: {
+        status: "AVAILABLE",
+        sub_type: { contains: keyword }
+      },
       orderBy: { sub_type: "asc" },
     });
   }
