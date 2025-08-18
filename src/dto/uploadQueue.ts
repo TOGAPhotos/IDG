@@ -23,7 +23,7 @@ export default class UploadQueue {
                         FROM queue_photo)
                 SELECT p.id, p.username, p.ac_msn, ac_reg, p.airline_cn, p.airline_en,
                        p.airport_cn, p.airport_en, p.airport_iata_code,p.airport_icao_code, 
-                       p.ac_type, p.pic_type, p.photo_time
+                       p.ac_type, p.pic_type, p.photo_time, global_row_num
                 FROM queue_photo p
                        JOIN all_wait_screen_photos a ON p.id = a.id
                 WHERE p.upload_user_id = ${userId};
