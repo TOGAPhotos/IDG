@@ -4,6 +4,7 @@ import { UploadQueueCache } from "../../service/redis/uploadQueueCache.js";
 import Permission from "../../components/auth/permissions.js";
 import User from "../../dto/user.js";
 import { HTTP_STATUS } from "../../types/http_code.js";
+import Log from "../../components/loger.js";
 
 export default class QueueHandler {
   static uploadQueueCache = new UploadQueueCache();
@@ -37,6 +38,7 @@ export default class QueueHandler {
 
     for (let counter = 0; counter < MAX_TRY; counter++) {
       let result = await UploadQueue.getTop(cursor, screener.role);
+      cursor = result?.id || cursor;
       if (result.upload_user_id === screener.id || result.screener_1 === screener.id) {
         // 跳过自己上传或一审的图片
         continue;
@@ -46,7 +48,6 @@ export default class QueueHandler {
         await QueueHandler.uploadQueueCache.set(result.id, screener.id);
         return res.success("查询成功", { photoId: result.id });
       }
-      cursor = result?.id || cursor;
     }
 
     return res.fail(HTTP_STATUS.LOOP_DETECTED);
