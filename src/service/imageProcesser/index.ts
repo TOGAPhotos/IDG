@@ -49,7 +49,7 @@ export class FileCopyrightOverlayConfig {
     this.watermark = watermarkConfig;
 
     this.textConfig = textConfig || {
-      fontSize: 20,
+      fontSize: 16,
       fontFamily: "Source Han Sans CN",
     };
   }
@@ -100,7 +100,7 @@ export class ImageProcess {
     const canvas = createCanvas(width, height + 20);
     const ctx = canvas.getContext("2d");
     const watermarkImg = await loadImage(
-      "https://cos-0688-tp-cdn.794td.cn/watermark.png",
+      "https://cos-125-tp-cdn.794td.cn/assets/watermark.png",
     );
 
     // prepare a transparent background with same width and height +20px
@@ -120,7 +120,7 @@ export class ImageProcess {
     // prepare work for the overlay text
     ctx.globalAlpha = Math.min(1, watermarkConfig.alpha + 0.1); // on purpose
     ctx.fillStyle = "white";
-    let overlayFontSize = (watermarkImg.height * watermarkConfig.scale) / 4;
+    let overlayFontSize = (watermarkImg.height * watermarkConfig.scale) / 2;
     ctx.font = `${overlayFontSize}px ${textConfig.fontFamily}`;
     const watermarkText = `©️ ${username}`;
     const watermarkTextWidth = ctx.measureText(watermarkText).width;

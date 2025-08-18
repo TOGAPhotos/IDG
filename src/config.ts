@@ -3,11 +3,9 @@ import "dotenv/config";
 export const PRODUCTION_ENV =
   (process.env.RUNNING_ENV || "PRODUCTION") === "PRODUCTION";
 
-export const HTTP_PORT = Number(process.env.HTTP_PORT) || 3500;
+export const HTTP_PORT = Number(process.env.HTTP_PORT);
 
 export const TOKEN_EXPIRE_TIME = 60 * 60 * 24 * 30;
-
-export const PHOTO_FOLDER = process.env.PHOTO_PATH;
 
 export const BELL_URL = process.env.BELL_URL;
 

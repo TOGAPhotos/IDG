@@ -51,6 +51,10 @@ export default class Permission {
     return Permission.checkUserPermission(userRole, Permission.database);
   }
 
+  static isAdmin(userRole: string) {
+    return Permission.checkUserPermission(userRole, Permission.admin);
+  }
+
   static isLoginMW(req: Request, res: Response, next: NextFunction) {
     if (!req.token) {
       return res.fail(HTTP_STATUS.UNAUTHORIZED, "未登录");
@@ -110,7 +114,7 @@ export default class Permission {
     if (!Permission.checkUserStatus(userInfo)) {
       res.fail(HTTP_STATUS.UNAUTHORIZED, "用户状态异常");
     }
-    if (!Permission.isSeniorScreener(userInfo.role)) {
+    if (!Permission.isAdmin(userInfo.role)) {
       res.fail(HTTP_STATUS.UNAUTHORIZED);
     }
 

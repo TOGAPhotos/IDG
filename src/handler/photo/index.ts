@@ -136,6 +136,33 @@ export default class PhotoHandler {
     }
   }
 
+  static async recall(req: Request, res: Response) {
+    const userId = req.token.id;
+    const photoId = Number(req.params["id"]);
+
+    const photoInfo = await Photo.getById(photoId);
+
+    Log.info(
+      `trace_id:${req.tId} user_id:${userId} 上传失败，撤回图片 ${photoId}`,
+    );
+    if (photoInfo === null) {
+      return res.fail(HTTP_STATUS.NOT_FOUND, "已删除");
+    }
+    if(userId !== photoInfo.upload_user_id){
+      return res.fail(HTTP_STATUS.FORBIDDEN, "您没有权限撤回图片");
+    }
+    await Promise.allSettled([
+      Photo.deleteById(photoId),
+      User.updateById(userId,{
+        free_queue: { increment: 1 },
+        free_priority_queue: {
+          increment: photoInfo.queue === "PRIORITY" ? 1 : 0,
+        },
+      })
+    ])
+
+  }
+
   static async delete(req: Request, res: Response) {
     const userId = req.token.id;
     const photoId = Number(req.params["id"]);
@@ -231,7 +258,6 @@ export default class PhotoHandler {
 
   static async updateObjectStatus(req: Request, res: Response) {
     const { status, photo_id: photoId } = req.query as {
-      object: string;
       status: string;
       photo_id: string | null;
     };
@@ -245,6 +271,7 @@ export default class PhotoHandler {
         User.getById(req.token.id),
       ]);
     } catch (e) {
+      Log.error(e);
       return res.fail(HTTP_STATUS.NOT_FOUND, "图片不存在");
     }
 
