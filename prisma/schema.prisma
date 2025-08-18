@@ -20,7 +20,7 @@ model aircraft {
   air_type      String?  @db.VarChar(25)
   delivery_date String?  @db.VarChar(255)
   remark        String?  @db.VarChar(256)
-  is_delete     Boolean?
+  is_delete     Boolean? @default(false)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -34,7 +34,7 @@ model airline {
   status      String?   @default("AVAILABLE") @db.VarChar(255)
   create_user Int?
   create_time DateTime? @db.DateTime(0)
-  is_delete   Boolean?
+  is_delete   Boolean?  @default(false)
 }
 
 model airport {
@@ -111,7 +111,7 @@ model photo {
   result           Int?                 @db.TinyInt
   reason           String?              @db.VarChar(512)
   screener_message String?              @db.VarChar(256)
-  is_delete        Boolean?
+  is_delete        Boolean?             @default(false)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -137,7 +137,7 @@ model user {
   allow_third_use     Boolean?  @default(false)
   airport_id          Int?
   cover_photo_id      Int?
-  is_deleted          Boolean?
+  is_deleted          Boolean?  @default(false)
 }
 
 model vote_list {
@@ -279,18 +279,21 @@ enum vote_list_status {
 
 enum photo_storage_status {
   WAIT
+  UPLOAD
   COMPLETE
   ERROR
 }
 
 enum full_photo_info_storage_status {
   WAIT
+  UPLOAD
   COMPLETE
   ERROR
 }
 
 enum accept_photo_storage_status {
   WAIT
+  UPLOAD
   COMPLETE
   ERROR
 }
