@@ -86,7 +86,7 @@ export class ImageProcess {
     secretKey: process.env.COS_SECRET_KEY,
     bucket: process.env.PHOTO_BUCKET,
     region: process.env.PHOTO_BUCKET_REGION,
-    domain: process.env.PHOTO_COS_DOMAIN,
+    domain: "tp-1258680688.cos.ap-beijing.myqcloud.com",
   });
 
   private static async $createCopyrightOverlay(
@@ -175,7 +175,7 @@ export class ImageProcess {
       downloadStream.pipe(image);
       const { width, height, format } = await image.metadata();
       if (!width || !height || !format) {
-        throw new HandlerError("图片信息获取失败");
+        throw new HandlerError(`图片${config.inputFile}信息获取失败`);
       }
       const overlay = await ImageProcess.$createCopyrightOverlay(
         width,
@@ -200,6 +200,7 @@ export class ImageProcess {
           storage_status: "ERROR",
         });
       }
+      Log.error(`ImageProcess: ${config.inputFile}处理失败: ${e.message}`);
       throw new HandlerError(`图片${config.inputFile}处理失败: ${e.message}`);
     }
   }
