@@ -55,7 +55,7 @@ model airtype {
   manufacturer_cn String?         @db.VarChar(255)
   manufacturer_en String?         @db.VarChar(255)
   type            String?         @db.VarChar(255)
-  sub_type        String?         @db.VarChar(255)
+  sub_type        String?         @unique(map: "airtype_pk_2") @db.VarChar(255)
   icao_code       String?         @db.VarChar(255)
   status          airtype_status? @default(WAITING)
   create_user     Int?
@@ -122,14 +122,14 @@ model user {
   password            String?   @db.VarChar(256)
   role                String?   @default("USER") @db.VarChar(255)
   status              String?   @default("NORMAL") @db.VarChar(255)
-  passing_rate        Int?      @db.TinyInt
-  total_queue         Int?      @db.TinyInt
-  free_queue          Int?      @db.TinyInt
+  passing_rate        Int?      @default(0) @db.TinyInt
+  total_queue         Int?      @default(10) @db.TinyInt
+  free_queue          Int?      @default(10) @db.TinyInt
   priority_queue      Int?      @db.TinyInt
-  free_priority_queue Int?
-  total_photo         Int?
-  create_time         DateTime? @db.DateTime(0)
-  update_time         DateTime? @db.DateTime(0)
+  free_priority_queue Int?      @default(0)
+  total_photo         Int?      @default(0)
+  create_time         DateTime? @default(dbgenerated("(now())")) @db.DateTime(0)
+  update_time         DateTime? @default(dbgenerated("(now())")) @db.DateTime(0)
   suspension_date     Int?
   email_verify        Int?      @db.TinyInt
   email_verify_token  String?   @db.VarChar(150)
