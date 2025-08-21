@@ -28,8 +28,8 @@ export default class AirlineHandler {
     await Airline.create(
       airline_cn,
       airline_en,
-      icao_code,
       iata_code,
+      icao_code,
       user.id,
       status,
     );
