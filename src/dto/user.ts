@@ -67,7 +67,7 @@ export default class User {
   @safeSQL
   static getByUsername(username: string) {
     return prisma.user.findMany({
-      where: { username: { contains: username } },
+      where: { username:  username },
     });
   }
 
