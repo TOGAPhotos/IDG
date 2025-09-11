@@ -17,6 +17,8 @@ export const TENCENTCLOUD_SECRET_ID = process.env.TENCENTCLOUD_SECRET_ID
 export const TENCENTCLOUD_SECRET_KEY = process.env.TENCENTCLOUD_SECRET_KEY
 export const TENCENTCLOUD_CDN_PKEY = process.env.TENCENTCLOUD_CDN_PKEY
 
+export const PHOTO_COS_CDN_DOMAIN = process.env.PHOTO_COS_CDN_DOMAIN
+
 export const startConsoleStr = `
   _______ ____   _____            _____  _           _            
  |__   __/ __ \\ / ____|   /\\     |  __ \\| |         | |           
