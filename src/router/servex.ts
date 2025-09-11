@@ -1,7 +1,7 @@
 import { Router } from "express";
 
 import Per from "../components/auth/permissions.js";
-import ServexHandler from "@/handler/servex/index.js";
+import ServexHandler from "../handler/servex/index.js";
 
 const servexRouter = Router();
 servexRouter.use(Per.isLoginMW);
