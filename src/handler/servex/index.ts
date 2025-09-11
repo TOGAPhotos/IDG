@@ -4,8 +4,8 @@ import { TENCENTCLOUD_CDN_PKEY } from "../../config.js";
 import crypto from "crypto";
 import Photo from "../../dto/photo.js";
 import User from "@/dto/user.js";
-import Permission from "@/components/auth/permissions.js";
-import { getPhotoCDNUrl } from "@/service/cdn/index.js";
+import Permission from "../../components/auth/permissions.js";
+import { getPhotoCDNUrl } from "../../service/cdn/index.js";
 
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
