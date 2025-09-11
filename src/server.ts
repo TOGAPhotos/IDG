@@ -10,6 +10,7 @@ import { success, fail } from "./exntend/response.js";
 import { HTTP_STATUS } from "./types/http_code.js";
 import voteSysRouter from "./router/vote.js";
 import "express-async-errors";
+import servexRouter from "./router/servex.js";
 
 const server = express();
 
@@ -31,8 +32,9 @@ server.response.fail = fail;
 server.use(Token.verifyMW);
 server.use(Log.accessLogMW());
 
-server.use("/api/v2", router);
 server.use("/api/v2/vote", voteSysRouter);
+server.use("/api/v2/servex",servexRouter);
+server.use("/api/v2", router);
 
 server.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   Log.error(`${req.tId} ${err.message} ${err.stack}`);
