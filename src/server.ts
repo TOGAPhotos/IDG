@@ -32,8 +32,8 @@ server.response.fail = fail;
 server.use(Token.verifyMW);
 server.use(Log.accessLogMW());
 
-server.use("/api/v2/vote", voteSysRouter);
 server.use("/api/v2/servex",servexRouter);
+server.use("/api/v2/vote", voteSysRouter);
 server.use("/api/v2", router);
 
 server.use((err: Error, req: Request, res: Response, next: NextFunction) => {
