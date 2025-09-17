@@ -4,8 +4,8 @@ import Per from "../components/auth/permissions.js";
 import ServexHandler from "../handler/servex/index.js";
 
 const servexRouter = Router();
-servexRouter.use(Per.isLoginMW);
-servexRouter.get("/cdn/rawPhoto/:id",ServexHandler.accessRawPhoto);
-servexRouter.get("/cdn/sign", Per.isStaffMW, ServexHandler.sign);
+servexRouter.get("/cdn/sign/:key", ServexHandler.sign);
+servexRouter.get("/cdn/rawPhoto/:key/:id",ServexHandler.uploaderAccessRawPhoto);
+servexRouter.get("/cdn/preSign",Per.isLoginMW, ServexHandler.preSign);
 
 export default servexRouter;
