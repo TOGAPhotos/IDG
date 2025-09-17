@@ -7,10 +7,10 @@ export default class SearchCache {
     this.conn = new Redis({ db: dbId, password: REDIS_DB_PASS });
   }
 
-  async set(keyword: string, result: any) {
+  async set(keyword: string, value: any, expire: number = 60 * 5) {
     const key = `${keyword}`;
-    this.conn.set(key, JSON.stringify(result));
-    this.conn.expire(key, 60 * 5);
+    this.conn.set(key, JSON.stringify(value));
+    this.conn.expire(key, expire);
   }
 
   async get(keyword: string) {
