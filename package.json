@@ -41,7 +41,6 @@
     "ioredis": "^5.6.0",
     "jsonwebtoken": "^9.0.2",
     "mailgun.js": "^9.4.1",
-    "multer": "^1.4.5-lts.1",
     "node-schedule": "^2.1.1",
     "sharp": "^0.33.5",
     "tencentcloud-sdk-nodejs-cdn": "^4.1.116",
