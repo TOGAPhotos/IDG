@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient,Prisma } from "@prisma/client";
 import { checkNumberParams } from "../components/decorators/checkNumberParams.js";
 import { safeSQL } from "../components/decorators/safeSQL.js";
 
@@ -16,7 +16,7 @@ export default class User {
     });
   }
 
-  static async updateById(id: number, data: any) {
+  static async updateById(id: number, data: Prisma.userUpdateInput) {
     return prisma.user.update({ where: { id: id }, data: data });
   }
 

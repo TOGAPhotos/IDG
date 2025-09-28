@@ -137,7 +137,6 @@ export default class QueueHandler {
         finishScreen = true;
       }
     } else if (
-      queuePhoto.screener_1 !== null &&
       queuePhoto.screener_2 === null &&
       Permission.isSeniorScreener(screener.role)
     ) {
@@ -148,7 +147,10 @@ export default class QueueHandler {
     }
     await UploadQueue.update(queueId, screenData);
     if (finishScreen) {
-      await UploadQueue.update(queueId, { status: screenData.result });
+      await UploadQueue.update(queueId, {
+        status: screenData.result,
+        screen_finished_time: new Date()
+      });
       await Promise.allSettled([
         User.updatePassingRate(queuePhoto.upload_user_id),
         User.updateById(queuePhoto.upload_user_id, {
