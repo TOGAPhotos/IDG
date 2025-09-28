@@ -54,7 +54,7 @@ export default class UploadQueue {
     }
   }
 
-  static async update(queueId: number, data: any) {
+  static async update(queueId: number, data: Prisma.photoUpdateInput) {
     return UploadQueue.prisma.photo.update({
       where: { id: queueId },
       data: data,
