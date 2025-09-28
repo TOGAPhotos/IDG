@@ -86,32 +86,33 @@ model notam {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model photo {
-  id               Int                  @id @unique(map: "photo_pk_2") @default(autoincrement())
-  status           String?              @default("WAIT SCREEN") @db.VarChar(63)
-  queue            String?              @db.VarChar(10)
-  upload_user_id   Int?
-  storage_status   photo_storage_status @default(WAIT)
-  ac_reg           String?              @db.VarChar(125)
-  ac_msn           String?              @db.VarChar(100)
-  ac_type          String?              @db.VarChar(255)
-  airport_id       Int?
-  airline          String?              @db.VarChar(125)
-  airline_id       Int?
-  pic_type         String?              @db.VarChar(255)
-  user_remark      String?              @db.VarChar(256)
-  upload_time      BigInt?
-  exif             Json?
-  photo_time       DateTime?            @db.Date
-  update_time      DateTime?            @db.DateTime(0)
-  watermark        Json?
-  message          String?              @db.VarChar(256)
-  screener_1       Int?
-  screener_2       Int?
-  need_screener_2  Boolean?
-  result           String               @default("REJECT") @db.VarChar(255)
-  reason           String?              @db.VarChar(512)
-  screener_message String?              @db.VarChar(256)
-  is_delete        Boolean?             @default(false)
+  id                   Int                  @id @unique(map: "photo_pk_2") @default(autoincrement())
+  status               String?              @default("WAIT SCREEN") @db.VarChar(63)
+  queue                String?              @db.VarChar(10)
+  upload_user_id       Int?
+  storage_status       photo_storage_status @default(WAIT)
+  ac_reg               String?              @db.VarChar(125)
+  ac_msn               String?              @db.VarChar(100)
+  ac_type              String?              @db.VarChar(255)
+  airport_id           Int?
+  airline              String?              @db.VarChar(125)
+  airline_id           Int?
+  pic_type             String?              @db.VarChar(255)
+  user_remark          String?              @db.VarChar(256)
+  upload_time          BigInt?
+  exif                 Json?
+  photo_time           DateTime?            @db.Date
+  update_time          DateTime?            @default(now()) @db.DateTime(0)
+  watermark            Json?
+  message              String?              @db.VarChar(256)
+  screener_1           Int?
+  screener_2           Int?
+  need_screener_2      Boolean?
+  screen_finished_time DateTime?            @db.Timestamp(0)
+  result               String               @default("REJECT") @db.VarChar(255)
+  reason               String?              @db.VarChar(512)
+  screener_message     String?              @db.VarChar(256)
+  is_delete            Boolean?             @default(false)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
