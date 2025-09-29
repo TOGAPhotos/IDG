@@ -1,6 +1,6 @@
 import { Response } from "express";
 import Log from "../components/loger.js";
-import { startConsoleStr } from "@/config.js";
+import { startConsoleStr } from "../config.js";
 
 interface Client {
   id: number;
