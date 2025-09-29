@@ -43,6 +43,9 @@ const Logger = createLogger({
 export default class Log {
   private static DEBUG_MODE = !PRODUCTION_ENV;
   static setDebugMode(mode: boolean) {
+    if(!PRODUCTION_ENV && !mode){
+      return;
+    }
     Log.DEBUG_MODE = mode;
     Log.warn("Debug mode set to " + mode);
   }
