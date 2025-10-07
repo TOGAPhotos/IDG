@@ -142,13 +142,12 @@ export default class PhotoHandler {
 
     const photoInfo = await Photo.getById(photoId);
 
-    Log.info(
-      `trace_id:${req.tId} user_id:${userId} 上传失败，撤回图片 ${photoId}`,
-    );
+    Log.info(`Photo recall request user:${userId} photo:${photoId}`);
     if (photoInfo === null) {
       return res.fail(HTTP_STATUS.NOT_FOUND, "已删除");
     }
     if(userId !== photoInfo.upload_user_id){
+      Log.warn(`Photo recall forbidden user:${userId} photo:${photoId}`);
       return res.fail(HTTP_STATUS.FORBIDDEN, "您没有权限撤回图片");
     }
     await Promise.allSettled([
@@ -160,7 +159,7 @@ export default class PhotoHandler {
         },
       })
     ])
-
+    Log.info(`Photo recall success user:${userId} photo:${photoId}`);
   }
 
   static async delete(req: Request, res: Response) {
@@ -172,9 +171,7 @@ export default class PhotoHandler {
       Photo.getById(photoId),
     ]);
 
-    Log.info(
-      `trace_id:${req.tId} user_id:${userId} username:${userInfo["username"]} 尝试删除图片 ${photoId}`,
-    );
+    Log.info(`Photo delete attempt user:${userId} username:${userInfo["username"]} photo:${photoId}`);
 
     if (photoInfo === null) {
       return res.fail(HTTP_STATUS.NOT_FOUND, "已删除");
@@ -182,6 +179,7 @@ export default class PhotoHandler {
 
     const screener = await QueueHandler.uploadQueueCache.get(photoId);
     if (screener !== null && Number(screener) !== req.token.id) {
+      Log.warn(`Photo delete conflict user:${userId} photo:${photoId} screener:${screener}`);
       return res.fail(HTTP_STATUS.CONFLICT, "图片正在审核中");
     }
 
@@ -191,6 +189,7 @@ export default class PhotoHandler {
         userId === photoInfo.upload_user_id
       )
     ) {
+      Log.warn(`Photo delete forbidden user:${userId} photo:${photoId}`);
       return res.fail(HTTP_STATUS.FORBIDDEN, "您没有权限删除图片");
     }
 
@@ -210,9 +209,10 @@ export default class PhotoHandler {
           Key: `photos/${photoId}.raw`,
         }),
       ]);
+      Log.info(`Photo delete success user:${userId} photo:${photoId}`);
     } catch (e) {
       await Photo.update(photoId, { is_delete: false });
-      Log.error(e);
+      Log.error(`Photo delete failed user:${userId} photo:${photoId} err:${(e as Error).message}`);
       return res.fail(HTTP_STATUS.SERVER_ERROR, "删除失败");
     }
 
@@ -271,11 +271,12 @@ export default class PhotoHandler {
         User.getById(req.token.id),
       ]);
     } catch (e) {
-      Log.error(e);
+      Log.error(`Photo status update failed photo:${photoId} err:${(e as Error).message}`);
       return res.fail(HTTP_STATUS.NOT_FOUND, "图片不存在");
     }
 
     if (status === "available") {
+      Log.debug(`Photo imageProcess enqueue photo:${photoId}`);
       const watermark = JSON.parse(<string>photoInfo.watermark);
       await PhotoHandler.imageProcessQueue.send(
         JSON.stringify({
@@ -293,6 +294,7 @@ export default class PhotoHandler {
         }),
       );
     }
+    Log.info(`Photo object status updated photo:${photoId} status:${status}`);
     res.success("更新成功");
   }
 }
