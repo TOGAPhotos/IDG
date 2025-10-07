@@ -35,7 +35,7 @@ export default class QueueHandler {
     let cursor = Number(req.query["cursor"]) || 0;
     const screener = await User.getById(req.token.id);
 
-    const MAX_TRY = 10;
+    const MAX_TRY = 50;
 
     for (let counter = 0; counter < MAX_TRY; counter++) {
       let result = await UploadQueue.getTop(cursor, screener.role);
@@ -46,6 +46,7 @@ export default class QueueHandler {
       cursor = result?.id || cursor;
       if (result.upload_user_id === screener.id || result.screener_1 === screener.id) {
         // 跳过自己上传或一审的图片
+        counter --;
         continue;
       }
       const cacheInfo = await QueueHandler.uploadQueueCache.get(result.id);
