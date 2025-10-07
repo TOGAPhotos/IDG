@@ -32,6 +32,7 @@ export default class QueueHandler {
   }
 
   static async getQueueTop(req: Request, res: Response) {
+    Log.debug(`QueueTop request user:${req.token.id} cursor:${req.query["cursor"] || 0}`);
     let cursor = Number(req.query["cursor"]) || 0;
     const screener = await User.getById(req.token.id);
 
@@ -40,21 +41,23 @@ export default class QueueHandler {
     for (let counter = 0; counter < MAX_TRY; counter++) {
       let result = await UploadQueue.getTop(cursor, screener.role);
       if( result === null) {
-        // 如果没有更多图片了，返回空结果
+        Log.info(`QueueTop none user:${req.token.id}`);
         return res.success("暂无图片待审核", { photoId: null });
       }
       cursor = result?.id || cursor;
       if (result.upload_user_id === screener.id || result.screener_1 === screener.id) {
-        // 跳过自己上传或一审的图片
+        Log.debug(`QueueTop skip self/first user:${req.token.id} photo:${result.id}`);
         continue;
       }
       const cacheInfo = await QueueHandler.uploadQueueCache.get(result.id);
       if (cacheInfo === null || Number(cacheInfo) === req.token.id) {
         await QueueHandler.uploadQueueCache.set(result.id, screener.id);
+        Log.info(`QueueTop assign user:${req.token.id} photo:${result.id}`);
         return res.success("查询成功", { photoId: result.id });
       }
+      Log.debug(`QueueTop conflict photo:${result.id} holder:${cacheInfo}`);
     }
-
+    Log.warn(`QueueTop loop_detected user:${req.token.id}`);
     return res.fail(HTTP_STATUS.LOOP_DETECTED);
   }
 
