@@ -12,11 +12,13 @@ export default class DirectMessageHandler {
     const { receiverId, contactInfo, content, photoId } = req.body;
     const senderId = req.token.id;
     if (!receiverId || !contactInfo || !content || !photoId) {
+      Log.warn(`DirectMessage create failed: missing params sender:${senderId}`);
       return res.fail(HTTP_STATUS.BAD_REQUEST, "参数错误");
     }
     const addedMessage = await DirectMessage.createPrecheck(senderId);
-    console.log(addedMessage);
+    Log.debug(`DirectMessage precheck sender:${senderId} sent_in_24h:${addedMessage.length}`);
     if (addedMessage.length >= 5) {
+      Log.warn(`DirectMessage rate limit exceeded sender:${senderId}`);
       return res.fail(HTTP_STATUS.BAD_REQUEST, "每24小时最多发送5条消息");
     }
     await DirectMessage.create(
@@ -26,6 +28,7 @@ export default class DirectMessageHandler {
       contactInfo,
       content,
     );
+    Log.info(`DirectMessage created sender:${senderId} -> receiver:${receiverId} photo:${photoId}`);
     res.success("发送成功");
 
     const [recvUser, sendUser, photo] = await Promise.all([
@@ -39,12 +42,17 @@ export default class DirectMessageHandler {
       return _str;
     })();
 
-    await MailTemp.DirectMessageNotice(recvUser.user_email, {
-      contact_info: contactInfo,
-      content: content,
-      photo_info: photoInfo,
-      sender_name: sendUser.username,
-      receiver_name: recvUser.username,
-    });
+    try {
+      await MailTemp.DirectMessageNotice(recvUser.user_email, {
+        contact_info: contactInfo,
+        content: content,
+        photo_info: photoInfo,
+        sender_name: sendUser.username,
+        receiver_name: recvUser.username,
+      });
+      Log.debug(`DirectMessage notice mail for ${recvUser.user_email} added to MQ`);
+    } catch (e) {
+      Log.error(`DirectMessage notice mail of :${senderId} err:${(e as Error).message}`);
+    }
   }
 }
