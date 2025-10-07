@@ -63,9 +63,6 @@ export default class UserHandler {
     if (!z.email().safeParse(email).success) {
       return res.fail(HTTP_STATUS.BAD_REQUEST, "邮箱格式错误");
     }
-    // if(password !== passwordR){
-    //     return res.fail(HTTP_STATUS.BAD_REQUEST,'两次密码不一致');
-    // }
     if (username.length > 20) {
       return res.fail(HTTP_STATUS.BAD_REQUEST, "用户名过长");
     }
@@ -80,6 +77,7 @@ export default class UserHandler {
     }
 
     const user = await User.create(email, username, md5(password));
+    Log.info(`Register success user_id:${user["id"]}`);
 
     return res.success("注册成功", {
       username: username,
@@ -91,7 +89,10 @@ export default class UserHandler {
   }
 
   static async delete(req: Request, res: Response) {
-    await User.delete(Number(req.params["id"]));
+    const id = Number(req.params["id"]);
+    Log.warn(`User delete attempt by:${req.token.id} target:${id}`);
+    await User.delete(id);
+    Log.info(`User delete success target:${id}`);
     return res.success("删除成功");
   }
 
@@ -104,15 +105,22 @@ export default class UserHandler {
 
     const data = req.body;
 
-    if( !Permission.isAdmin(actionUser.role) ){
+    if (!Permission.isAdmin(actionUser.role)) {
       if (id !== req.token.id) {
+        Log.warn(`User unauthorized_update actor:${req.token.id} target:${id}`);
         return res.fail(HTTP_STATUS.UNAUTHORIZED, "没有权限");
       }
-      const updateKeys = Object.keys(data)
-      const allowedKeys = ["username", "allow_third_use", "allow_toga_use", "airport_id", "cover_photo_id"];
+      const updateKeys = Object.keys(data);
+      const allowedKeys = [
+        "username",
+        "allow_third_use",
+        "allow_toga_use",
+        "airport_id",
+        "cover_photo_id",
+      ];
       for (let key of updateKeys) {
         if (!allowedKeys.includes(key)) {
-          Log.error(`用户 ${id} 尝试更新不允许的字段: ${key}`);
+          Log.error(`User update forbidden_field actor:${req.token.id} field:${key}`);
           return res.fail(HTTP_STATUS.BAD_REQUEST, `不允许更新字段: ${key}`);
         }
       }
@@ -121,11 +129,13 @@ export default class UserHandler {
     if (data["username"] && updateUser.username !== data["username"]) {
       const usernameCheck = await User.getByUsername(data["username"]);
       if (usernameCheck.length > 0) {
-          return res.fail(HTTP_STATUS.BAD_REQUEST, "用户名已注册");
+        Log.warn(`User update username_exists actor:${req.token.id} target:${id}`);
+        return res.fail(HTTP_STATUS.BAD_REQUEST, "用户名已注册");
       }
     }
 
     await User.updateById(id, data);
+    Log.info(`User update success actor:${req.token.id} target:${id}`);
     return res.success("更新成功");
   }
 
@@ -173,7 +183,7 @@ export default class UserHandler {
   static async getUserList(req: Request, res: Response) {
     const limit = Number(req.query["limit"]) || 200;
     const offset = Number(req.query["offset"]) || 0;
-    if (req.query["search"]){
+    if (req.query["search"]) {
       return UserHandler.search(req, res);
     }
     const list = await User.getList(offset, limit);
