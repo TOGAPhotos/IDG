@@ -78,18 +78,14 @@ export default class Log {
 
   static accessLogMW(req: Request, res: Response, next: NextFunction) {
     req.userIp = (req.headers["x-real-ip"] as string) || req.ip;
+    // retain req.tId internally if other legacy code relies, but do not log it
     req.tId = (req.headers["t_id"] as string) || "NO_TRACE_ID";
+    const baseMsg = `${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || "ANON"} tId:${req.tId} body:${JSON.stringify(req.body)}`;
     if (!Log.DEBUG_MODE) {
-        Logger.info(
-          `${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || "NOT LOGIN"} trace_id:${req.tId} ${JSON.stringify(req.body)}`,
-        );
+      Logger.info(baseMsg);
     } else {
-      Logger.info(
-        `${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || "NOT LOGIN"} trace_id:${req.tId} ${JSON.stringify(req.body)}`,
-      );
-      Log.debug(
-        `${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || "NOT LOGIN"} trace_id:${req.tId} ${JSON.stringify(req.body)}`,
-      );
+      Logger.info(baseMsg);
+      Log.debug(baseMsg);
     }
     next();
   }
