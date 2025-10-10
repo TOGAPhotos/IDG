@@ -41,6 +41,7 @@ export default class UploadQueue {
       return UploadQueue.prisma.queue_photo.findFirst({
         where: {
           id: { gt: id },
+          status: { not: "STUCK" },
           OR: [{ screener_1: null }, { screener_2: null }],
         },
       });
