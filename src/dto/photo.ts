@@ -21,7 +21,7 @@ interface PhotoInfo {
 export default class Photo {
   private static prisma = new PrismaClient();
 
-  public static searchSelectConfig = {
+  public static readonly searchSelectConfig = {
     id: true,
     username: true,
     ac_type: true,
@@ -32,6 +32,7 @@ export default class Photo {
     airline_icao_code:true,
     airport_cn: true,
     airport_en: true,
+    pic_type: true,
   }
 
   @checkNumberParams
