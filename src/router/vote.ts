@@ -8,7 +8,6 @@ const voteSysRouter = Router();
 voteSysRouter.use(Per.isLoginMW);
 
 voteSysRouter.get("/screenerChoices", Per.isScreenerMW, VoteHandler.getSCVoteList);
-voteSysRouter.get("/screenerChoices/wait", Per.isScreenerMW, VoteHandler.getSCVoteWaitList);
 voteSysRouter.get("/screenerChoice/:id", Per.isScreenerMW, VoteHandler.getSCVote);
 voteSysRouter.post("/screenerChoice", Per.isScreenerMW, VoteHandler.createSCVote);
 voteSysRouter.put("/screenerChoice/:id", Per.isScreenerMW, VoteHandler.SCVote);

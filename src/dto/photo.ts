@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { checkNumberParams } from "../components/decorators/checkNumberParams.js";
 import { safeSQL } from "../components/decorators/safeSQL.js";
 
@@ -21,7 +21,7 @@ interface PhotoInfo {
 export default class Photo {
   private static prisma = new PrismaClient();
 
-  public static searchSelectConfig = {
+  public static readonly searchSelectConfig = {
     id: true,
     username: true,
     ac_type: true,
@@ -32,6 +32,7 @@ export default class Photo {
     airline_icao_code:true,
     airport_cn: true,
     airport_en: true,
+    pic_type: true,
   }
 
   @checkNumberParams
@@ -68,21 +69,18 @@ export default class Photo {
     return;
   }
 
-  static async getAcceptPhotoList(lastId: number, num: number) {
-    if (lastId === -1) {
-      return this.prisma.accept_photo.findMany({
-        take: num,
-        orderBy: { id: "desc" },
-      });
-    } else {
-      return this.prisma.accept_photo.findMany({
-        where: {
-          id: { lt: lastId },
-        },
-        take: num,
-        orderBy: { id: "desc" },
-      });
+  static async getAcceptPhotoList(type:string, lastId: number, num: number) {
+    const queryArgs = {
+      take: num,
+      orderBy: { id: "desc" },
+    } satisfies Prisma.accept_photoFindManyArgs
+    if (lastId !== -1) {
+      queryArgs["where"] = { id: { lt: lastId } };
     }
+    if(type !== "all"){
+      queryArgs["where"] = { ...queryArgs["where"], pic_type: { contains: type } };
+    }
+    return this.prisma.accept_photo.findMany(queryArgs);
   }
 
   @safeSQL

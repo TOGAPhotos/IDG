@@ -1,24 +1,14 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
 import { UrlCache } from "../../components/decorators/cache.js";
+import Photo from "../../dto/photo.js";
 
 export default class WebsiteHandler {
   private static prisma = new PrismaClient();
 
   private static async getPhotoList() {
     return WebsiteHandler.prisma.accept_photo.findMany({
-      select:{
-        id: true,
-        username: true,
-        ac_type: true,
-        ac_reg: true,
-        airline_cn: true,
-        airline_en: true,
-        airline_iata_code:true,
-        airline_icao_code:true,
-        airport_cn: true,
-        airport_en: true,
-      },
+      select:Photo.searchSelectConfig,
       take: 40,
       orderBy: { upload_time: "desc" },
     });
@@ -26,7 +16,7 @@ export default class WebsiteHandler {
 
   private static async getRandomPhotos() {
     return WebsiteHandler.prisma.$queryRawUnsafe(
-      `SELECT * FROM accept_photo ORDER BY RAND() LIMIT 8`,
+      `SELECT ${Object.keys(Photo.searchSelectConfig).join(',')} FROM accept_photo ORDER BY RAND() LIMIT 8`,
     );
   }
 

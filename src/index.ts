@@ -4,7 +4,7 @@ import StartHTTPServer from "./server.js";
 
 import "dotenv/config";
 import ErrorHandler from "./components/errorHandler.js";
-import { startConsoleStr } from "./config.js";
+import { PRODUCTION_ENV, startConsoleStr } from "./config.js";
 import RegisterService from "./components/registerService/index.js";
 import { registerScheduleJob } from "./components/schedule.js";
 

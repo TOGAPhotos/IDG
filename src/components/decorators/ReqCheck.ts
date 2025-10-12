@@ -37,7 +37,6 @@ export function ReqQueryCheck(...args: string[]) {
       if (!req.params) {
         throw new Error("Request params are required");
       }
-      Log.debug(`ReqParamCheck: ${JSON.stringify(req.query)}`);
       const missingArgs = args.filter((arg) => !(arg in req.query));
       if (missingArgs.length > 0) {
         throw new Error(

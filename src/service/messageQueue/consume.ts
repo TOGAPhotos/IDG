@@ -24,13 +24,16 @@ export default class MessageQueueConsumer extends MessageQueueWorker {
       try {
         await this.messageHandler(msg);
         this.channel.getChannel().ack(msg);
+        Logger.debug(`MQ message ack queue:${this.queue}`);
       } catch (e) {
         if (e instanceof HandlerError) {
-          this.channel.getChannel().nack(msg, false, false);
+          this.channel.getChannel().nack(msg, false, false); // drop
+          Logger.warn(`MQ message dropped queue:${this.queue} err:${(e as Error).message}`);
         } else {
-          this.channel.getChannel().nack(msg, false, true);
+          this.channel.getChannel().nack(msg, false, true); // requeue
+          Logger.warn(`MQ message requeue queue:${this.queue} err:${(e as Error).message}`);
         }
-        Logger.error(`消息处理失败` + e);
+        Logger.error(`MQ message process failed queue:${this.queue} err:${(e as Error).message}`);
         return;
       }
     };
@@ -44,8 +47,10 @@ export default class MessageQueueConsumer extends MessageQueueWorker {
         .getChannel()
         .consume(this.queue, _handler);
       this.consumerTag = consumerTag;
+      Logger.info(`MQ consumer started queue:${this.queue} tag:${consumerTag}`);
     } else {
       await this.channel.getChannel().consume(this.queue, _handler);
+      Logger.info(`MQ consumer additional consume started queue:${this.queue}`);
     }
   }
 
@@ -54,11 +59,13 @@ export default class MessageQueueConsumer extends MessageQueueWorker {
       return;
     }
     await this.channel.getChannel().cancel(this.consumerTag);
+    Logger.info(`MQ consumer cancelled queue:${this.queue} tag:${this.consumerTag}`);
     this.consumerTag = null;
   }
 
   async restart() {
     if (this.consumerTag === null) {
+      Logger.info(`MQ consumer restart queue:${this.queue}`);
       await this.consume(this.messageHandler);
     }
   }

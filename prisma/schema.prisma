@@ -162,7 +162,7 @@ model vote_record {
   tally       Float?   @db.Float
   vote_event  Int?
   create_time BigInt?
-  is_delete   Boolean?
+  is_delete   Boolean? @default(false)
 }
 
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

@@ -8,7 +8,7 @@ export const workerCheck = () => {
   const offlineList = RegisterService.getService("offline");
   const onlineList = RegisterService.getService("online");
 
-  Log.success(`All ${onlineList.length} service(s) online`);
+  Log.info(`All ${onlineList.length} service(s) online`);
   if (offlineList.length > 0) {
     Log.error("Offline service:" + offlineList.join(","));
   }
@@ -70,7 +70,7 @@ export default class RegisterService {
 
     this.worker.on("online", () => {
       RegisterService.updateServiceStatus(this.name, "online");
-      Log.success(`${this.name} Worker online`);
+      Log.info(`${this.name} Worker online`);
     });
 
     this.worker.on("error", (err) => {

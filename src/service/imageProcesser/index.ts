@@ -161,7 +161,7 @@ export class ImageProcess {
   }
 
   static async copyrightOverlay(config: CopyrightOverlayConfig) {
-    Log.debug(`ImageProcess: ${config.inputFile} -> ${config.outputFile}`);
+    Log.debug(`ImageProcess start input:${config.inputFile} -> output:${config.outputFile}`);
     if ( "photoId" in config && !config.photoId) {
       const photo = await Photo.getById(config.photoId);
       if (!photo){ return }
@@ -169,13 +169,13 @@ export class ImageProcess {
     try {
       const downloadStream = ImageProcess.cos.streamDownload(config.inputFile);
       downloadStream.on("error", (e) => {
-        throw new HandlerError(`图片${config.inputFile}下载失败: ${e.message}`);
+        throw new HandlerError(`file download failed file:${config.inputFile} err:${e.message}`);
       });
       const image = sharp();
       downloadStream.pipe(image);
       const { width, height, format } = await image.metadata();
       if (!width || !height || !format) {
-        throw new HandlerError(`图片${config.inputFile}信息获取失败`);
+        throw new HandlerError(`read metadata failed file:${config.inputFile}`);
       }
       const overlay = await ImageProcess.$createCopyrightOverlay(
         width,
@@ -194,21 +194,23 @@ export class ImageProcess {
       if ("photoId" in config) {
         await Photo.update(config.photoId, { storage_status: "COMPLETE" });
       }
+      Log.info(`ImageProcess success input:${config.inputFile} output:${config.outputFile}`);
     } catch (e) {
       if ("photoId" in config) {
         await Photo.update(config.photoId, {
           storage_status: "ERROR",
         });
       }
-      Log.error(`ImageProcess: ${config.inputFile}处理失败: ${e.message}`);
-      throw new HandlerError(`图片${config.inputFile}处理失败: ${e.message}`);
+      Log.error(`ImageProcess failed input:${config.inputFile} error:${(e as Error).message}`);
+      throw new HandlerError(`process failed file:${config.inputFile} err:${(e as Error).message}`);
     }
   }
 }
 
 const mq = new MessageQueueConsumer("imageProcess");
+Log.info("ImageProcess worker consumer start");
 mq.consume(async (msg) => {
-  Log.debug(msg.content.toString());
+  Log.debug(`ImageProcess queue message:${msg.content.toString()}`);
   const { task, params }: { task: string; params: CopyrightOverlayConfig } =
     JSON.parse(msg.content.toString());
   switch (task) {
@@ -216,6 +218,7 @@ mq.consume(async (msg) => {
       await ImageProcess.copyrightOverlay(params);
       break;
     default:
-      throw new HandlerError("Unknown task");
+      throw new HandlerError("unknown task type");
   }
+  Log.debug(`ImageProcess task done task:${task}`);
 });

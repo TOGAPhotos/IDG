@@ -14,6 +14,7 @@ import AirlineHandler from "../handler/info/airline.js";
 import NotamHandler from "../handler/notam/handler.js";
 import WebsiteHandler from "../handler/info/website.js";
 import DirectMessageHandler from "../handler/dm/index.js";
+import ScreenerHandler from "../handler/user/screener.js";
 
 const router = Router();
 
@@ -88,6 +89,8 @@ router.put("/airtype/:id", Per.isScreenerMW, AirtypeHandler.update);
 router.delete("/airtype/:sub_type", Per.isScreenerMW, AirtypeHandler.delete);
 
 router.post("/dm", DirectMessageHandler.create);
+
+router.get("/screener/statistic", Per.isScreenerMW, ScreenerHandler.getScreeningStatistic);
 
 // notam
 router.post("/notam", Per.isAdminMW, NotamHandler.create);

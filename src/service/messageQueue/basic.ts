@@ -14,6 +14,7 @@ export class MessageQueueConnection {
       this.conn = await amqplib.connect(
         process.env.MQ_URL || "amqp://localhost",
       );
+      Logger.debug("MQ connection established");
     } catch (e) {
       Logger.error(`消息队列链接失败\n ${e.message}\n${e.stack}\n`);
     }
@@ -40,6 +41,7 @@ class MessageQueueChannel {
 
     try {
       this.channel = await this.connection.getConnection().createChannel();
+      Logger.info("MQ channel created");
     } catch {
       this.channel = null;
     }
