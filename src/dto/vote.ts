@@ -44,7 +44,7 @@ export default class Vote {
       where: {
         photo_id: photoId,
         type: "SC",
-        status: "IN_PROGRESS",
+        tally: { gt: 0 },
         is_delete: false,
       },
     });
