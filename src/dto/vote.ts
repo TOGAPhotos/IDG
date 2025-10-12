@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import type {
   VoteCreateArgs,
   VoteRecordCreateArgs,
@@ -10,7 +10,7 @@ import type {
 export default class Vote {
   private static prisma = new PrismaClient();
 
-  static async create(data: VoteCreateArgs) {
+  static async create(data: Prisma.vote_listCreateInput) {
     return Vote.prisma.vote_list.create({
       data: data,
     });
@@ -28,7 +28,7 @@ export default class Vote {
   }
 
   static async getList(
-    queryArg: VoteQueryArgs = {},
+    queryArg: Prisma.vote_listWhereInput = {},
     lastId: number = -1,
     limit: number = 50,
   ) {
@@ -44,7 +44,7 @@ export default class Vote {
       where: {
         photo_id: photoId,
         type: "SC",
-        status: "IN_PROGRESS",
+        tally: { gt: 0 },
         is_delete: false,
       },
     });
@@ -59,6 +59,23 @@ export default class Vote {
     return Vote.getList(queryArg, lastId, limit);
   }
 
+  static async getLatestSCVote(userId: number) {
+    const result = await Vote.prisma.$queryRawUnsafe(`
+    SELECT *
+    FROM vote_list
+    WHERE status = 'IN PROGRESS'
+    AND id NOT IN (
+        SELECT DISTINCT vote_event
+        FROM vote_record
+        WHERE vote_record.user = ${userId}
+        )
+    AND type = 'SC'
+    AND is_delete = false
+    ORDER BY id DESC
+    LIMIT 1
+    `) as unknown as Prisma.vote_listGetPayload<null>[];
+    return result.length > 0 ? result[0] : null;
+  }
   public static async updateTally(voteId: number, tally: number) {
     return Vote.prisma.vote_list.update({
       where: { id: voteId },
@@ -66,7 +83,7 @@ export default class Vote {
     });
   }
 
-  public static async createRecord(data: VoteRecordCreateArgs) {
+  public static async createRecord(data: Omit<Prisma.vote_recordCreateInput, "create_time">) {
     return Vote.prisma.vote_record.create({
       data: {
         ...data,

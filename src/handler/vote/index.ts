@@ -5,6 +5,7 @@ import { HTTP_STATUS } from "../../types/http_code.js";
 import { ReqQueryCheck } from "../../components/decorators/ReqCheck.js";
 import Photo from "../../dto/photo.js";
 import Log from "../../components/loger.js";
+import { Prisma } from "@prisma/client";
 
 export default class VoteHandler {
   public static async getVote(req: Request, res: Response) {
@@ -33,8 +34,6 @@ export default class VoteHandler {
     res.success("查询成功", list);
   }
 
-  public static async getSCVoteWaitList(_req: Request, _res: Response) {}
-
   public static async getSCVote(req: Request, res: Response) {
     const voteId = Number(req.params.id);
     const loadDetail = req.query["detail"] === "true";
@@ -42,7 +41,12 @@ export default class VoteHandler {
       Log.warn(`SCVote get invalid_id raw:${req.params.id}`);
       return res.fail(HTTP_STATUS.BAD_REQUEST, "无效的投票ID");
     }
-    const vote = await Vote.getById(voteId);
+    let vote: Prisma.vote_listGetPayload<null>;
+    if(voteId === -1){
+      vote = await Vote.getLatestSCVote(req.token.id);
+    }else{
+      vote = await Vote.getById(voteId);
+    }
     if (vote === null || vote.is_delete) {
       Log.warn(`SCVote get not_found id:${voteId}`);
       return res.fail(HTTP_STATUS.NOT_FOUND, "投票不存在");
@@ -134,13 +138,13 @@ export default class VoteHandler {
       return res.fail(HTTP_STATUS.BAD_REQUEST, "该投票不是SC投票");
     }
 
-    // const existingVote = await Vote.getRecordByUserAndEvent(
-    //   req.token.id,
-    //   voteId,
-    // );
-    // if (existingVote.length > 0) {
-    //   return res.fail(HTTP_STATUS.BAD_REQUEST, "您已经投过票了");
-    // }
+    const existingVote = await Vote.getRecordByUserAndEvent(
+      req.token.id,
+      voteId,
+    );
+    if (existingVote.length > 0) {
+      return res.fail(HTTP_STATUS.BAD_REQUEST, "您已经投过票了");
+    }
 
     let recordId = null;
     let update = null;
