@@ -82,11 +82,14 @@ export default class Photo {
 
   static async getScreenerChoicePhotoList( lastId: number, num: number) {
     const queryArgs = {
+      where: {
+        pic_type: { contains: "ScreenerChoice" },
+      },
       take: num,
       orderBy: { upload_time: "desc" },
     } satisfies Prisma.accept_photoFindManyArgs
     if (lastId !== -1) {
-      queryArgs["where"] = { id: { lt: lastId } };
+      queryArgs.where["id"] = { lt: lastId };
     }
     return this.prisma.accept_photo.findMany(queryArgs);
   }
