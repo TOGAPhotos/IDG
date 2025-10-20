@@ -69,7 +69,7 @@ export default class Photo {
     return;
   }
 
-  static async getAcceptPhotoList(type:string, lastId: number, num: number) {
+  static async getAcceptPhotoList( lastId: number, num: number) {
     const queryArgs = {
       take: num,
       orderBy: { id: "desc" },
@@ -77,8 +77,16 @@ export default class Photo {
     if (lastId !== -1) {
       queryArgs["where"] = { id: { lt: lastId } };
     }
-    if(type !== "all"){
-      queryArgs["where"] = { ...queryArgs["where"], pic_type: { contains: type } };
+    return this.prisma.accept_photo.findMany(queryArgs);
+  }
+
+  static async getScreenerChoicePhotoList( lastId: number, num: number) {
+    const queryArgs = {
+      take: num,
+      orderBy: { upload_time: "desc" },
+    } satisfies Prisma.accept_photoFindManyArgs
+    if (lastId !== -1) {
+      queryArgs["where"] = { id: { lt: lastId } };
     }
     return this.prisma.accept_photo.findMany(queryArgs);
   }
