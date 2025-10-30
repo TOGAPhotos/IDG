@@ -8,7 +8,9 @@
     "build": "tsc",
     "start": "node ./dist/index.js",
     "dev": "rm ./log/* && tsx watch src/index.ts --env-file=.env --clear-screen=false",
-    "db": "npx prisma db pull && npx prisma generate"
+    "db": "npx prisma db pull && npx prisma generate",
+    "hash": "tsx script/setPassword.ts",
+    "reset-pwd": "tsx script/resetPassword.ts"
   },
   "keywords": [],
   "author": "",
@@ -42,6 +44,7 @@
     "jsonwebtoken": "^9.0.2",
     "mailgun.js": "^9.4.1",
     "node-schedule": "^2.1.1",
+    "pubsub-js": "^1.9.5",
     "sharp": "^0.33.5",
     "tencentcloud-sdk-nodejs-cdn": "^4.1.116",
     "winston": "^3.17.0",
