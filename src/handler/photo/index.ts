@@ -10,6 +10,7 @@ import photoBucket from "./cos.js";
 import QueueHandler from "../queue/index.js";
 import MessageQueueProducer from "../../service/messageQueue/producer.js";
 import { PhotoCopyrightOverlayConfig } from "../../service/imageProcesser/index.js";
+import { EventBus } from "../../components/eventBus/indes.js";
 
 export default class PhotoHandler {
   private static readonly photoBucket = photoBucket;
@@ -18,6 +19,7 @@ export default class PhotoHandler {
     NORMAL: "NORM",
   };
   private static imageProcessQueue = new MessageQueueProducer("imageProcess");
+  private static eventBus = new EventBus();
 
   static async get(req: Request, res: Response) {
     const id = Number(req.params["id"]);
@@ -215,6 +217,7 @@ export default class PhotoHandler {
           Key: `photos/${photoId}.raw`,
         }),
       ]);
+      PhotoHandler.eventBus.publish("photo:delete", { photoId });
       Log.info(`Photo delete success user:${userId} photo:${photoId}`);
     } catch (e) {
       await Photo.update(photoId, { is_delete: false });
