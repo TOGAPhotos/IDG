@@ -48,7 +48,6 @@ router.get("/users", Per.isAdminMW, UserHandler.getUserList);
 router.put("/user/:id", UserHandler.update);
 router.delete("/user/:id", Per.isAdminMW, UserHandler.delete);
 
-// router.post('/photo',Per.checkUserStatusMW,UploadPreProcess,photoUpload.array('file'),UploadHandler);
 router.post("/photo", Per.checkUserStatusMW, PhotoHandler.upload);
 router.delete("/photo/recall/:id", PhotoHandler.recall);
 router.put("/photo/:id", PhotoHandler.update);
@@ -57,8 +56,6 @@ router.delete("/photo/:id", PhotoHandler.delete);
 // queue
 router.get("/queue/top", Per.isScreenerMW, QueueHandler.getQueueTop);
 router.get("/queue", Per.isScreenerMW, QueueHandler.getQueue);
-// router.get('/queue/screened',Per.isScreenerMW,QueueHandler.getScreenedPhoto);
-// router.get('/queue/photos',Per.isScreenerMW,GetScreenQueue)
 router.get("/queue/photo/:id", Per.isScreenerMW, QueueHandler.getQueuePhoto);
 router.put("/queue/photo/:id", Per.isScreenerMW, QueueHandler.beater);
 router.post("/queue/photo/:id", Per.isScreenerMW, QueueHandler.processScreenResult);
