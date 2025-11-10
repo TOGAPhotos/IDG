@@ -2,7 +2,6 @@
 import { Router } from "express";
 import Permission from "../components/auth/permissions.js";
 import LogStreamHandler from "../handler/log/index.js";
-import Log from "@/components/loger.js";
 
 const logRouter = Router();
 
