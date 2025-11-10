@@ -6,7 +6,7 @@ export class UploadQueueCache {
   private conn: Redis;
   constructor() {
     this.conn = new Redis({
-      db: REDIS_DB.UPLOAD_QUEUE_STATUS,
+      db: 0,
       password: REDIS_DB_PASS,
     });
   }

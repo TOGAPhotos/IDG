@@ -4,9 +4,10 @@ import StartHTTPServer from "./server.js";
 
 import "dotenv/config";
 import ErrorHandler from "./components/errorHandler.js";
-import { PRODUCTION_ENV, startConsoleStr } from "./config.js";
+import { PRODUCTION_ENV, REDIS_DB_PASS, startConsoleStr } from "./config.js";
 import RegisterService from "./components/registerService/index.js";
 import { registerScheduleJob } from "./components/schedule.js";
+import { Redis } from "ioredis";
 
 declare global {
   interface BigInt {
@@ -26,6 +27,10 @@ process.on("exit", async (code) => {
   await bell("TOGAPhotos API离线", "退出代码" + code);
   RegisterService.stopAll();
 });
+
+const redis = new Redis({password: REDIS_DB_PASS});
+await redis.flushall()
+redis.disconnect()
 
 // 启动HTTP服务器
 StartHTTPServer();
