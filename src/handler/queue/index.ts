@@ -153,7 +153,8 @@ export default class QueueHandler {
     if (finishScreen) {
       await UploadQueue.update(queueId, {
         status: screenData.result,
-        screen_finished_time: new Date()
+        screen_finished_time: new Date(),
+        notify: false,
       });
       await Promise.allSettled([
         User.updatePassingRate(queuePhoto.upload_user_id),

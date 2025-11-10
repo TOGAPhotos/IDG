@@ -109,6 +109,7 @@ model photo {
   screener_2           Int?
   need_screener_2      Boolean?
   screen_finished_time DateTime?            @db.Timestamp(0)
+  notify               Boolean?
   result               String               @default("REJECT") @db.VarChar(255)
   reason               String?              @db.VarChar(512)
   screener_message     String?              @db.VarChar(256)
@@ -195,38 +196,40 @@ view accept_photo {
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view full_photo_info {
-  id                Int                            @id @default(0)
-  storage_status    full_photo_info_storage_status @default(WAIT)
-  status            String?                        @default("WAIT SCREEN") @db.VarChar(63)
-  queue             String?                        @db.VarChar(10)
-  message           String?                        @db.VarChar(256)
-  watermark         Json?
-  screener_1        Int?
-  screener_2        Int?
-  need_screener_2   Boolean?
-  result            String                         @default("REJECT") @db.VarChar(255)
-  reason            String?                        @db.VarChar(512)
-  screener_message  String?                        @db.VarChar(256)
-  upload_user_id    Int?
-  username          String?                        @db.VarChar(50)
-  ac_type           String?                        @db.VarChar(255)
-  ac_reg            String?                        @db.VarChar(125)
-  ac_msn            String?                        @db.VarChar(100)
-  airline_id        Int?
-  airport_id        Int?
-  pic_type          String?                        @db.VarChar(255)
-  user_remark       String?                        @db.VarChar(256)
-  photo_time        DateTime?                      @db.Date
-  exif              Json?
-  upload_time       BigInt?
-  airport_cn        String?                        @db.VarChar(255)
-  airport_en        String?                        @db.VarChar(255)
-  airport_icao_code String?                        @db.VarChar(127)
-  airport_iata_code String?                        @db.VarChar(127)
-  airline_cn        String?                        @db.VarChar(255)
-  airline_en        String?                        @db.VarChar(255)
-  airline_icao_code String?                        @db.VarChar(255)
-  airline_iata_code String?                        @db.VarChar(255)
+  id                   Int                            @id @default(0)
+  storage_status       full_photo_info_storage_status @default(WAIT)
+  status               String?                        @default("WAIT SCREEN") @db.VarChar(63)
+  queue                String?                        @db.VarChar(10)
+  message              String?                        @db.VarChar(256)
+  watermark            Json?
+  screener_1           Int?
+  screener_2           Int?
+  need_screener_2      Boolean?
+  result               String                         @default("REJECT") @db.VarChar(255)
+  reason               String?                        @db.VarChar(512)
+  screener_message     String?                        @db.VarChar(256)
+  upload_user_id       Int?
+  username             String?                        @db.VarChar(50)
+  ac_type              String?                        @db.VarChar(255)
+  ac_reg               String?                        @db.VarChar(125)
+  ac_msn               String?                        @db.VarChar(100)
+  airline_id           Int?
+  airport_id           Int?
+  pic_type             String?                        @db.VarChar(255)
+  user_remark          String?                        @db.VarChar(256)
+  photo_time           DateTime?                      @db.Date
+  exif                 Json?
+  upload_time          BigInt?
+  screen_finished_time DateTime?                      @db.Timestamp(0)
+  notify               Boolean?
+  airport_cn           String?                        @db.VarChar(255)
+  airport_en           String?                        @db.VarChar(255)
+  airport_icao_code    String?                        @db.VarChar(127)
+  airport_iata_code    String?                        @db.VarChar(127)
+  airline_cn           String?                        @db.VarChar(255)
+  airline_en           String?                        @db.VarChar(255)
+  airline_icao_code    String?                        @db.VarChar(255)
+  airline_iata_code    String?                        @db.VarChar(255)
 }
 
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.

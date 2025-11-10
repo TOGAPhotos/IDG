@@ -19,7 +19,7 @@ export async function SendEmail(
       from: sender,
       to: receiver,
       subject: subject,
-      text: content,
+      html: content,
     });
   }
   if (content === null && template !== null) {

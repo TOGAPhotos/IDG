@@ -3,12 +3,15 @@ import { REDIS_DB_PASS } from "../../config.js";
 
 export default class SearchCache {
   private conn: Redis;
-  constructor(dbId: number) {
-    this.conn = new Redis({ db: dbId, password: REDIS_DB_PASS });
+  private prefix: string;
+
+  constructor(prefix: string) {
+    this.conn = new Redis({ db: 1, password: REDIS_DB_PASS });
+    this.prefix = prefix;
   }
 
   async set(keyword: string, value: any, expire: number = 60 * 5) {
-    const key = `${keyword}`;
+    const key = `${this.prefix}:${keyword}`;
     this.conn.set(key, JSON.stringify(value));
     this.conn.expire(key, expire);
   }
