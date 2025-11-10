@@ -12,6 +12,17 @@ interface Client {
 let clientSeq = 0;
 const clients: Client[] = [];
 
+setInterval(async ()=>{
+  clients.forEach((client) => {
+    if (client.closed) return;
+    try {
+      client.res.write(`: hb ${Date.now()}\n\n`);
+    } catch {
+      client.closed = true;
+    }
+  })
+},8000)
+
 export function logConnHeartbeat() {
   if (clients.length === 0) return;
   const now = Date.now();
