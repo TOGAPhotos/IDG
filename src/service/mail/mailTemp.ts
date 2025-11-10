@@ -1,8 +1,23 @@
 import MessageQueueProducer from "../messageQueue/producer.js";
 import Time from "../../components/time.js";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import handlebars from "handlebars";
+import Log from "../../components/loger.js";
+import { fileURLToPath } from "node:url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default class MailTemp {
   static emailQueue = new MessageQueueProducer("email");
+
+  private static renderHTMLTemplate(templateName: string, data: any) {
+    const templatePath = path.join(__dirname, '../../../static/mailTemp', `${templateName}.hbs`);
+    const templateSource = fs.readFileSync(templatePath, "utf8");
+    const template = handlebars.compile(templateSource);
+    return template(data);
+  }
 
   static async ServerStatusNotice(
     emailAddr: string,
@@ -68,7 +83,7 @@ export default class MailTemp {
     },
   ) {
     const email: EmailFormat = {
-      sender: "TOGAPhotos 消息机器人<no-replay@togaphotos.com>",
+      sender: "TOGAPhotos 消息机器人<no-reply@togaphotos.com>",
       receiver: emailAddr,
       subject: "[TO/GA Photos] 你有一条新的私信",
       template: "togaphotos_directmessage_notice",
@@ -80,6 +95,37 @@ export default class MailTemp {
         content: content,
       }),
     };
+    await MailTemp.emailQueue.send(JSON.stringify(email));
+  }
+
+  static async ScreeningResultNotice(
+    emailAddr: string,
+    {
+      username,
+      photoList,
+    }:{
+      username: string;
+      photoList: {id: number; ac_reg: string; airline: string; status: string,reason:string}[];
+    },
+  ){
+    const results = photoList.map(photo => {
+      return {
+        id: photo.id,
+        ac_reg: photo.ac_reg,
+        airline: photo.airline,
+        accept: photo.status.toLowerCase() === "accept",
+        reject: photo.status.toLowerCase() === "reject",
+        reason: photo.reason
+      }
+    });
+    const email: EmailFormat = {
+      sender: "TOGAPhotos 消息机器人<no-reply@togaphotos.com>",
+      receiver: emailAddr,
+      subject: "[TO/GA Photos] 照片审核结果通知",
+      template: null,
+      content: MailTemp.renderHTMLTemplate("screeningResult",{username, results})
+    }
+    Log.debug(JSON.stringify(email));
     await MailTemp.emailQueue.send(JSON.stringify(email));
   }
 }
