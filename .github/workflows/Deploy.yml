@@ -9,7 +9,7 @@ jobs:
   deploy:
     if: >
       github.event.pull_request.merged == true &&
-      contains(toJson(github.event.pull_request.labels), '"deploy"')
+      contains(toJson(github.event.pull_request.labels), '"deploy-ready"')
     runs-on: ubuntu-latest
     steps:
     - name: SSH Remote Commands
