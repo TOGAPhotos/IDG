@@ -1,14 +1,15 @@
 name: Deploy
 
 on:
-  # pull_request:
-  #   branches:
-  #   - deploy
-  push:
-    branches:
-      - deploy/production
+  pull_request:
+    types: [closed]
+    branches: [main]
+    
 jobs:
   deploy:
+    if: >
+      github.event.pull_request.merged == true &&
+      contains(toJson(github.event.pull_request.labels), '"deploy"')
     runs-on: ubuntu-latest
     steps:
     - name: SSH Remote Commands
@@ -20,7 +21,7 @@ jobs:
         port: ${{ secrets.PORT }}
         script: |
           cd ~/IDG
-          git checkout deploy/production
+          git checkout main
           git reset --hard HEAD
           git pull
           npm install
