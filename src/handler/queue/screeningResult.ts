@@ -47,9 +47,11 @@ export async function ScreeningResultNotice(){
       const user = r.value;
       const photoList = userPhotoMap.get(user.id)!;
       try{
+        const email = user.user_email.match(/@(gmail\.com|163\.com|qq\.com)$/i)
+          ? user.user_email
+          : 'test@togaphotos.com';
         await MailTemp.ScreeningResultNotice(
-          // user.user_email,
-          'davidyan003@gmail.com',
+          email,
           {
             username: user.username,
             photoList: photoList,
