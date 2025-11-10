@@ -24,6 +24,7 @@ SELECT
   `p`.`exif` AS `exif`,
   `p`.`upload_time` AS `upload_time`,
   `p`.`screen_finished_time` AS `screen_finished_time`,
+  `p`.`notify` AS `notify`,
   `a`.`airport_cn` AS `airport_cn`,
   `a`.`airport_en` AS `airport_en`,
   `a`.`icao_code` AS `airport_icao_code`,

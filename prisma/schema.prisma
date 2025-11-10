@@ -109,6 +109,7 @@ model photo {
   screener_2           Int?
   need_screener_2      Boolean?
   screen_finished_time DateTime?            @db.Timestamp(0)
+  notify               Boolean?
   result               String               @default("REJECT") @db.VarChar(255)
   reason               String?              @db.VarChar(512)
   screener_message     String?              @db.VarChar(256)
@@ -220,6 +221,7 @@ view full_photo_info {
   exif                 Json?
   upload_time          BigInt?
   screen_finished_time DateTime?                      @db.Timestamp(0)
+  notify               Boolean?
   airport_cn           String?                        @db.VarChar(255)
   airport_en           String?                        @db.VarChar(255)
   airport_icao_code    String?                        @db.VarChar(127)
