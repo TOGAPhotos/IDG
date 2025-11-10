@@ -28,7 +28,7 @@ await emailQueue.consume(async (msg) => {
   let { sender, receiver, subject, template, content }: EmailFormat =
     JSON.parse(msg.content.toString());
   Log.info(
-    `Email Record\nSender:${sender},\nReceiver:${receiver}\ncontent:${content}\n`,
+    `Email Record\nSender:${sender},\nReceiver:${receiver}\nsubject:${subject}\n`,
   );
   const result = await SendEmail(sender, receiver, subject, template, content);
   Log.info(JSON.stringify(result));
