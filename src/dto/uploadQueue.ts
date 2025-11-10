@@ -94,6 +94,9 @@ export default class UploadQueue {
       where: {
         upload_user_id: userId,
         status: "REJECT",
+        screen_finished_time: {
+          gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        }
       },
       orderBy: { id: "desc" },
       take: 10,
