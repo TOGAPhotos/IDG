@@ -17,7 +17,7 @@ export default class SearchCache {
   }
 
   async get(keyword: string) {
-    const key = `${keyword}`;
+    const key = `${this.prefix}:${keyword}`;
     const result = await this.conn.get(key);
     if (result === null) {
       return null;
