@@ -49,11 +49,12 @@ export default class ServexHandler {
     const url = <string>req.query['url'];
     const preSign = <string>req.params['key'];
     if( !preSign || preSign.length !== 16 ){
-      return res.fail(400,"预签名Key错误");
+      return res.fail(900,"预签名Key错误");
     }
     const exist = await ServexHandler.preSignMap.get(preSign);
+    Log.debug(`ServexHandler::sign variable presign:${preSign} exist:${exist}`)
     if( exist === null ){
-      return res.fail(400,"预签名Key无效或已过期");
+      return res.fail(900,"预签名Key无效或已过期");
     }
 
     const path = "/" + url.split("/").slice(3).join("/");
