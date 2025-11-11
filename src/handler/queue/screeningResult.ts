@@ -46,6 +46,10 @@ export async function ScreeningResultNotice(){
       if (r.status === "rejected") return;
       const user = r.value;
       const photoList = userPhotoMap.get(user.id)!;
+      if(!user.screening_email){
+        notifiedList.push(...photoList.map(p => p.id));
+        return;
+      }
       try{
         const email = user.user_email.match(/@(gmail\.com|163\.com|qq\.com)$/i)
           ? user.user_email
