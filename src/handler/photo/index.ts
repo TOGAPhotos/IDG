@@ -48,11 +48,12 @@ export default class PhotoHandler {
   static async getList(req: Request, res: Response) {
     const lastId = Number(req.query["lastId"]) || -1;
     const type = req.query["type"] as string | null || "all";
+    const take = Number(req.query["take"]) || 20;
     let list;
     if(type === "ScreenerChoice"){
-      list = await Photo.getScreenerChoicePhotoList(lastId, 50)
+      list = await Photo.getScreenerChoicePhotoList(lastId, take)
     }else{
-      list = await Photo.getAcceptPhotoList(lastId, 50);
+      list = await Photo.getAcceptPhotoList(lastId, take);
     }
     res.success("查询成功", list);
   }
