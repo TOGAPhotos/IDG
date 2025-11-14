@@ -109,7 +109,7 @@ model photo {
   screener_2           Int?
   need_screener_2      Boolean?
   screen_finished_time DateTime?            @db.Timestamp(0)
-  notify               Boolean?
+  notify               Boolean?             @default(false)
   result               String               @default("REJECT") @db.VarChar(255)
   reason               String?              @db.VarChar(512)
   screener_message     String?              @db.VarChar(256)
@@ -139,6 +139,7 @@ model user {
   allow_third_use     Boolean?  @default(false)
   airport_id          Int?
   cover_photo_id      Int?
+  screening_email     Boolean?  @default(true)
   is_deleted          Boolean?  @default(false)
 }
 
@@ -221,7 +222,7 @@ view full_photo_info {
   exif                 Json?
   upload_time          BigInt?
   screen_finished_time DateTime?                      @db.Timestamp(0)
-  notify               Boolean?
+  notify               Boolean?                       @default(false)
   airport_cn           String?                        @db.VarChar(255)
   airport_en           String?                        @db.VarChar(255)
   airport_icao_code    String?                        @db.VarChar(127)

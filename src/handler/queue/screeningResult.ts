@@ -28,6 +28,13 @@ export async function ScreeningResultNotice(){
     if(!userPhotoMap.has(photo.upload_user_id)){
       userPhotoMap.set(photo.upload_user_id, []);
     }
+    photo.reason = function(){
+      const r = photo.reason.split(",")
+      if(r.length <= 2){
+        return photo.reason
+      }
+      return r.slice(0,2).join(",") + `(+${r.length-2})`;
+    }()
     userPhotoMap.get(photo.upload_user_id)!.push({
       id: photo.id,
       ac_reg: photo.ac_reg,
@@ -42,22 +49,24 @@ export async function ScreeningResultNotice(){
 
   const notifiedList:number[] = []
   const groupSend = groupQuery.map(
-    async (r) => {
-      if (r.status === "rejected") return;
-      const user = r.value;
+    async (q) => {
+      if (q.status === "rejected") return;
+      const user = q.value;
       const photoList = userPhotoMap.get(user.id)!;
+      if(!user.screening_email){
+        notifiedList.push(...photoList.map(p => p.id));
+        return;
+      }
       try{
-        const email = user.user_email.match(/@(gmail\.com|163\.com|qq\.com)$/i)
-          ? user.user_email
-          : 'test@togaphotos.com';
         await MailTemp.ScreeningResultNotice(
-          email,
+          user.user_email,
           {
             username: user.username,
             photoList: photoList,
           }
         )
         notifiedList.push(...photoList.map(p => p.id));
+        Log.debug(`Screening result email for ${user.user_email} added to MQ`);
       }catch(e){
           Log.error(`Fail on sending screening result email to user ${user.id}: ${e}`);
       }

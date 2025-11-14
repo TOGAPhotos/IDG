@@ -21,15 +21,32 @@
                              style="display: block; max-width: 100%; height: auto;">
                     </div>
                     <div style="font-size: 22px; font-weight: 600; line-height: 1.2; margin-top: 8px;">
-                        审核结果提醒</div>
+                        审核结果通知</div>
                 </div>
             </div>
             <div style="height: 1px; width: 100%; background: rgba(12, 12, 13, 0.08);">
             </div>
             <div style="color: #545454; line-height: 1.6; font-size: 15px; margin-top: 10px;">
-                {{username}},感谢您在TOGAPhotos上传您的作品，我们已完成对您上传作品的审核，以下是本次的审核结果：
+                {{username}},感谢您选择在TOGAPhotos上传您的作品，我们已完成对您上传作品的审核，以下是本次的审核结果：
             </div>
             <div style="display: block;">
+                {{#if rejectQueue}}
+                    <article
+                            style="margin: 16px 0 16px 0; padding: 20px 22px; border-left: 2px solid #ff0000; background: #ffffff; color: #1c1c1f; box-shadow: 0 1px 0 rgba(10, 10, 10, 0.05); letter-spacing: 0.01em; display: flex; flex-direction: row; justify-content: space-between; align-items: start; gap: 8px">
+                        <div style="display: block;">
+                            <div style="font-size: 22px; font-weight: 600; line-height: 1.2;">强制清空上传队列</div>
+                        </div>
+                        <div style="display: block;">
+                            <div style="font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #7a7a7a;">
+                                说明
+                            </div>
+                            <div
+                                    style="font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: #1c1c1f;">
+                                这是TOGAPhotos的一项惩罚措施，触发此项说明您的作品存在严重问题，请仔细阅读审核说明并避免类似问题的再次发生。
+                            </div>
+                        </div>
+                    </article>
+                {{/if}}
                 {{#each results}}
                     {{#if accept}}
                         <article
@@ -99,8 +116,8 @@
                 查看未通过审核的作品
             </a>
             <div style="color: #545454; line-height: 1.6; font-size: 13px; margin-top: 12px;">
-                若您的作品未通过审核，请仔细阅读反馈说明，并欢迎您在修改或优化后重新上传。
-                <br>为保证审核流程的公平与高效，<b>TOGAPhotos不接受对审核结果申诉</b>。
+                若您的作品未通过审核，我们欢迎您在根据审核意见修改或优化后重新上传。
+                <br>为保证审核流程的公平与高效，<b>TOGAPhotos不接受对审核结果的申诉</b>。
             </div>
             <div style="color: #545454; line-height: 1.6; font-size: 14px; text-align: right;">
                 <b>TOGAPhotos 内容审核团队</b>
@@ -108,7 +125,7 @@
             <div style="height: 1px; width: 100%; background: rgba(12, 12, 13, 0.08);">
             </div>
             <div style="font-size: 12px; color: #8a8a8a; line-height: 1.6;">
-                您可以在个人设置中心关闭此通知。
+                您可以在个人设置中关闭此通知。
             </div>
             <div style="font-size: 12px; color: #8a8a8a; line-height: 1.6;">
                 若您有疑问，请联系 support@togaphotos.com

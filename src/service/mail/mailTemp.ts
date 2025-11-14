@@ -103,9 +103,11 @@ export default class MailTemp {
     {
       username,
       photoList,
+      rejectQueue
     }:{
       username: string;
       photoList: {id: number; ac_reg: string; airline: string; status: string,reason:string}[];
+      rejectQueue?: boolean;
     },
   ){
     const results = photoList.map(photo => {
