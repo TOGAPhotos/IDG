@@ -96,44 +96,30 @@ export default class Photo {
 
   @safeSQL
   static async blurrySearch(keyword: string, lastId: number, num: number) {
-    if (lastId === -1) {
-      return this.prisma.accept_photo.findMany({
+    const queryArgs = {
       select: Photo.searchSelectConfig,
-        where: {
-          OR: [
-            { ac_reg: { contains: keyword } },
-            { ac_msn: { contains: keyword } },
-            { ac_type: { contains: keyword } },
-            { airport_cn: { contains: keyword } },
-            { airport_en: { contains: keyword } },
-            { airport_iata_code: { contains: keyword } },
-            { airport_icao_code: { contains: keyword } },
-            { username: { contains: keyword } },
-          ],
-        },
-        orderBy: { id: "desc" },
-        take: num,
-      });
-    } else {
-      return this.prisma.accept_photo.findMany({
-        select: Photo.searchSelectConfig,
-        where: {
-          OR: [
-            { ac_reg: { contains: keyword } },
-            { ac_msn: { contains: keyword } },
-            { ac_type: { contains: keyword } },
-            { airport_cn: { contains: keyword } },
-            { airport_en: { contains: keyword } },
-            { airport_iata_code: { contains: keyword } },
-            { airport_icao_code: { contains: keyword } },
-            { username: { contains: keyword } },
-          ],
-          id: { lt: lastId },
-        },
-        orderBy: { id: "desc" },
-        take: num,
-      });
+      where: {
+        OR: [
+          { ac_reg: { contains: keyword } },
+          { ac_msn: { contains: keyword } },
+          { ac_type: { contains: keyword } },
+          { airport_cn: { contains: keyword } },
+          { airport_en: { contains: keyword } },
+          { airline_en: { contains: keyword } },
+          { airline_cn: { contains: keyword } },
+          { airport_iata_code: { contains: keyword } },
+          { airport_icao_code: { contains: keyword } },
+          { username: { contains: keyword } },
+        ],
+      },
+      orderBy: { id: "desc" },
+      take: num,
+    } satisfies Prisma.accept_photoFindManyArgs;
+
+    if (lastId !== -1) {
+      queryArgs.where["id"] = { lt: lastId };
     }
+    return this.prisma.accept_photo.findMany(queryArgs);
   }
 
   @safeSQL
