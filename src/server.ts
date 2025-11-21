@@ -43,9 +43,12 @@ server.use((err: Error, req: Request, res: Response, next: NextFunction) => {
   return res.fail(HTTP_STATUS.SERVER_ERROR, err.message);
 });
 
+export const app = server;
+
 export default function StartHTTPServer() {
   server.listen(HTTP_PORT, async () => {
     // await bell('TOGAPhotos后端服务器',`${new Date().toString()}服务器启动`);
     Log.info("HTTP Server Start On localhost:" + HTTP_PORT);
   });
+  return server;
 }

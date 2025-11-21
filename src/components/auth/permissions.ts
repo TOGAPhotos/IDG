@@ -112,10 +112,10 @@ export default class Permission {
     const userInfo = await User.getById(req.token.id);
 
     if (!Permission.checkUserStatus(userInfo)) {
-      res.fail(HTTP_STATUS.UNAUTHORIZED, "用户状态异常");
+      return res.fail(HTTP_STATUS.UNAUTHORIZED, "用户状态异常");
     }
     if (!Permission.isAdmin(userInfo.role)) {
-      res.fail(HTTP_STATUS.UNAUTHORIZED);
+      return res.fail(HTTP_STATUS.UNAUTHORIZED);
     }
 
     req.role = userInfo.role;
