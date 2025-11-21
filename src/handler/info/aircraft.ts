@@ -3,6 +3,7 @@ import SearchCache from "../../service/redis/searchCache.js";
 import { REDIS_DB } from "../../service/redis/distribute.js";
 import { Aircraft } from "../../dto/aircraft.js";
 import { HTTP_STATUS } from "../../types/http_code.js";
+import Log from "../../components/loger.js";
 
 export default class AircraftHandler {
   static searchCache = new SearchCache(REDIS_DB.AIRPORT_SEARCH_CACHE);
@@ -41,7 +42,9 @@ export default class AircraftHandler {
 
   static async create(req: Request, res: Response) {
     const { reg, msn, ln, airlineId, remark } = req.body;
+    Log.debug(`AircraftHandler::create.payload: ${JSON.stringify(req.body)}`);
     const result = await Aircraft.create(reg, msn, ln, airlineId, remark);
+    Log.debug(`AircraftHandler::create.result: ${JSON.stringify(result)}`);
     res.json({ message: "创建成功", data: result });
     await AircraftHandler.searchCache.flush();
   }

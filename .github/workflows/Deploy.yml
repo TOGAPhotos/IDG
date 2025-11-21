@@ -4,7 +4,7 @@ on:
   pull_request:
     types: [closed]
     branches: [main]
-    
+
 jobs:
   deploy:
     if: >
@@ -12,25 +12,28 @@ jobs:
       contains(toJson(github.event.pull_request.labels), '"deploy-ready"')
     runs-on: ubuntu-latest
     steps:
-    - name: SSH Remote Commands
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets.HOST }}
-        username: ${{ secrets.USERNAME }}
-        key: ${{ secrets.KEY }}
-        port: ${{ secrets.PORT }}
-        script: |
-          cd ~/IDG
-          git checkout main
-          git reset --hard HEAD
-          git pull
-          npm install
-          npx prisma generate
-          npm run build
-          npx pm2 restart togaserver.config.cjs
-    - name: Notification
-      uses: easychen/github-action-server-chan@v1.0.0
-      with:
-        sendkey: ${{ secrets.SENDKEY }}
-        title: "TOGA Backend CI/CD work Notification"
-        desp: "Result:${{job.status}}"
+      - name: Test before Deploy
+        uses: ./.github/workflows/Compile Test.yml
+      - uses: actions/checkout@v4
+      - name: SSH Remote Commands
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          key: ${{ secrets.KEY }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd ~/IDG
+            git checkout main
+            git reset --hard HEAD
+            git pull
+            npm install
+            npx prisma generate
+            npm run build
+            npx pm2 restart togaserver.config.cjs
+      - name: Notification
+        uses: easychen/github-action-server-chan@v1.0.0
+        with:
+          sendkey: ${{ secrets.SENDKEY }}
+          title: "TOGA Backend CI/CD work Notification"
+          desp: "DeployResult:${{job.status}}"
