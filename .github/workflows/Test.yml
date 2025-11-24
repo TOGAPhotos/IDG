@@ -12,14 +12,16 @@ on:
       - feat/**
   merge_group:
 
+env:
+    DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    CORS_WHITE_LIST: ${{ vars.CORS_WHITE_LIST }}
+
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      CORS_WHITE_LIST: ${{ vars.CORS_WHITE_LIST }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
