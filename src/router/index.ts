@@ -64,7 +64,7 @@ router.post("/queue/user/:id", Per.isSeniorScreenerMW, QueueHandler.rejectQueue)
 router.get("/queue/upload", QueueHandler.getUserUploadQueue);
 router.get("/queue/reject", QueueHandler.userRejectQueue);
 
-router.get("/airports", AirportHandler.list);
+router.get("/airports", Per.isStaffMW, AirportHandler.list);
 router.post("/airport", Per.checkUserStatusMW, AirportHandler.create);
 router.put("/airport/:id", Per.isScreenerMW, AirportHandler.update);
 router.delete("/airport/:id", Per.isScreenerMW, AirportHandler.delete);
@@ -73,10 +73,10 @@ router.post("/airline", AirlineHandler.create);
 router.put("/airline/:id", Per.isStaffMW, AirlineHandler.update);
 router.delete("/airline/:id", Per.isStaffMW, AirlineHandler.delete);
 
-// router.get('/aircrafts',  AircraftHandler.getAircraftList);
-router.post("/aircrafts", Per.isStaff, AircraftHandler.create);
-router.get("/aircraft/:id", Per.isStaff,AircraftHandler.get);
-router.put("/aircraft/:id", Per.isStaff, AircraftHandler.update);
+
+router.post("/aircrafts", Per.isStaffMW, AircraftHandler.create);
+router.get("/aircraft/:id", Per.isStaffMW, AircraftHandler.get);
+router.put("/aircraft/:id", Per.isStaffMW, AircraftHandler.update);
 router.delete("/aircraft/:id", Per.isScreenerMW, AircraftHandler.delete);
 
 // airtype.ts
