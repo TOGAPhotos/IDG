@@ -9,8 +9,9 @@ on:
 jobs:
   deploy:
     if: >
-      github.event.pull_request.merged == true &&
-      contains(toJson(github.event.pull_request.labels), '"deploy-ready"')
+      github.event_name == 'workflow_dispatch' ||
+      ( github.event.pull_request.merged == true &&
+      contains(toJson(github.event.pull_request.labels), '"deploy-ready"') )
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
