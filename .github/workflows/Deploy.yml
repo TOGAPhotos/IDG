@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Test before Deploy
-        uses: ./.github/workflows/Compile Test.yml
+        uses: ./.github/workflows/Test.yml
       - uses: actions/checkout@v4
       - name: SSH Remote Commands
         uses: appleboy/ssh-action@v1.0.0
