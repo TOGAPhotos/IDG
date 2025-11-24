@@ -12,15 +12,14 @@ on:
       - feat/**
   merge_group:
 
-
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - name: setup Env
-        run: |
-          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
-          echo "CORS_WHITE_LIST=${{ vars.CORS_WHITE_LIST }}" >> $GITHUB_ENV
+      - name: setup Redis
+        uses: supercharge/redis-github-action@1.8.1
+        with:
+          redis-version: "7.2.4"
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Use Node.js
@@ -30,6 +29,10 @@ jobs:
       - run: npm install
       - run: npm run build --if-present
       - run: npm test
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          PASSWORD_CRYPT_KEY: "114514"
+          JWT_SECRET: "114514"
       - name: Notification
         uses: easychen/github-action-server-chan@v1.0.0
         with:
