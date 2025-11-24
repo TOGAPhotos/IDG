@@ -12,14 +12,15 @@ on:
       - feat/**
   merge_group:
 
-env:
-    DATABASE_URL: ${{ secrets.DATABASE_URL }}
-    CORS_WHITE_LIST: ${{ vars.CORS_WHITE_LIST }}
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
+      - name: setup Env
+        run: |
+          echo "DATABASE_URL=${{ secrets.DATABASE_URL }}" >> $GITHUB_ENV
+          echo "CORS_WHITE_LIST=${{ vars.CORS_WHITE_LIST }}" >> $GITHUB_ENV
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Use Node.js
