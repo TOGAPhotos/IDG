@@ -77,10 +77,7 @@ export default class Log {
   }
 
   static accessLogMW(req: Request, res: Response, next: NextFunction) {
-    req.userIp = (req.headers["X-Forwarded-For"] as string) || req.ip;
-    // retain req.tId internally if other legacy code relies, but do not log it
-    req.tId = (req.headers["X-Tid"] as string) || "NO_TRACE_ID";
-    const baseMsg = `${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || "ANON"} tId:${req.tId} body:${JSON.stringify(req.body)}`;
+    const baseMsg = `${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || "ANON"} tId:${req.tId} body:${JSON.stringify(req.body)} ua:${req.ua}`;
     if (!Log.DEBUG_MODE) {
       Logger.info(baseMsg);
     } else {

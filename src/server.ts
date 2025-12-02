@@ -30,6 +30,12 @@ server.use(express.json());
 server.response.success = success;
 server.response.fail = fail;
 
+server.use((req: Request, res: Response, next: NextFunction) => {
+  req.userIp = (req.headers["x-forwarded-for"] as string) || req.ip;
+  req.tId = (req.headers["x-tid"] as string) || "NO_TRACE_ID";
+  req.ua = req.headers["user-agent"] || "";
+  next();
+})
 server.use(Token.verifyMW);
 server.use(Log.accessLogMW);
 
