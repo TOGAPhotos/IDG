@@ -77,7 +77,7 @@ async function handleRateLimit(req: Request, res: Response, next: NextFunction, 
     if (riskLevel >= WAF_CONFIG.RISK_LIMIT_BLOCK) {
         await Promise.all([
             blockIdentifier(ip),
-            ...(ipRecord.relatedIdentifiers.values()?.map(id => blockIdentifier(id)) || []),
+            ...(Array.from(ipRecord.relatedIdentifiers).map(id => blockIdentifier(id)) || []),
             ipRecord.save()
         ]);
 
