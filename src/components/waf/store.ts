@@ -2,7 +2,6 @@ import { Redis } from "ioredis";
 import { REDIS_DB_PASS } from "../../config.js";
 import { WAF_CONFIG } from "./config.js";
 import Log from "../loger.js";
-import { da } from "zod/locales";
 
 export const redis = new Redis({
     password: REDIS_DB_PASS || undefined
