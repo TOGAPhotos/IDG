@@ -28,7 +28,7 @@ process.on("exit", async (code) => {
   RegisterService.stopAll();
 });
 
-const redis = new Redis({password: REDIS_DB_PASS});
+const redis = new Redis({ password: REDIS_DB_PASS });
 await redis.flushall()
 redis.disconnect()
 

@@ -4,6 +4,8 @@ declare namespace Express {
     token?: { id: number } | null;
     role?: string;
     tId: string;
+    ua: string;
+    rateLimitChecked?: boolean;
   }
 
   export interface Response {
