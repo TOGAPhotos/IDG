@@ -62,7 +62,7 @@ export default class UploadQueue {
     });
   }
 
-  static async getQueue(type: "normal" | "priority" | "stuck" | "all",userId:number) {
+  static async getQueue(type: "normal" | "priority" | "stuck" | "all", userId: number) {
     if (type === "all") {
       return UploadQueue.prisma.queue_photo.findMany();
     }
@@ -101,5 +101,28 @@ export default class UploadQueue {
       orderBy: { id: "desc" },
       take: 10,
     });
+  }
+
+  static async recallScreenedPhoto(
+    photoId: number
+  ) {
+
+    await Promise.allSettled([
+      UploadQueue.update(
+        photoId,
+        {
+          screener_2: null,
+          status: 'WAIT SCREEN',
+          screen_finished_time: null,
+          notify: false,
+        }
+      ),
+      // User.updateById(
+      //   data.screenerId,
+      //   {
+      //     total_photo: { increment: 0 },
+      //   }
+      // ),
+    ]);
   }
 }

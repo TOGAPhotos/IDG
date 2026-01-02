@@ -5,6 +5,7 @@ import Permission from "../../components/auth/permissions.js";
 import User from "../../dto/user.js";
 import { HTTP_STATUS } from "../../types/http_code.js";
 import Log from "../../components/loger.js";
+import Photo from "@/dto/photo.js";
 
 export default class QueueHandler {
   static uploadQueueCache = new UploadQueueCache();
@@ -40,14 +41,14 @@ export default class QueueHandler {
 
     for (let counter = 0; counter < MAX_TRY; counter++) {
       let result = await UploadQueue.getTop(cursor, screener.role);
-      if( result === null) {
+      if (result === null) {
         Log.info(`QueueTop none user:${req.token.id}`);
         return res.success("暂无图片待审核", { photoId: null });
       }
       cursor = result?.id || cursor;
       if (result.upload_user_id === screener.id || result.screener_1 === screener.id) {
         Log.debug(`QueueTop skip self/first user:${req.token.id} photo:${result.id}`);
-        counter --;
+        counter--;
         continue;
       }
       const cacheInfo = await QueueHandler.uploadQueueCache.get(result.id);
@@ -161,7 +162,7 @@ export default class QueueHandler {
         User.updateById(queuePhoto.upload_user_id, {
           free_queue: { increment: 1 },
           total_photo: { increment: screenData.result === "ACCEPT" ? 1 : 0 },
-          free_priority_queue: {increment: queuePhoto.queue === 'PRIORITY' ? 1 : 0}
+          free_priority_queue: { increment: queuePhoto.queue === 'PRIORITY' ? 1 : 0 }
         }),
       ]);
     }
@@ -205,7 +206,7 @@ export default class QueueHandler {
       case "screened":
         return await QueueHandler.getScreenedPhoto(req, res);
       default:
-        const dbRes = await UploadQueue.getQueue(<_QueueType>type,userId);
+        const dbRes = await UploadQueue.getQueue(<_QueueType>type, userId);
         return res.success("查询成功", dbRes);
     }
   }
@@ -218,5 +219,27 @@ export default class QueueHandler {
   static async userRejectQueue(req: Request, res: Response) {
     const result = await UploadQueue.rejectQueue(req.token.id);
     res.success("查询成功", { rejectList: result });
+  }
+
+  static async revokeScreenResult(req: Request, res: Response) {
+    const photoId = Number(req.params["id"]);
+
+    // Check now the photo can be revoked
+    const photo = await Photo.getById(photoId);
+    if (photo === null) {
+      return res.fail(HTTP_STATUS.NOT_FOUND, "图片不存在");
+    }
+    if (photo.status !== "ACCEPT" && photo.status !== "REJECT") {
+      return res.fail(HTTP_STATUS.BAD_REQUEST, "图片未审核，无法撤回");
+    }
+
+    const screening = await QueueHandler.uploadQueueCache.get(photoId);
+    if (screening !== null && Number(screening) !== req.token.id) {
+      return res.fail(HTTP_STATUS.CONFLICT, "审核中，无法撤回");
+    }
+
+    await UploadQueue.recallScreenedPhoto(photoId);
+    res.success("操作成功");
+    await User.updatePassingRate(req.token.id);
   }
 }
