@@ -4,6 +4,7 @@ import { app } from "../server.js";
 import { HTTP_STATUS } from "../types/http_code.js";
 import Permission from "../components/auth/permissions.js";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import { BypassWAF } from "./waf-bypass.js";
 
 const prisma = new PrismaClient();
 
@@ -50,6 +51,7 @@ async function ensureScreenerUsers() {
 }
 
 beforeAll(async () => {
+  BypassWAF();
   await ensureScreenerUsers();
 });
 

@@ -3,7 +3,8 @@ import { PrismaClient } from "@prisma/client";
 import { app } from "../server.js";
 import { HTTP_STATUS } from "../types/http_code.js";
 import Permission from "../components/auth/permissions.js";
-import { describe, it, expect, afterAll } from "vitest";
+import { describe, it, expect, afterAll, beforeAll } from "vitest";
+import { BypassWAF } from "./waf-bypass.js";
 
 const prisma = new PrismaClient();
 
@@ -43,6 +44,9 @@ async function createScreenerUser(role: string, label: string) {
 }
 
 describe("Public content endpoints", () => {
+  beforeAll(() => {
+    BypassWAF();
+  })
   it("returns website statistics", async () => {
     const res = await request(app).get("/api/v2/website?type=statistics");
 

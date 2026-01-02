@@ -15,6 +15,7 @@ import NotamHandler from "../handler/notam/handler.js";
 import WebsiteHandler from "../handler/info/website.js";
 import DirectMessageHandler from "../handler/dm/index.js";
 import ScreenerHandler from "../handler/user/screener.js";
+import { SensitiveAPIWAF } from "../components/waf/index.js";
 
 const router = Router();
 
@@ -23,7 +24,7 @@ router.put("/cos/photo", PhotoHandler.updateObjectStatus);
 router.get("/website", WebsiteHandler.get);
 
 router.post("/user/login", UserHandler.login);
-router.post("/user/register", UserHandler.register);
+router.post("/user/register", SensitiveAPIWAF, UserHandler.register);
 router.get("/user/:id", UserHandler.getUserInfo);
 
 router.get("/photo/:id", PhotoHandler.get);
@@ -48,7 +49,7 @@ router.get("/users", Per.isAdminMW, UserHandler.getUserList);
 router.put("/user/:id", UserHandler.update);
 router.delete("/user/:id", Per.isAdminMW, UserHandler.delete);
 
-router.post("/photo", Per.checkUserStatusMW, PhotoHandler.upload);
+router.post("/photo", SensitiveAPIWAF, Per.checkUserStatusMW, PhotoHandler.upload);
 router.delete("/photo/recall/:id", PhotoHandler.recall);
 router.put("/photo/:id", PhotoHandler.update);
 router.delete("/photo/:id", PhotoHandler.delete);

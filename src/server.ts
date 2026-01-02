@@ -12,6 +12,7 @@ import voteSysRouter from "./router/vote.js";
 import "express-async-errors";
 import servexRouter from "./router/servex.js";
 import logRouter from "./router/log.js";
+import { WAF } from "./components/waf/index.js";
 
 const server = express();
 
@@ -30,10 +31,18 @@ server.use(express.json());
 server.response.success = success;
 server.response.fail = fail;
 
+server.use((req: Request, res: Response, next: NextFunction) => {
+  req.userIp = (req.headers["x-forwarded-for"] as string) || req.ip;
+  req.tId = (req.headers["x-tid"] as string) || "NO_TRACE_ID";
+  req.ua = req.headers["user-agent"] || "";
+  next();
+})
 server.use(Token.verifyMW);
 server.use(Log.accessLogMW);
 
-server.use("/api/v2/servex",servexRouter);
+server.use(WAF);
+
+server.use("/api/v2/servex", servexRouter);
 server.use("/api/v2/vote", voteSysRouter);
 server.use("/api/v2/log", logRouter);
 server.use("/api/v2", router);
