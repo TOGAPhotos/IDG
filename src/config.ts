@@ -28,3 +28,21 @@ export const startConsoleStr = `
     |_|  \\____/ \\_____/_/    \\_\\ |_|    |_| |_|\\___/ \\__\\___/|___/
     
 `;
+
+export const BACK_LIST_UA_REGEX = new RegExp(/python-requests|python-urllib3|httpx|aiohttp|curl|wget|go-http-client|libcurl|apache-httpclient|okhttp|PostmanRuntime|insomnia|restsharp|java\/[0-9.]+|php\/[0-9.]+|ruby|perl/i)
+export const LEGAL_REQ_HEADERS = [
+  "user-agent",
+  "accept",
+  "accept-language",
+  "accept-encoding",
+  "referer",
+  "content-type",
+  "sec-fetch-site"
+]
+export const enum WAF_MODE {
+  BYPASS,
+  MONITOR,
+  BLOCK
+}
+
+export const WAF_CURRENT_MODE: WAF_MODE = WAF_MODE.MONITOR;
