@@ -5,7 +5,7 @@ import Permission from "../../components/auth/permissions.js";
 import User from "../../dto/user.js";
 import { HTTP_STATUS } from "../../types/http_code.js";
 import Log from "../../components/loger.js";
-import Photo from "@/dto/photo.js";
+import Photo from "../../dto/photo.js";
 
 export default class QueueHandler {
   static uploadQueueCache = new UploadQueueCache();
