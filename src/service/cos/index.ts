@@ -17,6 +17,7 @@ export default class COSStorage extends COS {
       SecretId: secretId,
       SecretKey: secretKey,
       Domain: domain,
+      StrictSsl: false,
     });
     this.bucket = bucket;
     this.region = region;
@@ -24,12 +25,12 @@ export default class COSStorage extends COS {
 
   getUploadUrl(key: string) {
     return this.getObjectUrl({
-        Bucket: this.bucket,
-        Region: this.region,
-        Key: key,
-        Method: "PUT",
-        Sign: true,
-      },
+      Bucket: this.bucket,
+      Region: this.region,
+      Key: key,
+      Method: "PUT",
+      Sign: true,
+    },
       (err, data) => {
         if (err) {
           Log.error("COS Storage Error: Func getPhotoUploadUrl" + err.message);
