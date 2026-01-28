@@ -2,6 +2,25 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { checkNumberParams } from "../components/decorators/checkNumberParams.js";
 import { safeSQL } from "../components/decorators/safeSQL.js";
 
+export interface AdvancedSearchQuery {
+  and?: {
+    reg?: string[];
+    airline?: string[];
+    airport?: string[];
+    airtype?: string[];
+    user?: string[];
+  };
+  not?: {
+    reg?: string[];
+    airline?: string[];
+    airport?: string[];
+    airtype?: string[];
+    user?: string[];
+  };
+  lastId?: number;
+  num?: number;
+}
+
 interface PhotoInfo {
   userId: number;
   uploadTime: Date;
@@ -28,8 +47,8 @@ export default class Photo {
     ac_reg: true,
     airline_cn: true,
     airline_en: true,
-    airline_iata_code:true,
-    airline_icao_code:true,
+    airline_iata_code: true,
+    airline_icao_code: true,
     airport_cn: true,
     airport_en: true,
     pic_type: true,
@@ -69,7 +88,7 @@ export default class Photo {
     return;
   }
 
-  static async getAcceptPhotoList( lastId: number, num: number) {
+  static async getAcceptPhotoList(lastId: number, num: number) {
     const queryArgs = {
       take: num,
       orderBy: { id: "desc" },
@@ -80,7 +99,7 @@ export default class Photo {
     return this.prisma.accept_photo.findMany(queryArgs);
   }
 
-  static async getScreenerChoicePhotoList( lastId: number, num: number) {
+  static async getScreenerChoicePhotoList(lastId: number, num: number) {
     const queryArgs = {
       where: {
         pic_type: { contains: "ScreenerChoice" },
@@ -301,5 +320,104 @@ export default class Photo {
 
   static async update(id: number, data: any) {
     return this.prisma.photo.update({ where: { id: id }, data: data });
+  }
+
+  static async advancedSearch(searchQuery: AdvancedSearchQuery,lastId: number,num: number) {
+    const { and, not } = searchQuery;
+    const andConditions: Prisma.accept_photoWhereInput[] = [];
+    const notConditions: Prisma.accept_photoWhereInput[] = [];
+
+    // 构建 AND 条件（每个字段内部是 OR 关系）
+    if (and) {
+      if (and.reg?.length) {
+        andConditions.push({
+          OR: and.reg.map((r) => ({ ac_reg: { contains: r } })),
+        });
+      }
+      if (and.airline?.length) {
+        andConditions.push({
+          OR: and.airline.flatMap((a) => [
+            { airline_cn: { contains: a } },
+            { airline_en: { contains: a } },
+          ]),
+        });
+      }
+      if (and.airport?.length) {
+        andConditions.push({
+          OR: and.airport.flatMap((a) => [
+            { airport_cn: { contains: a } },
+            { airport_en: { contains: a } },
+            { airport_iata_code: { contains: a } },
+            { airport_icao_code: { contains: a } },
+          ]),
+        });
+      }
+      if (and.airtype?.length) {
+        andConditions.push({
+          OR: and.airtype.map((t) => ({ ac_type: { contains: t } })),
+        });
+      }
+      if (and.user?.length) {
+        andConditions.push({
+          OR: and.user.map((u) => ({ username: { contains: u } })),
+        });
+      }
+    }
+
+    // 构建 NOT 条件
+    if (not) {
+      if (not.reg?.length) {
+        notConditions.push(
+          ...not.reg.map((r) => ({ ac_reg: { contains: r } })),
+        );
+      }
+      if (not.airline?.length) {
+        notConditions.push(
+          ...not.airline.flatMap((a) => [
+            { airline_cn: { contains: a } },
+            { airline_en: { contains: a } },
+          ]),
+        );
+      }
+      if (not.airport?.length) {
+        notConditions.push(
+          ...not.airport.flatMap((a) => [
+            { airport_cn: { contains: a } },
+            { airport_en: { contains: a } },
+            { airport_iata_code: { contains: a } },
+            { airport_icao_code: { contains: a } },
+          ]),
+        );
+      }
+      if (not.airtype?.length) {
+        notConditions.push(
+          ...not.airtype.map((t) => ({ ac_type: { contains: t } })),
+        );
+      }
+      if (not.user?.length) {
+        notConditions.push(
+          ...not.user.map((u) => ({ username: { contains: u } })),
+        );
+      }
+    }
+
+    // 组合最终查询条件
+    const whereClause: Prisma.accept_photoWhereInput = {};
+    if (andConditions.length > 0) {
+      whereClause.AND = andConditions;
+    }
+    if (notConditions.length > 0) {
+      whereClause.NOT = notConditions;
+    }
+    if (lastId !== -1) {
+      whereClause.id = { lt: lastId };
+    }
+
+    return this.prisma.accept_photo.findMany({
+      select: Photo.searchSelectConfig,
+      where: whereClause,
+      orderBy: { id: "desc" },
+      take: num,
+    });
   }
 }

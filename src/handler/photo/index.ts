@@ -50,9 +50,9 @@ export default class PhotoHandler {
     const type = req.query["type"] as string | null || "all";
     const take = Number(req.query["take"]) || 20;
     let list;
-    if(type === "ScreenerChoice"){
+    if (type === "ScreenerChoice") {
       list = await Photo.getScreenerChoicePhotoList(lastId, take)
-    }else{
+    } else {
       list = await Photo.getAcceptPhotoList(lastId, take);
     }
     res.success("查询成功", list);
@@ -88,6 +88,23 @@ export default class PhotoHandler {
         throw new Error("Search Type");
     }
     res.success("查询成功", result);
+  }
+
+  static async advancedSearch(req: Request, res: Response) {
+    const { and, not, lastId = -1, num = 20 } = req.body;
+
+    if (!and && !not) {
+      return res.fail(HTTP_STATUS.BAD_REQUEST, "请提供搜索条件");
+    }
+
+    const result = await Photo.advancedSearch({
+      and,
+      not,
+    },
+      Number(lastId),
+      Math.min(Number(num), 100), // 限制最大返回数量
+    );
+    res.success("查询成功", { photoList: result });
   }
 
   static async upload(req: Request, res: Response) {
@@ -155,13 +172,13 @@ export default class PhotoHandler {
     if (photoInfo === null) {
       return res.fail(HTTP_STATUS.NOT_FOUND, "已删除");
     }
-    if(userId !== photoInfo.upload_user_id){
+    if (userId !== photoInfo.upload_user_id) {
       Log.warn(`Photo recall forbidden user:${userId} photo:${photoId}`);
       return res.fail(HTTP_STATUS.FORBIDDEN, "您没有权限撤回图片");
     }
     await Promise.allSettled([
       Photo.deleteById(photoId),
-      User.updateById(userId,{
+      User.updateById(userId, {
         free_queue: { increment: 1 },
         free_priority_queue: {
           increment: photoInfo.queue === "PRIORITY" ? 1 : 0,

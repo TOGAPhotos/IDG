@@ -30,6 +30,7 @@ router.get("/user/:id", UserHandler.getUserInfo);
 router.get("/photo/:id", PhotoHandler.get);
 router.get("/photos", PhotoHandler.getList);
 router.get("/search", PhotoHandler.search);
+router.post("/search/advanced", SensitiveAPIWAF, PhotoHandler.advancedSearch);
 
 router.get("/airport", AirportHandler.search);
 router.get("/airport/:id", AirportHandler.get);
