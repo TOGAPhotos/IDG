@@ -65,7 +65,7 @@ describe("QueueWarningNotice", () => {
     expect(queueWarningSpy).not.toHaveBeenCalled();
   });
 
-  it("sends emails to each recipient when stale photos exist", async () => {
+  it("sends email only to admin@togaphotos.com (grayscale) when stale photos exist", async () => {
     const queueWarningSpy = vi.spyOn(MailTemp, "QueueWarning");
 
     mockQueuePhotos = [
@@ -74,19 +74,17 @@ describe("QueueWarningNotice", () => {
     ];
     mockRecipients = [
       makeRecipient("screener2@example.com"),
-      makeRecipient("admin@example.com"),
+      makeRecipient("other@example.com"),
     ];
 
     await QueueWarningNotice();
 
-    expect(queueWarningSpy).toHaveBeenCalledTimes(2);
-    for (const call of queueWarningSpy.mock.calls) {
-      expect(call[1].count).toBe(2);
-      expect(call[1].photos).toHaveLength(2);
-      expect(call[1].photos.map((p: any) => p.id)).toEqual(
-        expect.arrayContaining([10, 11]),
-      );
-    }
+    expect(queueWarningSpy).toHaveBeenCalledTimes(1);
+    expect(queueWarningSpy.mock.calls[0][0]).toBe("admin@togaphotos.com");
+    expect(queueWarningSpy.mock.calls[0][1].count).toBe(2);
+    expect(queueWarningSpy.mock.calls[0][1].photos.map((p: any) => p.id)).toEqual(
+      expect.arrayContaining([10, 11]),
+    );
   });
 
   it("excludes photos already assigned to screener_1", async () => {
@@ -177,28 +175,29 @@ describe("QueueWarningNotice", () => {
     expect(body.desp).toMatch(/1 张照片/);
   });
 
-  it("does not crash when recipient list is empty", async () => {
+  it("still sends to admin even when DB recipient list is empty", async () => {
     const queueWarningSpy = vi.spyOn(MailTemp, "QueueWarning");
 
     mockQueuePhotos = [makePhoto(70, SIX_DAYS_MS)];
     mockRecipients = [];
 
     await expect(QueueWarningNotice()).resolves.toBeUndefined();
-    expect(queueWarningSpy).not.toHaveBeenCalled();
+    expect(queueWarningSpy).toHaveBeenCalledTimes(1);
+    expect(queueWarningSpy.mock.calls[0][0]).toBe("admin@togaphotos.com");
   });
 
-  it("skips recipients without an email address", async () => {
+  it("ignores non-admin recipients — only admin@togaphotos.com receives the email", async () => {
     const queueWarningSpy = vi.spyOn(MailTemp, "QueueWarning");
 
     mockQueuePhotos = [makePhoto(80, SIX_DAYS_MS)];
     mockRecipients = [
-      { user_email: null, username: "noemail" },
-      makeRecipient("valid@example.com"),
+      makeRecipient("screener2@togaphotos.com"),
+      makeRecipient("another@togaphotos.com"),
     ];
 
     await QueueWarningNotice();
 
     expect(queueWarningSpy).toHaveBeenCalledTimes(1);
-    expect(queueWarningSpy.mock.calls[0][0]).toBe("valid@example.com");
+    expect(queueWarningSpy.mock.calls[0][0]).toBe("admin@togaphotos.com");
   });
 });

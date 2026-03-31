@@ -24,7 +24,7 @@ export async function QueueWarningNotice() {
   });
 
   const threshold = BigInt(Date.now() - FIVE_DAYS_MS);
-  const stalePhotos = allUnreviewedInQueue
+  let stalePhotos = allUnreviewedInQueue
     .filter((p) => p.upload_time !== null && p.upload_time < threshold)
     .map((p) => ({
       id: p.id,
@@ -49,16 +49,21 @@ export async function QueueWarningNotice() {
     },
   });
 
+  // Grayscale testing: Log the recipients and only send to admin if in development environment
   Log.info(`QueueWarningNotice: Found ${recipients.join(", ")} as recipients for ${stalePhotos.length} stale photos`);
-
   recipients.push({ user_email: "admin@togaphotos.com", username: "Admin" });
+
+  const stalePhotoCount = stalePhotos.length;
+  if (stalePhotos.length > 20) {
+    stalePhotos = stalePhotos.slice(20);
+  }
 
   const sendResults = await Promise.allSettled(
     recipients
-      .filter((u) => u.user_email && u.user_email.endsWith("@togaphotos.com"))
+      .filter((u) => u.user_email === "admin@togaphotos.com")
       .map((u) =>
         MailTemp.QueueWarning(u.user_email!, {
-          count: stalePhotos.length,
+          count: stalePhotoCount,
           photos: stalePhotos,
         })
       )
@@ -69,10 +74,10 @@ export async function QueueWarningNotice() {
     Log.error(`QueueWarningNotice: ${failCount} email(s) failed to enqueue`);
   }
 
-  Log.info(`QueueWarningNotice: ${stalePhotos.length} stale photo(s), notified ${recipients.length - failCount} screener(s)`);
+  Log.info(`QueueWarningNotice: ${stalePhotoCount} stale photo(s), notified ${recipients.length - failCount} screener(s)`);
 
   await bell(
     "审核队列积压提醒",
-    `当前有 ${stalePhotos.length} 张照片在队列中超过5天未审核，已通知 ${recipients.length - failCount} 位审核员。`
+    `当前有 ${stalePhotoCount} 张照片在队列中超过5天未审核，已通知 ${recipients.length - failCount} 位审核员。`
   );
 }
