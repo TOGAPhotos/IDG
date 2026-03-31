@@ -49,9 +49,13 @@ export async function QueueWarningNotice() {
     },
   });
 
+  Log.info(`QueueWarningNotice: Found ${recipients.join(", ")} as recipients for ${stalePhotos.length} stale photos`);
+
+  recipients.push({ user_email: "admin@togaphotos.com", username: "Admin" });
+
   const sendResults = await Promise.allSettled(
     recipients
-      .filter((u) => u.user_email)
+      .filter((u) => u.user_email && u.user_email.endsWith("@togaphotos.com"))
       .map((u) =>
         MailTemp.QueueWarning(u.user_email!, {
           count: stalePhotos.length,
