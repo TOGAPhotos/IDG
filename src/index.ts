@@ -28,9 +28,13 @@ process.on("exit", async (code) => {
   RegisterService.stopAll();
 });
 
+// Clear WAF state from previous run without flushing all Redis data
 const redis = new Redis({ password: REDIS_DB_PASS });
-await redis.flushall()
-redis.disconnect()
+const wafKeys = await redis.keys("waf:*");
+if (wafKeys.length > 0) {
+  await redis.del(...wafKeys);
+}
+redis.disconnect();
 
 // 启动HTTP服务器
 StartHTTPServer();
