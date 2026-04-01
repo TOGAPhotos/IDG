@@ -253,6 +253,70 @@ export default class PhotoHandler {
     res.success("删除成功");
   }
 
+  static async forceDelete(req: Request, res: Response) {
+    const userId = req.token.id;
+    const photoId = Number(req.params["id"]);
+
+    const [userInfo, photoInfo] = await Promise.all([
+      User.getById(userId),
+      Photo.getById(photoId),
+    ]);
+
+    Log.info(`Photo force delete attempt user:${userId} username:${userInfo["username"]} photo:${photoId}`);
+
+    if (photoInfo === null) {
+      return res.fail(HTTP_STATUS.NOT_FOUND, "图片不存在");
+    }
+
+    const screener = await QueueHandler.uploadQueueCache.get(photoId);
+    if (screener !== null) {
+      Log.warn(`Photo force delete conflict user:${userId} photo:${photoId} screener:${screener}`);
+      return res.fail(HTTP_STATUS.CONFLICT, "图片正在审核中，无法强制删除");
+    }
+
+    try {
+      await Photo.deleteById(photoId);
+    } catch (e) {
+      Log.error(`Photo force delete DB failed user:${userId} photo:${photoId} err:${(e as Error).message}`);
+      return res.fail(HTTP_STATUS.SERVER_ERROR, "删除失败");
+    }
+
+    const [jpgResult, rawResult] = await Promise.allSettled([
+      //@ts-ignore
+      PhotoHandler.photoBucket.deleteObject({
+        Bucket: PhotoHandler.photoBucket.bucket,
+        Region: PhotoHandler.photoBucket.region,
+        Key: `photos/${photoId}.jpg`,
+      }),
+      //@ts-ignore
+      PhotoHandler.photoBucket.deleteObject({
+        Bucket: PhotoHandler.photoBucket.bucket,
+        Region: PhotoHandler.photoBucket.region,
+        Key: `photos/${photoId}.raw`,
+      }),
+    ]);
+
+    if (jpgResult.status === "rejected") {
+      Log.warn(`Photo force delete COS jpg error photo:${photoId} err:${(jpgResult.reason as Error)?.message}`);
+    }
+    if (rawResult.status === "rejected") {
+      Log.warn(`Photo force delete COS raw error photo:${photoId} err:${(rawResult.reason as Error)?.message}`);
+    }
+
+    PhotoHandler.eventBus.publish("photo:delete", { photoId });
+    Log.info(`Photo force delete success user:${userId} photo:${photoId}`);
+
+    if (photoInfo.status === "WAIT SCREEN") {
+      const data: Record<string, unknown> = { free_queue: { increment: 1 } };
+      if (photoInfo.queue === "PRIORITY") {
+        data["free_priority_queue"] = { increment: 1 };
+      }
+      await User.updateById(photoInfo.upload_user_id, data);
+    }
+
+    return res.success("强制删除成功");
+  }
+
   static async update(req: Request, res: Response) {
     let photoId = Number(req.params["id"]);
 
