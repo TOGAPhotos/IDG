@@ -23,7 +23,7 @@ router.put("/cos/photo", PhotoHandler.updateObjectStatus);
 
 router.get("/website", WebsiteHandler.get);
 
-router.post("/user/login", UserHandler.login);
+router.post("/user/login", SensitiveAPIWAF, UserHandler.login);
 router.post("/user/register", SensitiveAPIWAF, UserHandler.register);
 router.get("/user/:id", UserHandler.getUserInfo);
 
