@@ -11,6 +11,7 @@ import QueueHandler from "../queue/index.js";
 import MessageQueueProducer from "../../service/messageQueue/producer.js";
 import { PhotoCopyrightOverlayConfig } from "../../service/imageProcesser/index.js";
 import { EventBus } from "../../components/eventBus/indes.js";
+import { ReqQueryCheck } from "@/components/decorators/ReqCheck.js";
 
 export default class PhotoHandler {
   private static readonly photoBucket = photoBucket;
@@ -186,6 +187,7 @@ export default class PhotoHandler {
       })
     ])
     Log.info(`Photo recall success user:${userId} photo:${photoId}`);
+    return res.success("撤回成功");
   }
 
   static async delete(req: Request, res: Response) {
@@ -268,7 +270,7 @@ export default class PhotoHandler {
     if (
       !(
         Permission.checkUserPermission(userInfo.role, "DATABASE") ||
-        req.token.id !== photoInfo["uploader"]
+        req.token.id === photoInfo.upload_user_id
       )
     ) {
       return res.fail(HTTP_STATUS.FORBIDDEN);
@@ -279,16 +281,28 @@ export default class PhotoHandler {
       return res.fail(HTTP_STATUS.CONFLICT, "图片正在审核中");
     }
 
-    await Photo.update(photoId, req.body);
+    const allowedFields = ["ac_reg", "ac_msn", "ac_type", "airline_id", "airport_id", "pic_type", "photo_time", "user_remark"];
+    const updateData: Record<string, unknown> = {};
+    for (const key of allowedFields) {
+      if (key in req.body) {
+        updateData[key] = req.body[key];
+      }
+    }
+    if (Object.keys(updateData).length === 0) {
+      return res.fail(HTTP_STATUS.BAD_REQUEST, "没有可更新的字段");
+    }
+
+    await Photo.update(photoId, updateData);
     return res.success("更新成功");
   }
 
+  @ReqQueryCheck("photo_id", "status")
   static async updateObjectStatus(req: Request, res: Response) {
     const { status, photo_id: photoId } = req.query as {
       status: string;
-      photo_id: string | null;
+      photo_id: string;
     };
-    if (!photoId || isNaN(Number(photoId))) {
+    if (isNaN(Number(photoId))) {
       return res.fail(HTTP_STATUS.BAD_REQUEST, "参数错误");
     }
     let photoInfo, userInfo;
