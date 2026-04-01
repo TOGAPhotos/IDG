@@ -1,6 +1,7 @@
 import express from "express";
 import { Request, Response, NextFunction } from "express";
 import cors from "cors";
+import helmet from "helmet";
 import router from "./router/index.js";
 import Log from "./components/loger.js";
 import Token from "./components/auth/token.js";
@@ -13,8 +14,11 @@ import "express-async-errors";
 import servexRouter from "./router/servex.js";
 import logRouter from "./router/log.js";
 import { WAF } from "./components/waf/index.js";
+import { productionOnly } from "./lib/running-time.js";
 
 const server = express();
+
+server.use(helmet());
 
 if (PRODUCTION_ENV) {
   server.use(
@@ -56,7 +60,9 @@ export const app = server;
 
 export default function StartHTTPServer() {
   server.listen(HTTP_PORT, async () => {
-    // await bell('TOGAPhotos后端服务器',`${new Date().toString()}服务器启动`);
+    await productionOnly(
+      async () => await bell('TOGAPhotos后端服务器',`${new Date().toString()}服务器启动`)
+    )
     Log.info("HTTP Server Start On localhost:" + HTTP_PORT);
   });
   return server;
