@@ -1,8 +1,9 @@
-import { PrismaClient,Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import sharedPrisma from "../lib/prisma.js";
 import { checkNumberParams } from "../components/decorators/checkNumberParams.js";
 import { safeSQL } from "../components/decorators/safeSQL.js";
 
-const prisma = new PrismaClient();
+const prisma = sharedPrisma;
 
 export default class User {
   @safeSQL
@@ -18,6 +19,11 @@ export default class User {
 
   static async updateById(id: number, data: Prisma.userUpdateInput) {
     return prisma.user.update({ where: { id: id }, data: data });
+  }
+
+  @checkNumberParams
+  static async updatePassword(id: number, password: string) {
+    return prisma.user.update({ where: { id }, data: { password } });
   }
 
   @checkNumberParams

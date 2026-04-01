@@ -1,10 +1,10 @@
 import { Request, Response } from "express";
-import { PrismaClient } from "@prisma/client";
+import sharedPrisma from "../../lib/prisma.js";
 import { UrlCache } from "../../components/decorators/cache.js";
 import Photo from "../../dto/photo.js";
 
 export default class WebsiteHandler {
-  private static prisma = new PrismaClient();
+  private static readonly prisma = sharedPrisma;
 
   private static async getPhotoList() {
     return WebsiteHandler.prisma.accept_photo.findMany({

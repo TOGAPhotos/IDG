@@ -1,4 +1,4 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "../../lib/prisma.js";
 import MailTemp from "../../service/mail/mailTemp.js";
 import bell from "../../components/bell.js";
 import Log from "../../components/loger.js";
@@ -6,7 +6,6 @@ import Log from "../../components/loger.js";
 const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
 
 export async function QueueWarningNotice() {
-  const prisma = new PrismaClient();
 
   const allUnreviewedInQueue = await prisma.queue_photo.findMany({
     where: {
@@ -55,7 +54,7 @@ export async function QueueWarningNotice() {
 
   const stalePhotoCount = stalePhotos.length;
   if (stalePhotos.length > 20) {
-    stalePhotos = stalePhotos.slice(20);
+    stalePhotos = stalePhotos.slice(0, 20);
   }
 
   const sendResults = await Promise.allSettled(

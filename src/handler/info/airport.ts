@@ -106,7 +106,14 @@ export default class AirportHandler {
       }
       // await MailTemp.InfoReviewNotice(createUser.user_email, status, airportInfo.airport_cn, airportInfo.iata_code, airportInfo.iata_code);
     } else {
-      await Airport.update(airportId, req.body);
+      const allowedFields = ["airport_cn", "airport_en", "iata_code", "icao_code"];
+      const updateData: Record<string, unknown> = {};
+      for (const key of allowedFields) {
+        if (key in req.body) {
+          updateData[key] = req.body[key];
+        }
+      }
+      await Airport.update(airportId, updateData);
       res.success("更新成功");
     }
     await AirportHandler.searchCache.flush();

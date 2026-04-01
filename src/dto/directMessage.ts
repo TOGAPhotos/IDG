@@ -1,10 +1,10 @@
 import { safeSQL } from "../components/decorators/safeSQL.js";
-import { PrismaClient } from "@prisma/client";
+import sharedPrisma from "../lib/prisma.js";
 
 type DirectMessageStatus = "WAITING" | "ERROR" | "SUCCESS";
 
 export class DirectMessage {
-  private static readonly prisma = new PrismaClient();
+  private static readonly prisma = sharedPrisma;
 
   static async getNewest() {
     return DirectMessage.prisma.direct_message.findFirst({
