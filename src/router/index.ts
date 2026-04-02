@@ -52,6 +52,7 @@ router.delete("/user/:id", Per.isAdminMW, UserHandler.delete);
 
 router.post("/photo", SensitiveAPIWAF, Per.checkUserStatusMW, PhotoHandler.upload);
 router.delete("/photo/recall/:id", PhotoHandler.recall);
+router.delete("/photo/force/:id", Per.isScreenerMW, PhotoHandler.forceDelete);
 router.put("/photo/:id", PhotoHandler.update);
 router.delete("/photo/:id", PhotoHandler.delete);
 
