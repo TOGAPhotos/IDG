@@ -1,12 +1,10 @@
 import request from "supertest";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma.js";
 import { app } from "../server.js";
 import { HTTP_STATUS } from "../types/http_code.js";
 import Permission from "../components/auth/permissions.js";
 import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { BypassWAF } from "./waf-bypass.js";
-
-const prisma = new PrismaClient();
 
 const uniqueSuffix = Date.now().toString(36);
 const testPassword = "Vitest@1234";

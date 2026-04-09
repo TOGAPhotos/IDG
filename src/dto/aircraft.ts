@@ -1,8 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma.js";
 import { safeSQL } from "../components/decorators/safeSQL.js";
 
 export class Aircraft {
-  static prisma = new PrismaClient();
 
   @safeSQL
   static async create(
@@ -12,7 +11,7 @@ export class Aircraft {
     airlineId: number,
     remark: string,
   ) {
-    return Aircraft.prisma.aircraft.create({
+    return prisma.aircraft.create({
       data: {
         reg: reg,
         msn: mns,
@@ -24,30 +23,30 @@ export class Aircraft {
   }
 
   static async getById(id: number) {
-    return Aircraft.prisma.aircraft.findUnique({ where: { id: id } });
+    return prisma.aircraft.findUnique({ where: { id: id } });
   }
 
   @safeSQL
   static async searchByKeyword(keyword: string) {
-    return Aircraft.prisma.aircraft.findMany({
+    return prisma.aircraft.findMany({
       where: { reg: { contains: keyword } },
     });
   }
 
   static async delete(id: number) {
-    return Aircraft.prisma.aircraft.update({
+    return prisma.aircraft.update({
       where: { id: id },
       data: { is_delete: true },
     });
   }
 
   static async getAircraftList() {
-    return Aircraft.prisma.aircraft.findMany({ where: { is_delete: false } });
+    return prisma.aircraft.findMany({ where: { is_delete: false } });
   }
 
   @safeSQL
   static async update(id: number, data: any) {
-    return Aircraft.prisma.aircraft.update({
+    return prisma.aircraft.update({
       where: { id: id },
       data: data,
     });

@@ -1,7 +1,5 @@
-import { PrismaClient } from "@prisma/client";
-
+import { prisma } from "../lib/prisma.js";
 import { safeSQL } from "../components/decorators/safeSQL.js";
-const prisma = new PrismaClient();
 export class Airtype {
   @safeSQL
   static async searchByKeyword(keyword: string) {

@@ -5,7 +5,7 @@ import { HTTP_STATUS } from "../../types/http_code.js";
 import { ReqQueryCheck } from "../../components/decorators/ReqCheck.js";
 import Photo from "../../dto/photo.js";
 import Log from "../../components/loger.js";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../lib/prisma.js";
 
 export default class VoteHandler {
   public static async getVote(req: Request, res: Response) {

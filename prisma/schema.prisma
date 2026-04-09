@@ -1,11 +1,11 @@
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
+  output          = "../src/generated/prisma"
   previewFeatures = ["views"]
 }
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
@@ -170,7 +170,7 @@ model vote_record {
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view accept_photo {
-  id                Int                         @id @default(0)
+  id                Int                         @unique @default(0)
   upload_user_id    Int?
   storage_status    accept_photo_storage_status @default(WAIT)
   username          String?                     @db.VarChar(50)
@@ -197,7 +197,7 @@ view accept_photo {
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view full_photo_info {
-  id                   Int                            @id @default(0)
+  id                   Int                            @unique @default(0)
   storage_status       full_photo_info_storage_status @default(WAIT)
   status               String?                        @default("WAIT SCREEN") @db.VarChar(63)
   queue                String?                        @db.VarChar(10)
@@ -236,7 +236,7 @@ view full_photo_info {
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view queue_photo {
-  id                Int       @id @default(0)
+  id                Int       @unique @default(0)
   status            String?   @default("WAIT SCREEN") @db.VarChar(63)
   queue             String?   @db.VarChar(10)
   message           String?   @db.VarChar(256)

@@ -1,86 +1,85 @@
 import MailTemp from "../../service/mail/mailTemp.js";
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../lib/prisma.js";
 import User from "../../dto/user.js";
 import Log from "../../components/loger.js"
 
-export async function ScreeningResultNotice(){
-  const prisma = new PrismaClient();
+export async function ScreeningResultNotice() {
   const list = await prisma.full_photo_info.findMany({
-    select:{
-      id:true,
-      upload_user_id:true,
-      ac_reg:true,
-      airline_cn:true,
-      airline_en:true,
-      result:true,
-      reason:true,
+    select: {
+      id: true,
+      upload_user_id: true,
+      ac_reg: true,
+      airline_cn: true,
+      airline_en: true,
+      result: true,
+      reason: true,
     },
     where: {
-      OR:[
-        { status:'ACCEPT'},
-        { status:'REJECT' }
+      OR: [
+        { status: 'ACCEPT' },
+        { status: 'REJECT' }
       ],
       notify: false,
     }
   });
-  const userPhotoMap: Map<number, {id: number; ac_reg: string; airline: string; status: string,reason:string}[]> = new Map();
-  for(const photo of list){
-    if(!userPhotoMap.has(photo.upload_user_id)){
-      userPhotoMap.set(photo.upload_user_id, []);
+  const userPhotoMap: Map<number, { id: number; ac_reg: string; airline: string; status: string, reason: string }[]> = new Map();
+  for (const photo of list) {
+    if (!userPhotoMap.has(photo.upload_user_id!)) {
+      userPhotoMap.set(photo.upload_user_id!, []);
     }
-    photo.reason = function(){
-      const r = photo.reason.split(",")
-      if(r.length <= 2){
+    photo.reason = function () {
+      const r = photo.reason!.split(",")
+      if (r.length <= 2) {
         return photo.reason
       }
-      return r.slice(0,2).join(",") + `(+${r.length-2})`;
+      return r.slice(0, 2).join(",") + `(+${r.length - 2})`;
     }()
-    userPhotoMap.get(photo.upload_user_id)!.push({
+    userPhotoMap.get(photo.upload_user_id!)!.push({
       id: photo.id,
-      ac_reg: photo.ac_reg,
-      airline: photo.airline_cn || photo.airline_en || "未知",
+      ac_reg: photo.ac_reg || "N/A",
+      airline: photo.airline_cn || photo.airline_en || "N/A",
       status: photo.result,
-      reason: photo.reason,
+      reason: photo.reason || "N/A",
     });
   }
   const groupQuery = await Promise.allSettled(
     [...userPhotoMap.keys()].map((userId) => User.getById(userId))
   );
 
-  const notifiedList:number[] = []
+  const notifiedList: number[] = []
   const groupSend = groupQuery.map(
     async (q) => {
       if (q.status === "rejected") return;
       const user = q.value;
       const photoList = userPhotoMap.get(user.id)!;
-      if(!user.screening_email){
+      if (!user.screening_email) {
         notifiedList.push(...photoList.map(p => p.id));
         return;
       }
-      try{
+      try {
         await MailTemp.ScreeningResultNotice(
-          user.user_email,
+          user.user_email!,
           {
-            username: user.username,
+            username: user.username!,
             photoList: photoList,
           }
         )
         notifiedList.push(...photoList.map(p => p.id));
         Log.debug(`Screening result email for ${user.user_email} added to MQ`);
-      }catch(e){
-          Log.error(`Fail on sending screening result email to user ${user.id}: ${e}`);
+      } catch (e) {
+        Log.error(`Fail on sending screening result email to user ${user.id}: ${e}`);
       }
     }
   )
   await Promise.allSettled(groupSend);
 
   await prisma.photo.updateMany({
-    where:{
+    where: {
       notify: false,
-      id:{ in: notifiedList }
+      id: { in: notifiedList }
     },
-    data:{
-      notify:true,
+    data: {
+      notify: true,
     }
   })
 

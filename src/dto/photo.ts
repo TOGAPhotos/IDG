@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { prisma, Prisma } from "../lib/prisma.js";
 import { checkNumberParams } from "../components/decorators/checkNumberParams.js";
 import { safeSQL } from "../components/decorators/safeSQL.js";
 
@@ -38,8 +38,6 @@ interface PhotoInfo {
 }
 
 export default class Photo {
-  private static prisma = new PrismaClient();
-
   public static readonly searchSelectConfig = {
     id: true,
     username: true,
@@ -56,17 +54,17 @@ export default class Photo {
 
   @checkNumberParams
   static async getById(id: number) {
-    return this.prisma.full_photo_info.findUnique({ where: { id: id } });
+    return prisma.full_photo_info.findUnique({ where: { id: id } });
   }
 
   @checkNumberParams
   static async getAcceptById(id: number) {
-    return this.prisma.accept_photo.findUnique({ where: { id: id } });
+    return prisma.accept_photo.findUnique({ where: { id: id } });
   }
 
   @checkNumberParams
   static async getByUserId(userId: number) {
-    return this.prisma.accept_photo.findMany({
+    return prisma.accept_photo.findMany({
       where: { upload_user_id: userId },
     });
   }
@@ -74,12 +72,12 @@ export default class Photo {
   @checkNumberParams
   static async deleteById(id: number) {
     try {
-      await this.prisma.photo.update({
+      await prisma.photo.update({
         where: { id: id },
         data: { is_delete: true },
       });
     } catch (e) {
-      await this.prisma.photo.update({
+      await prisma.photo.update({
         where: { id: id },
         data: { is_delete: false },
       });
@@ -89,56 +87,50 @@ export default class Photo {
   }
 
   static async getAcceptPhotoList(lastId: number, num: number) {
-    const queryArgs = {
+    const where: Prisma.accept_photoWhereInput | undefined =
+      lastId !== -1 ? { id: { lt: lastId } } : undefined;
+    return prisma.accept_photo.findMany({
+      where,
       take: num,
-      orderBy: { id: "desc" },
-    } satisfies Prisma.accept_photoFindManyArgs
-    if (lastId !== -1) {
-      queryArgs["where"] = { id: { lt: lastId } };
-    }
-    return this.prisma.accept_photo.findMany(queryArgs);
+      orderBy: { id: "desc" as const },
+    });
   }
 
   static async getScreenerChoicePhotoList(lastId: number, num: number) {
-    const queryArgs = {
-      where: {
-        pic_type: { contains: "ScreenerChoice" },
-      },
+    const where: Prisma.accept_photoWhereInput = {
+      pic_type: { contains: "ScreenerChoice" },
+      ...(lastId !== -1 && { id: { lt: lastId } }),
+    };
+    return prisma.accept_photo.findMany({
+      where,
       take: num,
-      orderBy: { upload_time: "desc" },
-    } satisfies Prisma.accept_photoFindManyArgs
-    if (lastId !== -1) {
-      queryArgs.where["id"] = { lt: lastId };
-    }
-    return this.prisma.accept_photo.findMany(queryArgs);
+      orderBy: { upload_time: "desc" as const },
+    });
   }
 
   @safeSQL
   static async blurrySearch(keyword: string, lastId: number, num: number) {
-    const queryArgs = {
+    const where: Prisma.accept_photoWhereInput = {
+      OR: [
+        { ac_reg: { contains: keyword } },
+        { ac_msn: { contains: keyword } },
+        { ac_type: { contains: keyword } },
+        { airport_cn: { contains: keyword } },
+        { airport_en: { contains: keyword } },
+        { airline_en: { contains: keyword } },
+        { airline_cn: { contains: keyword } },
+        { airport_iata_code: { contains: keyword } },
+        { airport_icao_code: { contains: keyword } },
+        { username: { contains: keyword } },
+      ],
+      ...(lastId !== -1 && { id: { lt: lastId } }),
+    };
+    return prisma.accept_photo.findMany({
       select: Photo.searchSelectConfig,
-      where: {
-        OR: [
-          { ac_reg: { contains: keyword } },
-          { ac_msn: { contains: keyword } },
-          { ac_type: { contains: keyword } },
-          { airport_cn: { contains: keyword } },
-          { airport_en: { contains: keyword } },
-          { airline_en: { contains: keyword } },
-          { airline_cn: { contains: keyword } },
-          { airport_iata_code: { contains: keyword } },
-          { airport_icao_code: { contains: keyword } },
-          { username: { contains: keyword } },
-        ],
-      },
-      orderBy: { id: "desc" },
+      where,
+      orderBy: { id: "desc" as const },
       take: num,
-    } satisfies Prisma.accept_photoFindManyArgs;
-
-    if (lastId !== -1) {
-      queryArgs.where["id"] = { lt: lastId };
-    }
-    return this.prisma.accept_photo.findMany(queryArgs);
+    });
   }
 
   @safeSQL
@@ -148,7 +140,7 @@ export default class Photo {
     num: number,
   ) {
     if (lastId === -1) {
-      return this.prisma.accept_photo.findMany({
+      return prisma.accept_photo.findMany({
         select: Photo.searchSelectConfig,
         where: {
           ac_reg: { contains: keyword },
@@ -157,7 +149,7 @@ export default class Photo {
         take: num,
       });
     } else {
-      return this.prisma.accept_photo.findMany({
+      return prisma.accept_photo.findMany({
         select: Photo.searchSelectConfig,
         where: {
           ac_reg: { contains: keyword },
@@ -176,7 +168,7 @@ export default class Photo {
     num: number,
   ) {
     if (lastId === -1) {
-      return this.prisma.accept_photo.findMany({
+      return prisma.accept_photo.findMany({
         select: Photo.searchSelectConfig,
         where: {
           OR: [
@@ -188,7 +180,7 @@ export default class Photo {
         take: num,
       });
     } else {
-      return this.prisma.accept_photo.findMany({
+      return prisma.accept_photo.findMany({
         select: Photo.searchSelectConfig,
         where: {
           OR: [
@@ -210,7 +202,7 @@ export default class Photo {
     num: number,
   ) {
     if (lastId === -1) {
-      return this.prisma.accept_photo.findMany({
+      return prisma.accept_photo.findMany({
         select: Photo.searchSelectConfig,
         where: {
           ac_type: { contains: keyword },
@@ -219,7 +211,7 @@ export default class Photo {
         orderBy: { id: "desc" },
       });
     } else {
-      return this.prisma.accept_photo.findMany({
+      return prisma.accept_photo.findMany({
         select: Photo.searchSelectConfig,
         where: {
           ac_type: { contains: keyword },
@@ -238,7 +230,7 @@ export default class Photo {
   ) {
     lastId = Number(lastId);
     if (lastId === -1) {
-      return this.prisma.accept_photo.findMany({
+      return prisma.accept_photo.findMany({
         select: Photo.searchSelectConfig,
         where: {
           OR: [
@@ -252,7 +244,7 @@ export default class Photo {
         take: num,
       });
     } else {
-      return this.prisma.accept_photo.findMany({
+      return prisma.accept_photo.findMany({
         select: Photo.searchSelectConfig,
         where: {
           OR: [
@@ -277,7 +269,7 @@ export default class Photo {
   ) {
     lastId = Number(lastId);
     if (lastId === -1) {
-      return this.prisma.accept_photo.findMany({
+      return prisma.accept_photo.findMany({
         select: Photo.searchSelectConfig,
         where: {
           username: { contains: keyword },
@@ -286,7 +278,7 @@ export default class Photo {
         take: num,
       });
     } else {
-      return this.prisma.accept_photo.findMany({
+      return prisma.accept_photo.findMany({
         select: Photo.searchSelectConfig,
         where: {
           username: { contains: keyword },
@@ -299,7 +291,7 @@ export default class Photo {
   }
 
   static async create(data: PhotoInfo) {
-    return this.prisma.photo.create({
+    return prisma.photo.create({
       data: {
         upload_user_id: data.userId,
         upload_time: Date.now(),
@@ -318,8 +310,8 @@ export default class Photo {
     });
   }
 
-  static async update(id: number, data: any) {
-    return this.prisma.photo.update({ where: { id: id }, data: data });
+  static async update(id: number, data: Prisma.photoUpdateInput) {
+    return prisma.photo.update({ where: { id: id }, data: data });
   }
 
   static async advancedSearch(searchQuery: AdvancedSearchQuery,lastId: number,num: number) {
@@ -413,7 +405,7 @@ export default class Photo {
       whereClause.id = { lt: lastId };
     }
 
-    return this.prisma.accept_photo.findMany({
+    return prisma.accept_photo.findMany({
       select: Photo.searchSelectConfig,
       where: whereClause,
       orderBy: { id: "desc" },

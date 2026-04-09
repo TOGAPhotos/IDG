@@ -1,6 +1,5 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../../lib/prisma.js";
 import Log from "../../components/loger.js";
-const prisma = new PrismaClient();
 
 export async function updateUserStatus(){
   await prisma.user.updateMany({

@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { prisma, Prisma } from "../lib/prisma.js";
 import type {
   VoteCreateArgs,
   VoteRecordCreateArgs,
@@ -8,23 +8,22 @@ import type {
 } from "../dto/vote.d.js";
 
 export default class Vote {
-  private static prisma = new PrismaClient();
 
   static async create(data: Prisma.vote_listCreateInput) {
-    return Vote.prisma.vote_list.create({
+    return prisma.vote_list.create({
       data: data,
     });
   }
 
   static async delete(id: number) {
-    return Vote.prisma.vote_list.update({
+    return prisma.vote_list.update({
       where: { id: id },
       data: { is_delete: true },
     });
   }
 
   static async getById(id: number) {
-    return Vote.prisma.vote_list.findUnique({ where: { id: id } });
+    return prisma.vote_list.findUnique({ where: { id: id } });
   }
 
   static async getList(
@@ -33,14 +32,14 @@ export default class Vote {
     limit: number = 50,
   ) {
     queryArg.is_delete = false;
-    return Vote.prisma.vote_list.findMany({
+    return prisma.vote_list.findMany({
       where: queryArg,
       take: limit,
     });
   }
 
   public static async SCVotePreCheck(photoId: number) {
-    return Vote.prisma.vote_list.findFirst({
+    return prisma.vote_list.findFirst({
       where: {
         photo_id: photoId,
         type: "SC",
@@ -60,7 +59,7 @@ export default class Vote {
   }
 
   static async getLatestSCVote(userId: number) {
-    const result = await Vote.prisma.$queryRawUnsafe(`
+    const result = await prisma.$queryRawUnsafe(`
     SELECT *
     FROM vote_list
     WHERE status = 'IN PROGRESS'
@@ -77,14 +76,14 @@ export default class Vote {
     return result.length > 0 ? result[0] : null;
   }
   public static async updateTally(voteId: number, tally: number) {
-    return Vote.prisma.vote_list.update({
+    return prisma.vote_list.update({
       where: { id: voteId },
       data: { tally: { increment: tally } },
     });
   }
 
   public static async createRecord(data: Omit<Prisma.vote_recordCreateInput, "create_time">) {
-    return Vote.prisma.vote_record.create({
+    return prisma.vote_record.create({
       data: {
         ...data,
         create_time: Date.now(),
@@ -97,7 +96,7 @@ export default class Vote {
     lastId: number = -1,
     limit: number = 50,
   ) {
-    return Vote.prisma.vote_record.findMany({
+    return prisma.vote_record.findMany({
       where: {
         vote_event: voteEventId,
         id: {
@@ -115,7 +114,7 @@ export default class Vote {
     userId: number,
     voteEventId: number,
   ) {
-    return Vote.prisma.vote_record.findMany({
+    return prisma.vote_record.findMany({
       where: {
         user: userId,
         vote_event: voteEventId,
@@ -123,7 +122,7 @@ export default class Vote {
     });
   }
   public static async deleteRecord(id: number) {
-    return Vote.prisma.vote_record.update({
+    return prisma.vote_record.update({
       where: { id: id },
       data: { is_delete: true },
     });

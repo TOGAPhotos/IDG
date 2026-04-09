@@ -1,13 +1,12 @@
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "../lib/prisma.js";
 import { safeSQL } from "../components/decorators/safeSQL.js";
 type CountResult = {"COUNT(id)":number}[]
 export class Screener {
-  private static prisma = new PrismaClient();
 
   @safeSQL
   public static async getScreeningStatistics(userId:number|string){
     const [Carrier,Month,Day] = await Promise.all([
-      Screener.prisma.$queryRawUnsafe(`
+      prisma.$queryRawUnsafe(`
       SELECT COUNT(id)
       FROM photo
       WHERE
@@ -15,7 +14,7 @@ export class Screener {
       AND is_delete = FALSE
       AND( screener_1 = ${userId} OR screener_2 = ${userId})
     `) as unknown as CountResult,
-      Screener.prisma.$queryRawUnsafe(`
+      prisma.$queryRawUnsafe(`
       SELECT COUNT(id)
       FROM photo
       WHERE
@@ -25,7 +24,7 @@ export class Screener {
       AND( screener_1 = ${userId} OR screener_2 = ${userId})
       AND screen_finished_time >= CURDATE() - INTERVAL 1 MONTH
     `) as unknown as CountResult,
-      Screener.prisma.$queryRawUnsafe(`
+      prisma.$queryRawUnsafe(`
       SELECT COUNT(id)
       FROM photo
       WHERE
