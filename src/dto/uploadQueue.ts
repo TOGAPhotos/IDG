@@ -53,6 +53,29 @@ export default class UploadQueue {
     }
   }
 
+  static async getTopBatch(id: number, role: string, limit: number = 10) {
+    if (Permission.isSeniorScreener(role)) {
+      return UploadQueue.prisma.queue_photo.findMany({
+        where: {
+          id: { gt: id },
+          status: { not: "STUCK" },
+          OR: [{ screener_1: null }, { screener_2: null }],
+        },
+        orderBy: { id: "asc" },
+        take: limit,
+      });
+    } else {
+      return UploadQueue.prisma.queue_photo.findMany({
+        where: {
+          id: { gt: id },
+          screener_1: null,
+        },
+        orderBy: { id: "asc" },
+        take: limit,
+      });
+    }
+  }
+
   static async update(queueId: number, data: Prisma.photoUpdateInput) {
     return prisma.photo.update({
       where: { id: queueId },

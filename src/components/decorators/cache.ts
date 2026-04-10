@@ -9,6 +9,8 @@ interface ResponseCache {
   time: number;
 }
 
+const URL_CACHE_MAX_SIZE = 500;
+
 export function UrlCache(cacheSeconds: number) {
   const cache = new Map<string, ResponseCache>();
 
@@ -35,6 +37,9 @@ export function UrlCache(cacheSeconds: number) {
 
       const originalSend = res.send;
       res.send = function (body: any) {
+        if (cache.size >= URL_CACHE_MAX_SIZE) {
+          cache.delete(cache.keys().next().value!);
+        }
         cache.set(req.url, {
           code: res.statusCode,
           contentType: res.get("content-type"),

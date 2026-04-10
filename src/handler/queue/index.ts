@@ -37,27 +37,30 @@ export default class QueueHandler {
     let cursor = Number(req.query["cursor"]) || 0;
     const screener = await User.getById(req.token.id);
 
-    const MAX_TRY = 50;
+    const BATCH_SIZE = 10;
+    const MAX_BATCHES = 5;
 
-    for (let counter = 0; counter < MAX_TRY; counter++) {
-      let result = await UploadQueue.getTop(cursor, screener.role);
-      if (result === null) {
+    for (let batch = 0; batch < MAX_BATCHES; batch++) {
+      const candidates = await UploadQueue.getTopBatch(cursor, screener.role, BATCH_SIZE);
+      if (candidates.length === 0) {
         Log.info(`QueueTop none user:${req.token.id}`);
         return res.success("暂无图片待审核", { photoId: null });
       }
-      cursor = result?.id || cursor;
-      if (result.upload_user_id === screener.id || result.screener_1 === screener.id) {
-        Log.debug(`QueueTop skip self/first user:${req.token.id} photo:${result.id}`);
-        counter--;
-        continue;
+      cursor = candidates[candidates.length - 1].id;
+
+      const eligible = candidates.filter(
+        (c) => c.upload_user_id !== screener.id && c.screener_1 !== screener.id,
+      );
+
+      for (const candidate of eligible) {
+        const cacheInfo = await QueueHandler.uploadQueueCache.get(candidate.id);
+        if (cacheInfo === null || Number(cacheInfo) === req.token.id) {
+          await QueueHandler.uploadQueueCache.set(candidate.id, screener.id);
+          Log.info(`QueueTop assign user:${req.token.id} photo:${candidate.id}`);
+          return res.success("查询成功", { photoId: candidate.id });
+        }
+        Log.debug(`QueueTop conflict photo:${candidate.id} holder:${cacheInfo}`);
       }
-      const cacheInfo = await QueueHandler.uploadQueueCache.get(result.id);
-      if (cacheInfo === null || Number(cacheInfo) === req.token.id) {
-        await QueueHandler.uploadQueueCache.set(result.id, screener.id);
-        Log.info(`QueueTop assign user:${req.token.id} photo:${result.id}`);
-        return res.success("查询成功", { photoId: result.id });
-      }
-      Log.debug(`QueueTop conflict photo:${result.id} holder:${cacheInfo}`);
     }
     Log.warn(`QueueTop loop_detected user:${req.token.id}`);
     return res.fail(HTTP_STATUS.LOOP_DETECTED);
@@ -113,9 +116,7 @@ export default class QueueHandler {
     ]);
 
     if (queuePhoto.screener_1 !== null && queuePhoto.screener_2 !== null) {
-      return res
-        .status(HTTP_STATUS.BAD_REQUEST)
-        .json({ message: "已完成审核" });
+      return res.fail(HTTP_STATUS.BAD_REQUEST, "已完成审核");
     }
 
     let screenData: {

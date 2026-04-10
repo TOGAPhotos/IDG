@@ -133,161 +133,52 @@ export default class Photo {
     });
   }
 
-  @safeSQL
-  static async searchByRegKeyword(
-    keyword: string,
+  private static async searchByCondition(
+    where: Prisma.accept_photoWhereInput,
     lastId: number,
     num: number,
   ) {
-    if (lastId === -1) {
-      return prisma.accept_photo.findMany({
-        select: Photo.searchSelectConfig,
-        where: {
-          ac_reg: { contains: keyword },
-        },
-        orderBy: { id: "desc" },
-        take: num,
-      });
-    } else {
-      return prisma.accept_photo.findMany({
-        select: Photo.searchSelectConfig,
-        where: {
-          ac_reg: { contains: keyword },
-          id: { lt: lastId },
-        },
-        take: num,
-        orderBy: { id: "desc" },
-      });
+    if (lastId !== -1) {
+      where = { ...where, id: { lt: lastId } };
     }
+    return this.prisma.accept_photo.findMany({
+      select: Photo.searchSelectConfig,
+      where,
+      orderBy: { id: "desc" },
+      take: num,
+    });
   }
 
   @safeSQL
-  static async searchByAirlineKeyword(
-    keyword: string,
-    lastId: number,
-    num: number,
-  ) {
-    if (lastId === -1) {
-      return prisma.accept_photo.findMany({
-        select: Photo.searchSelectConfig,
-        where: {
-          OR: [
-            { airline_cn: { contains: keyword } },
-            { airline_en: { contains: keyword } },
-          ],
-        },
-        orderBy: { id: "desc" },
-        take: num,
-      });
-    } else {
-      return prisma.accept_photo.findMany({
-        select: Photo.searchSelectConfig,
-        where: {
-          OR: [
-            { airline_cn: { contains: keyword } },
-            { airline_en: { contains: keyword } },
-          ],
-          id: { lt: lastId },
-        },
-        orderBy: { id: "desc" },
-        take: num,
-      });
-    }
+  static async searchByRegKeyword(keyword: string, lastId: number, num: number) {
+    return Photo.searchByCondition({ ac_reg: { contains: keyword } }, lastId, num);
   }
 
   @safeSQL
-  static async searchByAirtypeKeyword(
-    keyword: string,
-    lastId: number,
-    num: number,
-  ) {
-    if (lastId === -1) {
-      return prisma.accept_photo.findMany({
-        select: Photo.searchSelectConfig,
-        where: {
-          ac_type: { contains: keyword },
-        },
-        take: num,
-        orderBy: { id: "desc" },
-      });
-    } else {
-      return prisma.accept_photo.findMany({
-        select: Photo.searchSelectConfig,
-        where: {
-          ac_type: { contains: keyword },
-          id: { lt: lastId },
-        },
-        take: num,
-        orderBy: { id: "desc" },
-      });
-    }
+  static async searchByAirlineKeyword(keyword: string, lastId: number, num: number) {
+    return Photo.searchByCondition({
+      OR: [{ airline_cn: { contains: keyword } }, { airline_en: { contains: keyword } }],
+    }, lastId, num);
   }
 
-  static async searchByAirportKeyword(
-    keyword: string,
-    lastId: number,
-    num: number,
-  ) {
-    lastId = Number(lastId);
-    if (lastId === -1) {
-      return prisma.accept_photo.findMany({
-        select: Photo.searchSelectConfig,
-        where: {
-          OR: [
-            { airport_cn: { contains: keyword } },
-            { airport_en: { contains: keyword } },
-            { airport_iata_code: { contains: keyword } },
-            { airport_icao_code: { contains: keyword } },
-          ],
-        },
-        orderBy: { id: "desc" },
-        take: num,
-      });
-    } else {
-      return prisma.accept_photo.findMany({
-        select: Photo.searchSelectConfig,
-        where: {
-          OR: [
-            { airport_cn: { contains: keyword } },
-            { airport_en: { contains: keyword } },
-            { airport_iata_code: { contains: keyword } },
-            { airport_icao_code: { contains: keyword } },
-          ],
-          id: { lt: lastId },
-        },
-        orderBy: { id: "desc" },
-        take: num,
-      });
-    }
+  @safeSQL
+  static async searchByAirtypeKeyword(keyword: string, lastId: number, num: number) {
+    return Photo.searchByCondition({ ac_type: { contains: keyword } }, lastId, num);
   }
 
-  // @secureSqlString
-  static async searchByUserKeyword(
-    keyword: string,
-    lastId: number,
-    num: number,
-  ) {
-    lastId = Number(lastId);
-    if (lastId === -1) {
-      return prisma.accept_photo.findMany({
-        select: Photo.searchSelectConfig,
-        where: {
-          username: { contains: keyword },
-        },
-        orderBy: { id: "desc" },
-        take: num,
-      });
-    } else {
-      return prisma.accept_photo.findMany({
-        select: Photo.searchSelectConfig,
-        where: {
-          username: { contains: keyword },
-          id: { lt: lastId },
-        },
-        orderBy: { id: "desc" },
-        take: num,
-      });
-    }
+  static async searchByAirportKeyword(keyword: string, lastId: number, num: number) {
+    return Photo.searchByCondition({
+      OR: [
+        { airport_cn: { contains: keyword } },
+        { airport_en: { contains: keyword } },
+        { airport_iata_code: { contains: keyword } },
+        { airport_icao_code: { contains: keyword } },
+      ],
+    }, Number(lastId), num);
+  }
+
+  static async searchByUserKeyword(keyword: string, lastId: number, num: number) {
+    return Photo.searchByCondition({ username: { contains: keyword } }, Number(lastId), num);
   }
 
   static async create(data: PhotoInfo) {

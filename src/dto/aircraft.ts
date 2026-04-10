@@ -2,6 +2,7 @@ import { prisma } from "../lib/prisma.js";
 import { safeSQL } from "../components/decorators/safeSQL.js";
 
 export class Aircraft {
+  static readonly prisma = sharedPrisma;
 
   @safeSQL
   static async create(

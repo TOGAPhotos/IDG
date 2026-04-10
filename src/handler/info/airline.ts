@@ -91,7 +91,14 @@ export default class AirlineHandler {
         airlineInfo.iata_code,
       );
     } else {
-      await Airline.update(airlineId, req.body);
+      const allowedFields = ["airline_cn", "airline_en", "iata_code", "icao_code"];
+      const updateData: Record<string, unknown> = {};
+      for (const key of allowedFields) {
+        if (key in req.body) {
+          updateData[key] = req.body[key];
+        }
+      }
+      await Airline.update(airlineId, updateData);
       res.success("修改成功");
     }
     await AirlineHandler.searchCache.flush();

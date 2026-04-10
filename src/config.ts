@@ -9,7 +9,7 @@ export const TOKEN_EXPIRE_TIME = 60 * 60 * 24 * 30;
 
 export const BELL_URL = process.env.BELL_URL;
 
-export const CORS_WHITE_LIST = process.env.CORS_WHITE_LIST.split(",");
+export const CORS_WHITE_LIST = (process.env.CORS_WHITE_LIST || "").split(",").filter(Boolean);
 
 export const REDIS_DB_PASS = process.env.REDIS_DB_PASS || "";
 
@@ -48,4 +48,7 @@ export const enum WAF_MODE {
   BLOCK
 }
 
-export const WAF_CURRENT_MODE: WAF_MODE = WAF_MODE.MONITOR;
+export const WAF_CURRENT_MODE: WAF_MODE =
+  process.env.WAF_MODE === "BYPASS" ? WAF_MODE.BYPASS :
+  process.env.WAF_MODE === "MONITOR" ? WAF_MODE.MONITOR :
+  PRODUCTION_ENV ? WAF_MODE.BLOCK : WAF_MODE.MONITOR;

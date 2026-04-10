@@ -4,7 +4,7 @@ import { prisma } from "../lib/prisma.js";
 type DirectMessageStatus = "WAITING" | "ERROR" | "SUCCESS";
 
 export class DirectMessage {
-
+  
   static async getNewest() {
     return prisma.direct_message.findFirst({
       where: { status: "WAITING" },

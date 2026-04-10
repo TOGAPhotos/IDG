@@ -4,6 +4,7 @@ import { workerCheck } from "../components/registerService/index.js";
 import { updateUserStatus } from "../handler/user/schedule.js";
 import { logConnHeartbeat } from "../components/logStream.js";
 import { ScreeningResultNotice } from "../handler/queue/screeningResult.js";
+import { QueueWarningNotice } from "../handler/queue/queueWarning.js";
 
 export function registerScheduleJob() {
   nodeSchedule.scheduleJob("*/1 * * * *", tallySCVote);
@@ -11,4 +12,5 @@ export function registerScheduleJob() {
   nodeSchedule.scheduleJob("*/5 * * * *", updateUserStatus);
   nodeSchedule.scheduleJob("*/1 * * * *", logConnHeartbeat);
   nodeSchedule.scheduleJob("*/30 * * * *", ScreeningResultNotice);
+  nodeSchedule.scheduleJob("0 9 * * *", QueueWarningNotice);
 }

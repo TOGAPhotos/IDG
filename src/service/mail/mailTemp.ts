@@ -98,6 +98,26 @@ export default class MailTemp {
     await MailTemp.emailQueue.send(JSON.stringify(email));
   }
 
+  static async QueueWarning(
+    emailAddr: string,
+    {
+      count,
+      photos,
+    }: {
+      count: number;
+      photos: { id: number; ac_reg: string; airline: string; username: string; daysInQueue: number }[];
+    },
+  ) {
+    const email: EmailFormat = {
+      sender: "TOGAPhotos 系统通知<no-reply@togaphotos.com>",
+      receiver: emailAddr,
+      subject: "[TOGAPhotos] 审核队列积压提醒",
+      template: null,
+      content: MailTemp.renderHTMLTemplate("queueWarning", { count, photos }),
+    };
+    await MailTemp.emailQueue.send(JSON.stringify(email));
+  }
+
   static async ScreeningResultNotice(
     emailAddr: string,
     {

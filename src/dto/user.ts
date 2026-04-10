@@ -19,6 +19,11 @@ export default class User {
   }
 
   @checkNumberParams
+  static async updatePassword(id: number, password: string) {
+    return prisma.user.update({ where: { id }, data: { password } });
+  }
+
+  @checkNumberParams
   static async updatePassingRate(userId: number) {
     const list = await prisma.full_photo_info.findMany({
       select: {

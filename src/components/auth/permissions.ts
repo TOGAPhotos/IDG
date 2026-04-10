@@ -62,65 +62,24 @@ export default class Permission {
     next();
   }
 
-  static async isStaffMW(req: Request, res: Response, next: NextFunction) {
-    const userInfo = await User.getById(req.token.id);
-
-    if (!Permission.checkUserStatus(userInfo)) {
-      return res.fail(HTTP_STATUS.UNAUTHORIZED, "用户状态异常");
-    }
-    if (!Permission.isStaff(userInfo.role)) {
-      return res.fail(HTTP_STATUS.UNAUTHORIZED);
-    }
-
-    req.role = userInfo.role;
-    next();
+  private static createRoleMW(checkFn: (role: string) => boolean) {
+    return async (req: Request, res: Response, next: NextFunction) => {
+      const userInfo = await User.getById(req.token.id);
+      if (!Permission.checkUserStatus(userInfo)) {
+        return res.fail(HTTP_STATUS.UNAUTHORIZED, "用户状态异常");
+      }
+      if (!checkFn(userInfo.role)) {
+        return res.fail(HTTP_STATUS.UNAUTHORIZED);
+      }
+      req.role = userInfo.role;
+      next();
+    };
   }
 
-  static async isScreenerMW(req: Request, res: Response, next: NextFunction) {
-    const userInfo = await User.getById(req.token.id);
-
-    if (!Permission.checkUserStatus(userInfo)) {
-      return res.fail(HTTP_STATUS.UNAUTHORIZED, "用户状态异常");
-    }
-    if (!Permission.isScreener(userInfo.role)) {
-      return res.fail(HTTP_STATUS.UNAUTHORIZED);
-    }
-
-    req.role = userInfo.role;
-    next();
-  }
-
-  static async isSeniorScreenerMW(
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) {
-    const userInfo = await User.getById(req.token.id);
-
-    if (!Permission.checkUserStatus(userInfo)) {
-      return res.fail(HTTP_STATUS.UNAUTHORIZED, "用户状态异常");
-    }
-    if (!Permission.isSeniorScreener(userInfo.role)) {
-      return res.fail(HTTP_STATUS.UNAUTHORIZED);
-    }
-
-    req.role = userInfo.role;
-    next();
-  }
-
-  static async isAdminMW(req: Request, res: Response, next: NextFunction) {
-    const userInfo = await User.getById(req.token.id);
-
-    if (!Permission.checkUserStatus(userInfo)) {
-      return res.fail(HTTP_STATUS.UNAUTHORIZED, "用户状态异常");
-    }
-    if (!Permission.isAdmin(userInfo.role)) {
-      return res.fail(HTTP_STATUS.UNAUTHORIZED);
-    }
-
-    req.role = userInfo.role;
-    next();
-  }
+  static readonly isStaffMW = Permission.createRoleMW(Permission.isStaff.bind(Permission));
+  static readonly isScreenerMW = Permission.createRoleMW(Permission.isScreener.bind(Permission));
+  static readonly isSeniorScreenerMW = Permission.createRoleMW(Permission.isSeniorScreener.bind(Permission));
+  static readonly isAdminMW = Permission.createRoleMW(Permission.isAdmin.bind(Permission));
 
   static checkUserStatus(user: any) {
     if (user === null) {
@@ -141,7 +100,7 @@ export default class Permission {
   ) {
     const userInfo = await User.getById(req.token.id);
     if (!Permission.checkUserStatus(userInfo)) {
-      res.fail(HTTP_STATUS.UNAUTHORIZED, "用户状态异常");
+      return res.fail(HTTP_STATUS.UNAUTHORIZED, "用户状态异常");
     }
     next();
   }
