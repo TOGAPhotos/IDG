@@ -1,7 +1,7 @@
-import { PrismaClient } from "@prisma/client";
+import sharedPrisma from "../lib/prisma.js";
 import { safeSQL } from "../components/decorators/safeSQL.js";
 
-const prisma = new PrismaClient();
+const prisma = sharedPrisma;
 
 export class Airport {
   static async create(

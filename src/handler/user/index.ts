@@ -1,6 +1,6 @@
 import User from "../../dto/user.js";
 import { Request, Response } from "express";
-import { md5 } from "../../components/crypto.js";
+import { hashPassword, verifyPassword, isLegacyHash, verifyLegacyPassword } from "../../components/crypto.js";
 import { TOKEN_EXPIRE_TIME } from "../../config.js";
 import Token from "../../components/auth/token.js";
 import Time from "../../components/time.js";
@@ -20,7 +20,17 @@ export default class UserHandler {
 
     const userInfo = userList[0];
 
-    if (userInfo.password !== md5(password)) {
+    let passwordValid: boolean;
+    if (isLegacyHash(userInfo.password)) {
+      passwordValid = verifyLegacyPassword(password, userInfo.password);
+      if (passwordValid) {
+        // 静默升级为 bcrypt
+        await User.updatePassword(userInfo.id, await hashPassword(password));
+      }
+    } else {
+      passwordValid = await verifyPassword(password, userInfo.password);
+    }
+    if (!passwordValid) {
       return res.fail(HTTP_STATUS.UNAUTHORIZED, "密码错误");
     }
     if (Permission.checkUserStatus(userInfo) === false) {
@@ -60,6 +70,9 @@ export default class UserHandler {
     } = req.body;
 
     // 基础检查
+    if (password !== passwordR) {
+      return res.fail(HTTP_STATUS.BAD_REQUEST, "两次输入密码不一致");
+    }
     if (!z.email().safeParse(email).success) {
       return res.fail(HTTP_STATUS.BAD_REQUEST, "邮箱格式错误");
     }
@@ -76,7 +89,7 @@ export default class UserHandler {
       return res.fail(HTTP_STATUS.BAD_REQUEST, "用户名已被注册");
     }
 
-    const user = await User.create(email, username, md5(password));
+    const user = await User.create(email, username, await hashPassword(password));
     Log.info(`Register success user_id:${user["id"]}`);
 
     return res.success("注册成功", {
@@ -105,7 +118,27 @@ export default class UserHandler {
 
     const data = req.body;
 
-    if (!Permission.isAdmin(actionUser.role)) {
+    if (Permission.isAdmin(actionUser.role)) {
+      const adminAllowedKeys = [
+        "username",
+        "allow_third_use",
+        "allow_toga_use",
+        "airport_id",
+        "cover_photo_id",
+        "role",
+        "status",
+        "pass_rate",
+        "free_queue",
+        "free_priority_queue",
+      ];
+      const updateKeys = Object.keys(data);
+      for (const key of updateKeys) {
+        if (!adminAllowedKeys.includes(key)) {
+          Log.error(`User update forbidden_field actor:${req.token.id} field:${key}`);
+          return res.fail(HTTP_STATUS.BAD_REQUEST, `不允许更新字段: ${key}`);
+        }
+      }
+    } else {
       if (id !== req.token.id) {
         Log.warn(`User unauthorized_update actor:${req.token.id} target:${id}`);
         return res.fail(HTTP_STATUS.UNAUTHORIZED, "没有权限");
@@ -118,7 +151,7 @@ export default class UserHandler {
         "airport_id",
         "cover_photo_id",
       ];
-      for (let key of updateKeys) {
+      for (const key of updateKeys) {
         if (!allowedKeys.includes(key)) {
           Log.error(`User update forbidden_field actor:${req.token.id} field:${key}`);
           return res.fail(HTTP_STATUS.BAD_REQUEST, `不允许更新字段: ${key}`);

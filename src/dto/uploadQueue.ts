@@ -1,11 +1,12 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import sharedPrisma from "../lib/prisma.js";
 import Permission from "../components/auth/permissions.js";
 
 type PhotoInfo = Prisma.photoGetPayload<null>;
 type QueueQuery = Prisma.queue_photoSelect<null>
 
 export default class UploadQueue {
-  static prisma = new PrismaClient();
+  static readonly prisma = sharedPrisma;
 
   static async getByUserId(userId: number) {
     return UploadQueue.prisma.full_photo_info.findMany({
@@ -51,6 +52,29 @@ export default class UploadQueue {
           id: { gt: id },
           screener_1: null,
         },
+      });
+    }
+  }
+
+  static async getTopBatch(id: number, role: string, limit: number = 10) {
+    if (Permission.isSeniorScreener(role)) {
+      return UploadQueue.prisma.queue_photo.findMany({
+        where: {
+          id: { gt: id },
+          status: { not: "STUCK" },
+          OR: [{ screener_1: null }, { screener_2: null }],
+        },
+        orderBy: { id: "asc" },
+        take: limit,
+      });
+    } else {
+      return UploadQueue.prisma.queue_photo.findMany({
+        where: {
+          id: { gt: id },
+          screener_1: null,
+        },
+        orderBy: { id: "asc" },
+        take: limit,
       });
     }
   }

@@ -1,8 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import sharedPrisma from "../lib/prisma.js";
 import { safeSQL } from "../components/decorators/safeSQL.js";
 type CountResult = {"COUNT(id)":number}[]
 export class Screener {
-  private static prisma = new PrismaClient();
+  private static readonly prisma = sharedPrisma;
 
   @safeSQL
   public static async getScreeningStatistics(userId:number|string){

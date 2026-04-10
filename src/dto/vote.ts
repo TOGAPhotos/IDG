@@ -1,4 +1,5 @@
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma } from "@prisma/client";
+import sharedPrisma from "../lib/prisma.js";
 import type {
   VoteCreateArgs,
   VoteRecordCreateArgs,
@@ -8,7 +9,7 @@ import type {
 } from "../dto/vote.d.js";
 
 export default class Vote {
-  private static prisma = new PrismaClient();
+  private static readonly prisma = sharedPrisma;
 
   static async create(data: Prisma.vote_listCreateInput) {
     return Vote.prisma.vote_list.create({
@@ -60,7 +61,7 @@ export default class Vote {
   }
 
   static async getLatestSCVote(userId: number) {
-    const result = await Vote.prisma.$queryRawUnsafe(`
+    const result = await Vote.prisma.$queryRaw<Prisma.vote_listGetPayload<null>[]>`
     SELECT *
     FROM vote_list
     WHERE status = 'IN PROGRESS'
@@ -73,7 +74,7 @@ export default class Vote {
     AND is_delete = false
     ORDER BY id DESC
     LIMIT 1
-    `) as unknown as Prisma.vote_listGetPayload<null>[];
+    `;
     return result.length > 0 ? result[0] : null;
   }
   public static async updateTally(voteId: number, tally: number) {

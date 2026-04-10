@@ -77,7 +77,11 @@ export default class Log {
   }
 
   static accessLogMW(req: Request, res: Response, next: NextFunction) {
-    const baseMsg = `${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || "ANON"} tId:${req.tId} body:${JSON.stringify(req.body)} ua:${req.ua}`;
+    const sanitizedBody = { ...req.body };
+    for (const field of ["password", "passwordR"]) {
+      if (field in sanitizedBody) sanitizedBody[field] = "[REDACTED]";
+    }
+    const baseMsg = `${req.userIp} ${req.method} ${req.url} userId:${req.token?.id || "ANON"} tId:${req.tId} body:${JSON.stringify(sanitizedBody)} ua:${req.ua}`;
     if (!Log.DEBUG_MODE) {
       Logger.info(baseMsg);
     } else {

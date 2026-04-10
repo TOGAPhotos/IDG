@@ -1,10 +1,10 @@
 import MailTemp from "../../service/mail/mailTemp.js";
-import { PrismaClient } from "@prisma/client";
+import sharedPrisma from "../../lib/prisma.js";
 import User from "../../dto/user.js";
 import Log from "../../components/loger.js"
 
 export async function ScreeningResultNotice(){
-  const prisma = new PrismaClient();
+  const prisma = sharedPrisma;
   const list = await prisma.full_photo_info.findMany({
     select:{
       id:true,

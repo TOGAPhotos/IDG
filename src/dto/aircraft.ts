@@ -1,8 +1,8 @@
-import { PrismaClient } from "@prisma/client";
+import sharedPrisma from "../lib/prisma.js";
 import { safeSQL } from "../components/decorators/safeSQL.js";
 
 export class Aircraft {
-  static prisma = new PrismaClient();
+  static readonly prisma = sharedPrisma;
 
   @safeSQL
   static async create(
