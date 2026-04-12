@@ -55,7 +55,7 @@ export default class UploadQueue {
 
   static async getTopBatch(id: number, role: string, limit: number = 10) {
     if (Permission.isSeniorScreener(role)) {
-      return UploadQueue.prisma.queue_photo.findMany({
+      return prisma.queue_photo.findMany({
         where: {
           id: { gt: id },
           status: { not: "STUCK" },
@@ -65,7 +65,7 @@ export default class UploadQueue {
         take: limit,
       });
     } else {
-      return UploadQueue.prisma.queue_photo.findMany({
+      return prisma.queue_photo.findMany({
         where: {
           id: { gt: id },
           screener_1: null,

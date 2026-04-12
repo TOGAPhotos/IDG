@@ -72,7 +72,7 @@ export default class Vote {
     AND is_delete = false
     ORDER BY id DESC
     LIMIT 1
-    `;
+    `) as unknown as Prisma.vote_listGetPayload<null>[];
     return result.length > 0 ? result[0] : null;
   }
   public static async updateTally(voteId: number, tally: number) {

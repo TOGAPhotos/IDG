@@ -141,7 +141,7 @@ export default class Photo {
     if (lastId !== -1) {
       where = { ...where, id: { lt: lastId } };
     }
-    return this.prisma.accept_photo.findMany({
+    return prisma.accept_photo.findMany({
       select: Photo.searchSelectConfig,
       where,
       orderBy: { id: "desc" },
@@ -205,7 +205,7 @@ export default class Photo {
     return prisma.photo.update({ where: { id: id }, data: data });
   }
 
-  static async advancedSearch(searchQuery: AdvancedSearchQuery,lastId: number,num: number) {
+  static async advancedSearch(searchQuery: AdvancedSearchQuery, lastId: number, num: number) {
     const { and, not } = searchQuery;
     const andConditions: Prisma.accept_photoWhereInput[] = [];
     const notConditions: Prisma.accept_photoWhereInput[] = [];
