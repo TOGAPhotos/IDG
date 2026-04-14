@@ -1,4 +1,5 @@
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.development" });
 import { vi } from "vitest";
 
 // align env with test intent
