@@ -7,7 +7,7 @@
   "scripts": {
     "build": "tsc",
     "start": "node ./dist/index.js",
-    "dev": "rm ./log/* && tsx watch src/index.ts --env-file=.env.development --clear-screen=false",
+    "dev": "tsx watch src/index.ts --env-file=.env.development --clear-screen=false",
     "test": "RUNNING_ENV=DEV vitest --coverage",
     "db": "npx prisma db pull && npx prisma generate",
     "hash": "tsx script/setPassword.ts",
