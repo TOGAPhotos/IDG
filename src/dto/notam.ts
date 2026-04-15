@@ -1,6 +1,4 @@
-import sharedPrisma from "../lib/prisma.js";
-
-const prisma = sharedPrisma;
+import { prisma } from "../lib/prisma.js";
 
 export default class Notam {
   static async getNewest() {

@@ -1,6 +1,5 @@
-import sharedPrisma from "../../lib/prisma.js";
+import { prisma } from "../../lib/prisma.js";
 import Log from "../../components/loger.js";
-const prisma = sharedPrisma;
 
 export async function tallySCVote() {
   Log.info("Start tally SC vote");

@@ -1,4 +1,4 @@
-import prisma from "../../lib/prisma.js";
+import { prisma } from "../../lib/prisma.js";
 import MailTemp from "../../service/mail/mailTemp.js";
 import bell from "../../components/bell.js";
 import Log from "../../components/loger.js";

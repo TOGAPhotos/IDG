@@ -1,6 +1,5 @@
-import sharedPrisma from "../lib/prisma.js";
+import { prisma } from "../lib/prisma.js";
 import { safeSQL } from "../components/decorators/safeSQL.js";
-const prisma = sharedPrisma;
 
 export class Airline {
   @safeSQL

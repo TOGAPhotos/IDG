@@ -1,9 +1,14 @@
 node_modules
 .env
+.env.development
+.env.production
 .vscode
 /.idea
 log
 dist
+src/generated/
 
 coverage/
 *.hbs.json
+AGENTS.md
+CLAUDE.md

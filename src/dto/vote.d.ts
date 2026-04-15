@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../generated/prisma/client.js";
 
 export type VoteQueryArgs = Prisma.vote_listWhereInput;
 export type VoteCreateArgs = Prisma.vote_listCreateInput;

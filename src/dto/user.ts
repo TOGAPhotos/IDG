@@ -1,9 +1,6 @@
-import { Prisma } from "@prisma/client";
-import sharedPrisma from "../lib/prisma.js";
+import { prisma, Prisma } from "../lib/prisma.js";
 import { checkNumberParams } from "../components/decorators/checkNumberParams.js";
 import { safeSQL } from "../components/decorators/safeSQL.js";
-
-const prisma = sharedPrisma;
 
 export default class User {
   @safeSQL

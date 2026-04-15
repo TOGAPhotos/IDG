@@ -19,6 +19,9 @@ export const TENCENTCLOUD_CDN_PKEY = process.env.TENCENTCLOUD_CDN_PKEY
 
 export const PHOTO_COS_CDN_DOMAIN = process.env.PHOTO_COS_CDN_DOMAIN
 
+export const MAINTENANCE_MODE = process.env.MAINTENANCE_MODE === "true";
+export const MAINTENANCE_KEY = process.env.MAINTENANCE_KEY || "";
+
 export const startConsoleStr = `
   _______ ____   _____            _____  _           _            
  |__   __/ __ \\ / ____|   /\\     |  __ \\| |         | |           
