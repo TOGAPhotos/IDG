@@ -86,9 +86,17 @@ export default class Photo {
     return;
   }
 
-  static async getAcceptPhotoList(lastId: number, num: number) {
-    const where: Prisma.accept_photoWhereInput | undefined =
-      lastId !== -1 ? { id: { lt: lastId } } : undefined;
+  static async getAcceptPhotoList(
+    lastId: number,
+    num: number,
+    uploadedSinceMs?: number,
+    screenedSinceMs?: number,
+  ) {
+    const where: Prisma.accept_photoWhereInput = {
+      ...(lastId !== -1 && { id: { lt: lastId } }),
+      ...(uploadedSinceMs !== undefined && { upload_time: { gte: BigInt(uploadedSinceMs) } }),
+      ...(screenedSinceMs !== undefined && { screen_finished_time: { gte: new Date(screenedSinceMs) } }),
+    };
     return prisma.accept_photo.findMany({
       where,
       take: num,

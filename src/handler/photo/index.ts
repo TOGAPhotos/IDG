@@ -13,6 +13,17 @@ import { PhotoCopyrightOverlayConfig } from "../../service/imageProcesser/index.
 import { EventBus } from "../../components/eventBus/indes.js";
 import { ReqQueryCheck } from "@/components/decorators/ReqCheck.js";
 
+function parseSince(v?: string): number | undefined {
+  if (!v) return undefined;
+  const m = /^(\d+)([dh])$/.exec(v);
+  if (m) {
+    const mult = m[2] === "d" ? 86_400_000 : 3_600_000;
+    return Date.now() - Number(m[1]) * mult;
+  }
+  const t = Date.parse(v);
+  return isNaN(t) ? undefined : t;
+}
+
 export default class PhotoHandler {
   private static readonly photoBucket = photoBucket;
   private static readonly queueType = {
@@ -50,11 +61,13 @@ export default class PhotoHandler {
     const lastId = Number(req.query["lastId"]) || -1;
     const type = req.query["type"] as string | null || "all";
     const take = Number(req.query["take"]) || 20;
+    const uploadedSinceMs = parseSince(req.query["uploadedSince"] as string | undefined);
+    const screenedSinceMs = parseSince(req.query["screenedSince"] as string | undefined);
     let list;
     if (type === "ScreenerChoice") {
       list = await Photo.getScreenerChoicePhotoList(lastId, take)
     } else {
-      list = await Photo.getAcceptPhotoList(lastId, take);
+      list = await Photo.getAcceptPhotoList(lastId, take, uploadedSinceMs, screenedSinceMs);
     }
     res.success("查询成功", list);
   }

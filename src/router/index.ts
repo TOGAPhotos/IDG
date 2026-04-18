@@ -15,6 +15,7 @@ import NotamHandler from "../handler/notam/handler.js";
 import WebsiteHandler from "../handler/info/website.js";
 import DirectMessageHandler from "../handler/dm/index.js";
 import ScreenerHandler from "../handler/user/screener.js";
+import WeeklyPickHandler from "../handler/weeklyPick/index.js";
 import { SensitiveAPIWAF } from "../components/waf/index.js";
 
 const router = Router();
@@ -29,6 +30,8 @@ router.get("/user/:id", UserHandler.getUserInfo);
 
 router.get("/photo/:id", PhotoHandler.get);
 router.get("/photos", PhotoHandler.getList);
+router.get("/weekly-picks/weeks", WeeklyPickHandler.getWeeks);
+router.get("/weekly-picks", WeeklyPickHandler.getList);
 router.get("/search", PhotoHandler.search);
 router.post("/search/advanced", SensitiveAPIWAF, PhotoHandler.advancedSearch);
 
@@ -49,6 +52,9 @@ router.use(Per.isLoginMW);
 router.get("/users", Per.isAdminMW, UserHandler.getUserList);
 router.put("/user/:id", UserHandler.update);
 router.delete("/user/:id", Per.isAdminMW, UserHandler.delete);
+
+router.put("/weekly-picks", WeeklyPickHandler.replace);
+// 后续如需收紧权限改为：router.put("/weekly-picks", Per.isSeniorScreenerMW, WeeklyPickHandler.replace);
 
 router.post("/photo", SensitiveAPIWAF, Per.checkUserStatusMW, PhotoHandler.upload);
 router.delete("/photo/recall/:id", PhotoHandler.recall);
