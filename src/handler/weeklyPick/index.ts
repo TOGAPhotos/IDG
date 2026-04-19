@@ -5,7 +5,7 @@ import WeeklyPick from "../../dto/weeklyPick.js";
 import { prisma } from "../../lib/prisma.js";
 import { LockAcquireError, withLock } from "../../service/redis/lock.js";
 import { HTTP_STATUS } from "../../types/http_code.js";
-import { UrlCache, invalidateUrlCache } from "@/components/decorators/cache.js";
+import { UrlCache, invalidateUrlCache } from "../../components/decorators/cache.js";
 
 const WEEKLY_PICKS_CACHE_GROUP = "weekly-picks";
 

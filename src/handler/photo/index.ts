@@ -11,7 +11,7 @@ import QueueHandler from "../queue/index.js";
 import MessageQueueProducer from "../../service/messageQueue/producer.js";
 import { PhotoCopyrightOverlayConfig } from "../../service/imageProcesser/index.js";
 import { EventBus } from "../../components/eventBus/indes.js";
-import { ReqQueryCheck } from "@/components/decorators/ReqCheck.js";
+import { ReqQueryCheck } from "../../components/decorators/ReqCheck.js";
 
 function parseSince(v?: string): number | undefined {
   if (!v) return undefined;
