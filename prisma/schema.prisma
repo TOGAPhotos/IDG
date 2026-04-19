@@ -175,7 +175,7 @@ model weekly_pick {
   comment    String   @db.Text
   author     String   @db.VarChar(50)
   author_id  Int
-  updated_at DateTime @default(now())
+  updated_at DateTime @default(now()) @updatedAt
 
   @@id([week_start, photo_id])
   @@index([week_start], map: "idx_week")

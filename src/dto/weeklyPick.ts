@@ -1,11 +1,5 @@
 import { prisma } from "../lib/prisma.js";
 
-export interface WeeklyPickInput {
-  photo_id: number;
-  comment: string;
-  author: string;
-}
-
 export default class WeeklyPick {
   static async getLatestWeek(): Promise<Date | null> {
     const row = await prisma.weekly_pick.findFirst({
@@ -31,25 +25,64 @@ export default class WeeklyPick {
     return rows.map((r) => r.week_start);
   }
 
-  static async replaceWeek(
+  static async getOne(week: Date, photoId: number) {
+    return prisma.weekly_pick.findUnique({
+      where: { week_start_photo_id: { week_start: week, photo_id: photoId } },
+    });
+  }
+
+  static async createOne(
     week: Date,
-    picks: WeeklyPickInput[],
-    authorId: number,
+    photoId: number,
+    data: { comment: string; author: string; author_id: number; order: number },
   ) {
-    const del = prisma.weekly_pick.deleteMany({ where: { week_start: week } });
-    if (picks.length === 0) return prisma.$transaction([del]);
-    return prisma.$transaction([
-      del,
-      prisma.weekly_pick.createMany({
-        data: picks.map((p, i) => ({
-          week_start: week,
-          photo_id: p.photo_id,
-          order: i,
-          comment: p.comment,
-          author: p.author,
-          author_id: authorId,
-        })),
-      }),
-    ]);
+    return prisma.weekly_pick.create({
+      data: {
+        week_start: week,
+        photo_id: photoId,
+        ...data,
+      },
+    });
+  }
+
+  static async updateOne(
+    week: Date,
+    photoId: number,
+    data: { comment?: string; author?: string },
+  ) {
+    return prisma.weekly_pick.update({
+      where: { week_start_photo_id: { week_start: week, photo_id: photoId } },
+      data,
+    });
+  }
+
+  static async deleteOne(week: Date, photoId: number) {
+    return prisma.weekly_pick.delete({
+      where: { week_start_photo_id: { week_start: week, photo_id: photoId } },
+    });
+  }
+
+  static async getMaxOrder(week: Date): Promise<number> {
+    const agg = await prisma.weekly_pick.aggregate({
+      where: { week_start: week },
+      _max: { order: true },
+    });
+    return agg._max.order ?? -1;
+  }
+
+  static async updateOrders(
+    week: Date,
+    ordering: { photo_id: number; order: number }[],
+  ) {
+    return prisma.$transaction(
+      ordering.map((o) =>
+        prisma.weekly_pick.update({
+          where: {
+            week_start_photo_id: { week_start: week, photo_id: o.photo_id },
+          },
+          data: { order: o.order },
+        }),
+      ),
+    );
   }
 }

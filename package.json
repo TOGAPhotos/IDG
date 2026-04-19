@@ -58,6 +58,7 @@
     "mariadb": "^3.5.2",
     "node-schedule": "^2.1.1",
     "pubsub-js": "^1.9.5",
+    "redlock": "^5.0.0-beta.2",
     "sharp": "^0.33.5",
     "tencentcloud-sdk-nodejs-cdn": "^4.1.116",
     "winston": "^3.17.0",

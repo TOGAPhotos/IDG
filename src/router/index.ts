@@ -53,8 +53,9 @@ router.get("/users", Per.isAdminMW, UserHandler.getUserList);
 router.put("/user/:id", UserHandler.update);
 router.delete("/user/:id", Per.isAdminMW, UserHandler.delete);
 
-router.put("/weekly-picks", WeeklyPickHandler.replace);
-// 后续如需收紧权限改为：router.put("/weekly-picks", Per.isSeniorScreenerMW, WeeklyPickHandler.replace);
+router.put("/weekly-picks/:week/order", Per.isAdminMW, WeeklyPickHandler.reorder);
+router.put("/weekly-picks/:week/:photoId", Per.isSeniorScreenerMW, WeeklyPickHandler.upsertItem);
+router.delete("/weekly-picks/:week/:photoId", Per.isSeniorScreenerMW, WeeklyPickHandler.deleteItem);
 
 router.post("/photo", SensitiveAPIWAF, Per.checkUserStatusMW, PhotoHandler.upload);
 router.delete("/photo/recall/:id", PhotoHandler.recall);

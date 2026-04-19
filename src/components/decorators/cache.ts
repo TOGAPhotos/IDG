@@ -1,6 +1,5 @@
 import type { Request, Response } from "express";
 import { HTTP_STATUS } from "../../types/http_code.js";
-import Log from "../loger.js";
 
 interface ResponseCache {
   code: HTTP_STATUS;
@@ -11,12 +10,17 @@ interface ResponseCache {
 
 const URL_CACHE_MAX_SIZE = 500;
 
-export function UrlCache(cacheSeconds: number) {
-  const cache = new Map<string, ResponseCache>();
+const groupRegistry = new Map<string, Map<string, ResponseCache>>();
+
+export function UrlCache(cacheSeconds: number, group?: string) {
+  const cache = group
+    ? groupRegistry.get(group) ??
+      (groupRegistry.set(group, new Map<string, ResponseCache>()).get(group) as Map<string, ResponseCache>)
+    : new Map<string, ResponseCache>();
 
   return function (
-    target: any,
-    propertyKey: string,
+    _target: any,
+    _propertyKey: string,
     descriptor: PropertyDescriptor,
   ) {
     const originalMethod = descriptor.value;
@@ -37,15 +41,17 @@ export function UrlCache(cacheSeconds: number) {
 
       const originalSend = res.send;
       res.send = function (body: any) {
-        if (cache.size >= URL_CACHE_MAX_SIZE) {
-          cache.delete(cache.keys().next().value!);
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          if (cache.size >= URL_CACHE_MAX_SIZE) {
+            cache.delete(cache.keys().next().value!);
+          }
+          cache.set(req.url, {
+            code: res.statusCode,
+            contentType: res.get("content-type"),
+            data: body,
+            time: Date.now(),
+          });
         }
-        cache.set(req.url, {
-          code: res.statusCode,
-          contentType: res.get("content-type"),
-          data: body,
-          time: Date.now(),
-        });
         return originalSend.apply(this, [body]);
       };
       return originalMethod.apply(this, [req, res, ...args]);
@@ -53,4 +59,8 @@ export function UrlCache(cacheSeconds: number) {
 
     return descriptor;
   };
+}
+
+export function invalidateUrlCache(group: string): void {
+  groupRegistry.get(group)?.clear();
 }
