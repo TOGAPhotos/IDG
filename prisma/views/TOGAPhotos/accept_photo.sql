@@ -20,7 +20,8 @@ SELECT
   `TOGAPhotos`.`full_photo_info`.`airport_en` AS `airport_en`,
   `TOGAPhotos`.`full_photo_info`.`airport_icao_code` AS `airport_icao_code`,
   `TOGAPhotos`.`full_photo_info`.`airport_iata_code` AS `airport_iata_code`,
-  `TOGAPhotos`.`full_photo_info`.`exif` AS `exif`
+  `TOGAPhotos`.`full_photo_info`.`exif` AS `exif`,
+  `TOGAPhotos`.`full_photo_info`.`screen_finished_time` AS `screen_finished_time`
 FROM
   `TOGAPhotos`.`full_photo_info`
 WHERE

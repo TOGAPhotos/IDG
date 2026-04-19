@@ -12,3 +12,4 @@ coverage/
 *.hbs.json
 AGENTS.md
 CLAUDE.md
+.claude/

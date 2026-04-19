@@ -167,31 +167,46 @@ model vote_record {
   is_delete   Boolean? @default(false)
 }
 
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model weekly_pick {
+  week_start DateTime @db.Date
+  photo_id   Int
+  order      Int
+  comment    String   @db.Text
+  author     String   @db.VarChar(50)
+  author_id  Int
+  updated_at DateTime @default(now()) @updatedAt
+
+  @@id([week_start, photo_id])
+  @@index([week_start], map: "idx_week")
+}
+
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view accept_photo {
-  id                Int                         @unique @default(0)
-  upload_user_id    Int?
-  storage_status    accept_photo_storage_status @default(WAIT)
-  username          String?                     @db.VarChar(50)
-  ac_type           String?                     @db.VarChar(255)
-  ac_reg            String?                     @db.VarChar(125)
-  ac_msn            String?                     @db.VarChar(100)
-  airline_id        Int?
-  airline_cn        String?                     @db.VarChar(255)
-  airline_en        String?                     @db.VarChar(255)
-  airline_icao_code String?                     @db.VarChar(255)
-  airline_iata_code String?                     @db.VarChar(255)
-  airport_id        Int?
-  pic_type          String?                     @db.VarChar(255)
-  user_remark       String?                     @db.VarChar(256)
-  photo_time        DateTime?                   @db.Date
-  upload_time       BigInt?
-  airport_cn        String?                     @db.VarChar(255)
-  airport_en        String?                     @db.VarChar(255)
-  airport_icao_code String?                     @db.VarChar(127)
-  airport_iata_code String?                     @db.VarChar(127)
-  exif              Json?
+  id                   Int                         @unique @default(0)
+  upload_user_id       Int?
+  storage_status       accept_photo_storage_status @default(WAIT)
+  username             String?                     @db.VarChar(50)
+  ac_type              String?                     @db.VarChar(255)
+  ac_reg               String?                     @db.VarChar(125)
+  ac_msn               String?                     @db.VarChar(100)
+  airline_id           Int?
+  airline_cn           String?                     @db.VarChar(255)
+  airline_en           String?                     @db.VarChar(255)
+  airline_icao_code    String?                     @db.VarChar(255)
+  airline_iata_code    String?                     @db.VarChar(255)
+  airport_id           Int?
+  pic_type             String?                     @db.VarChar(255)
+  user_remark          String?                     @db.VarChar(256)
+  photo_time           DateTime?                   @db.Date
+  upload_time          BigInt?
+  airport_cn           String?                     @db.VarChar(255)
+  airport_en           String?                     @db.VarChar(255)
+  airport_icao_code    String?                     @db.VarChar(127)
+  airport_iata_code    String?                     @db.VarChar(127)
+  exif                 Json?
+  screen_finished_time DateTime?                   @db.Timestamp(0)
 }
 
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
