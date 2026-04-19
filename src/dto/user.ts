@@ -18,7 +18,6 @@ export default class User {
     return prisma.user.update({ where: { id: id }, data: data });
   }
 
-  @checkNumberParams
   static async updatePassword(id: number, password: string) {
     return prisma.user.update({ where: { id }, data: { password } });
   }
@@ -70,7 +69,7 @@ export default class User {
   @safeSQL
   static getByUsername(username: string) {
     return prisma.user.findMany({
-      where: { username:  username },
+      where: { username: username },
     });
   }
 
