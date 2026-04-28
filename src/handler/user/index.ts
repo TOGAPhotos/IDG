@@ -103,7 +103,7 @@ export default class UserHandler {
 
   static async delete(req: Request, res: Response) {
     const id = Number(req.params["id"]);
-    Log.warn(`User delete attempt by:${req.token.id} target:${id}`);
+    Log.warn(`User delete attempt by:${req.token!.id} target:${id}`);
     await User.delete(id);
     Log.info(`User delete success target:${id}`);
     return res.success("删除成功");
@@ -112,35 +112,15 @@ export default class UserHandler {
   static async update(req: Request, res: Response) {
     const id = Number(req.params["id"]);
     const [actionUser, updateUser] = await Promise.all([
-      User.getById(req.token.id),
+      User.getById(req.token!.id),
       User.getById(id),
     ]);
 
     const data = req.body;
 
-    if (Permission.isAdmin(actionUser.role)) {
-      const adminAllowedKeys = [
-        "username",
-        "allow_third_use",
-        "allow_toga_use",
-        "airport_id",
-        "cover_photo_id",
-        "role",
-        "status",
-        "pass_rate",
-        "free_queue",
-        "free_priority_queue",
-      ];
-      const updateKeys = Object.keys(data);
-      for (const key of updateKeys) {
-        if (!adminAllowedKeys.includes(key)) {
-          Log.error(`User update forbidden_field actor:${req.token.id} field:${key}`);
-          return res.fail(HTTP_STATUS.BAD_REQUEST, `不允许更新字段: ${key}`);
-        }
-      }
-    } else {
-      if (id !== req.token.id) {
-        Log.warn(`User unauthorized_update actor:${req.token.id} target:${id}`);
+    if (!Permission.isAdmin(actionUser.role)) {
+      if (id !== req.token!.id) {
+        Log.warn(`User unauthorized_update actor:${req.token!.id} target:${id}`);
         return res.fail(HTTP_STATUS.UNAUTHORIZED, "没有权限");
       }
       const updateKeys = Object.keys(data);
@@ -153,7 +133,7 @@ export default class UserHandler {
       ];
       for (const key of updateKeys) {
         if (!allowedKeys.includes(key)) {
-          Log.error(`User update forbidden_field actor:${req.token.id} field:${key}`);
+          Log.error(`User update forbidden_field actor:${req.token!.id} field:${key}`);
           return res.fail(HTTP_STATUS.BAD_REQUEST, `不允许更新字段: ${key}`);
         }
       }
@@ -162,13 +142,13 @@ export default class UserHandler {
     if (data["username"] && updateUser.username !== data["username"]) {
       const usernameCheck = await User.getByUsername(data["username"]);
       if (usernameCheck.length > 0) {
-        Log.warn(`User update username_exists actor:${req.token.id} target:${id}`);
+        Log.warn(`User update username_exists actor:${req.token!.id} target:${id}`);
         return res.fail(HTTP_STATUS.BAD_REQUEST, "用户名已注册");
       }
     }
 
     await User.updateById(id, data);
-    Log.info(`User update success actor:${req.token.id} target:${id}`);
+    Log.info(`User update success actor:${req.token!.id} target:${id}`);
     return res.success("更新成功");
   }
 
