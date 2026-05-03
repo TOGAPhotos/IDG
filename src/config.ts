@@ -13,14 +13,17 @@ export const CORS_WHITE_LIST = (process.env.CORS_WHITE_LIST || "").split(",").fi
 
 export const REDIS_DB_PASS = process.env.REDIS_DB_PASS || "";
 
-export const TENCENTCLOUD_SECRET_ID = process.env.TENCENTCLOUD_SECRET_ID
-export const TENCENTCLOUD_SECRET_KEY = process.env.TENCENTCLOUD_SECRET_KEY
-export const TENCENTCLOUD_CDN_PKEY = process.env.TENCENTCLOUD_CDN_PKEY
+export const TENCENTCLOUD_SECRET_ID = process.env.TENCENTCLOUD_SECRET_ID || "";
+export const TENCENTCLOUD_SECRET_KEY = process.env.TENCENTCLOUD_SECRET_KEY || "";
+export const TENCENTCLOUD_CDN_PKEY = process.env.TENCENTCLOUD_CDN_PKEY || "";
 
-export const PHOTO_COS_CDN_DOMAIN = process.env.PHOTO_COS_CDN_DOMAIN
+export const PHOTO_COS_CDN_DOMAIN = process.env.PHOTO_COS_CDN_DOMAIN || "";
 
 export const MAINTENANCE_MODE = process.env.MAINTENANCE_MODE === "true";
 export const MAINTENANCE_KEY = process.env.MAINTENANCE_KEY || "";
+
+export const CF_ACCESS_TEAM_DOMAIN = process.env.CF_ACCESS_TEAM_DOMAIN || "";
+export const CF_ACCESS_AUD = process.env.CF_ACCESS_AUD || "";
 
 export const startConsoleStr = `
   _______ ____   _____            _____  _           _            
@@ -50,5 +53,5 @@ export const enum WAF_MODE {
 
 export const WAF_CURRENT_MODE: WAF_MODE =
   process.env.WAF_MODE === "BYPASS" ? WAF_MODE.BYPASS :
-  process.env.WAF_MODE === "MONITOR" ? WAF_MODE.MONITOR :
-  PRODUCTION_ENV ? WAF_MODE.BLOCK : WAF_MODE.MONITOR;
+    process.env.WAF_MODE === "MONITOR" ? WAF_MODE.MONITOR :
+      PRODUCTION_ENV ? WAF_MODE.BLOCK : WAF_MODE.MONITOR;
