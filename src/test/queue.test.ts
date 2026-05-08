@@ -129,5 +129,4 @@ afterAll(async () => {
       },
     });
   }
-  await prisma.$disconnect();
 });

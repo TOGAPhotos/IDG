@@ -1,22 +1,30 @@
 import { describe, it, expect, vi, beforeEach, afterAll } from "vitest";
 import MailTemp from "../service/mail/mailTemp.js";
 
-const SIX_DAYS_MS = 6 * 24 * 60 * 60 * 1000;
+const EIGHT_DAYS_MS = 8 * 24 * 60 * 60 * 1000;
 const TWO_DAYS_MS = 2 * 24 * 60 * 60 * 1000;
+
+const prismaMock = vi.hoisted(() => ({
+  queue_photo: {
+    findMany: vi.fn(),
+  },
+  user: {
+    findMany: vi.fn(),
+  },
+}));
 
 // Control variables for mocked Prisma responses
 let mockQueuePhotos: any[] = [];
 let mockRecipients: any[] = [];
 
-vi.mock("@prisma/client", () => ({
-  PrismaClient: vi.fn().mockImplementation(() => ({
-    queue_photo: {
-      findMany: vi.fn(async () => mockQueuePhotos),
-    },
-    user: {
-      findMany: vi.fn(async () => mockRecipients),
-    },
-  })),
+vi.mock("../lib/prisma.js", () => ({
+  prisma: prismaMock,
+}));
+
+vi.mock("../service/mail/mailTemp.js", () => ({
+  default: {
+    QueueWarning: vi.fn(async () => undefined),
+  },
 }));
 
 // Suppress bell() network calls
@@ -45,6 +53,8 @@ beforeEach(() => {
   mockQueuePhotos = [];
   mockRecipients = [];
   vi.clearAllMocks();
+  prismaMock.queue_photo.findMany.mockImplementation(async () => mockQueuePhotos);
+  prismaMock.user.findMany.mockImplementation(async () => mockRecipients);
   vi.stubGlobal("fetch", vi.fn().mockResolvedValue({ ok: true }));
 });
 
@@ -56,7 +66,7 @@ describe("QueueWarningNotice", () => {
   it("returns early without sending emails when no photos are stale", async () => {
     const queueWarningSpy = vi.spyOn(MailTemp, "QueueWarning");
 
-    // All photos are fresh (2 days old — under the 5-day threshold)
+    // All photos are fresh (2 days old, under the 7-day threshold)
     mockQueuePhotos = [makePhoto(1, TWO_DAYS_MS), makePhoto(2, TWO_DAYS_MS)];
     mockRecipients = [makeRecipient("screener@example.com")];
 
@@ -65,39 +75,45 @@ describe("QueueWarningNotice", () => {
     expect(queueWarningSpy).not.toHaveBeenCalled();
   });
 
-  it("sends email only to admin@togaphotos.com (grayscale) when stale photos exist", async () => {
+  it("sends email to DB recipients plus admin@togaphotos.com when stale photos exist", async () => {
     const queueWarningSpy = vi.spyOn(MailTemp, "QueueWarning");
 
     mockQueuePhotos = [
-      makePhoto(10, SIX_DAYS_MS),
-      makePhoto(11, SIX_DAYS_MS),
+      makePhoto(10, EIGHT_DAYS_MS),
+      makePhoto(11, EIGHT_DAYS_MS),
     ];
     mockRecipients = [
       makeRecipient("screener2@example.com"),
-      makeRecipient("other@example.com"),
+      makeRecipient("db-admin@example.com", "admin"),
     ];
 
     await QueueWarningNotice();
 
-    expect(queueWarningSpy).toHaveBeenCalledTimes(1);
-    expect(queueWarningSpy.mock.calls[0][0]).toBe("admin@togaphotos.com");
-    expect(queueWarningSpy.mock.calls[0][1].count).toBe(2);
-    expect(queueWarningSpy.mock.calls[0][1].photos.map((p: any) => p.id)).toEqual(
-      expect.arrayContaining([10, 11]),
-    );
+    expect(queueWarningSpy).toHaveBeenCalledTimes(3);
+    expect(queueWarningSpy.mock.calls.map(([email]) => email)).toEqual([
+      "screener2@example.com",
+      "db-admin@example.com",
+      "admin@togaphotos.com",
+    ]);
+    for (const [, payload] of queueWarningSpy.mock.calls) {
+      expect(payload.count).toBe(2);
+      expect(payload.photos.map((p: any) => p.id)).toEqual(
+        expect.arrayContaining([10, 11]),
+      );
+    }
   });
 
   it("excludes photos already assigned to screener_1", async () => {
     const queueWarningSpy = vi.spyOn(MailTemp, "QueueWarning");
 
     mockQueuePhotos = [
-      makePhoto(20, SIX_DAYS_MS, null),   // stale, unassigned → included
-      makePhoto(21, SIX_DAYS_MS, 99),     // stale, assigned → filtered out by Prisma query
+      makePhoto(20, EIGHT_DAYS_MS, null),   // stale, unassigned → included
+      makePhoto(21, EIGHT_DAYS_MS, 99),     // stale, assigned → filtered out by Prisma query
     ];
     // Simulate Prisma WHERE screener_1: null by returning only unassigned ones
     // (the real view filter is in the query; here we reflect that in mock data)
-    mockQueuePhotos = [makePhoto(20, SIX_DAYS_MS, null)];
-    mockRecipients = [makeRecipient("screener2@example.com")];
+    mockQueuePhotos = [makePhoto(20, EIGHT_DAYS_MS, null)];
+    mockRecipients = [];
 
     await QueueWarningNotice();
 
@@ -111,10 +127,10 @@ describe("QueueWarningNotice", () => {
 
     // Mix of stale and fresh photos returned from DB (before client-side filter)
     mockQueuePhotos = [
-      makePhoto(30, SIX_DAYS_MS),  // stale
+      makePhoto(30, EIGHT_DAYS_MS),  // stale
       makePhoto(31, TWO_DAYS_MS),  // fresh
     ];
-    mockRecipients = [makeRecipient("screener2@example.com")];
+    mockRecipients = [];
 
     await QueueWarningNotice();
 
@@ -128,7 +144,7 @@ describe("QueueWarningNotice", () => {
 
     const TEN_DAYS_MS = 10 * 24 * 60 * 60 * 1000;
     mockQueuePhotos = [makePhoto(40, TEN_DAYS_MS)];
-    mockRecipients = [makeRecipient("screener2@example.com")];
+    mockRecipients = [];
 
     await QueueWarningNotice();
 
@@ -141,17 +157,17 @@ describe("QueueWarningNotice", () => {
 
     mockQueuePhotos = [
       {
-        ...makePhoto(50, SIX_DAYS_MS),
+        ...makePhoto(50, EIGHT_DAYS_MS),
         airline_cn: null,
         airline_en: "Test Air",
       },
       {
-        ...makePhoto(51, SIX_DAYS_MS),
+        ...makePhoto(51, EIGHT_DAYS_MS),
         airline_cn: null,
         airline_en: null,
       },
     ];
-    mockRecipients = [makeRecipient("screener2@example.com")];
+    mockRecipients = [];
 
     await QueueWarningNotice();
 
@@ -164,8 +180,8 @@ describe("QueueWarningNotice", () => {
     const fetchMock = vi.fn().mockResolvedValue({ ok: true });
     vi.stubGlobal("fetch", fetchMock);
 
-    mockQueuePhotos = [makePhoto(60, SIX_DAYS_MS)];
-    mockRecipients = [makeRecipient("screener2@example.com")];
+    mockQueuePhotos = [makePhoto(60, EIGHT_DAYS_MS)];
+    mockRecipients = [];
 
     await QueueWarningNotice();
 
@@ -178,7 +194,7 @@ describe("QueueWarningNotice", () => {
   it("still sends to admin even when DB recipient list is empty", async () => {
     const queueWarningSpy = vi.spyOn(MailTemp, "QueueWarning");
 
-    mockQueuePhotos = [makePhoto(70, SIX_DAYS_MS)];
+    mockQueuePhotos = [makePhoto(70, EIGHT_DAYS_MS)];
     mockRecipients = [];
 
     await expect(QueueWarningNotice()).resolves.toBeUndefined();
@@ -186,18 +202,32 @@ describe("QueueWarningNotice", () => {
     expect(queueWarningSpy.mock.calls[0][0]).toBe("admin@togaphotos.com");
   });
 
-  it("ignores non-admin recipients — only admin@togaphotos.com receives the email", async () => {
+  it("queries screener/admin users and appends the fixed admin recipient", async () => {
     const queueWarningSpy = vi.spyOn(MailTemp, "QueueWarning");
 
-    mockQueuePhotos = [makePhoto(80, SIX_DAYS_MS)];
+    mockQueuePhotos = [makePhoto(80, EIGHT_DAYS_MS)];
     mockRecipients = [
       makeRecipient("screener2@togaphotos.com"),
-      makeRecipient("another@togaphotos.com"),
+      makeRecipient("db-admin@togaphotos.com", "admin"),
     ];
 
     await QueueWarningNotice();
 
-    expect(queueWarningSpy).toHaveBeenCalledTimes(1);
-    expect(queueWarningSpy.mock.calls[0][0]).toBe("admin@togaphotos.com");
+    expect(prismaMock.user.findMany).toHaveBeenCalledWith({
+      where: {
+        role: { in: ["SCREENER_2", "ADMIN"] },
+        is_deleted: false,
+      },
+      select: {
+        user_email: true,
+        username: true,
+      },
+    });
+    expect(queueWarningSpy).toHaveBeenCalledTimes(3);
+    expect(queueWarningSpy.mock.calls.map(([email]) => email)).toEqual([
+      "screener2@togaphotos.com",
+      "db-admin@togaphotos.com",
+      "admin@togaphotos.com",
+    ]);
   });
 });
