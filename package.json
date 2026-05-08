@@ -11,7 +11,8 @@
     "test": "RUNNING_ENV=DEV vitest --coverage",
     "db": "npx prisma db pull && npx prisma generate",
     "hash": "tsx script/setPassword.ts",
-    "reset-pwd": "tsx script/resetPassword.ts"
+    "reset-pwd": "tsx script/resetPassword.ts",
+    "backfill:observation-logs": "tsx script/backfillObservationLogs.ts"
   },
   "keywords": [],
   "author": "",
