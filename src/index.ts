@@ -4,10 +4,9 @@ import StartHTTPServer from "./server.js";
 
 import "dotenv/config";
 import ErrorHandler from "./components/errorHandler.js";
-import { PRODUCTION_ENV, REDIS_DB_PASS, startConsoleStr } from "./config.js";
+import { startConsoleStr } from "./config.js";
 import RegisterService from "./components/registerService/index.js";
 import { registerScheduleJob } from "./components/schedule.js";
-import { Redis } from "ioredis";
 
 declare global {
   interface BigInt {
@@ -27,14 +26,6 @@ process.on("exit", async (code) => {
   await bell("TOGAPhotos API离线", "退出代码" + code);
   RegisterService.stopAll();
 });
-
-// Clear WAF state from previous run without flushing all Redis data
-const redis = new Redis({ password: REDIS_DB_PASS });
-const wafKeys = await redis.keys("waf:*");
-if (wafKeys.length > 0) {
-  await redis.del(...wafKeys);
-}
-redis.disconnect();
 
 // 启动HTTP服务器
 StartHTTPServer();

@@ -6,7 +6,7 @@ import router from "./router/index.js";
 import Log from "./components/loger.js";
 import Token from "./components/auth/token.js";
 import bell from "./components/bell.js";
-import { CORS_WHITE_LIST, HTTP_PORT, PRODUCTION_ENV, MAINTENANCE_MODE, MAINTENANCE_KEY } from "./config.js";
+import { CORS_WHITE_LIST, HTTP_PORT, PRODUCTION_ENV } from "./config.js";
 import { success, fail } from "./exntend/response.js";
 import { HTTP_STATUS } from "./types/http_code.js";
 import voteSysRouter from "./router/vote.js";
@@ -15,6 +15,7 @@ import servexRouter from "./router/servex.js";
 import logRouter from "./router/log.js";
 import { WAF } from "./components/waf/index.js";
 import { productionOnly } from "./lib/running-time.js";
+import { maintenanceModeMW } from "./middleware/maintenanceMode.js";
 
 const server = express();
 
@@ -35,14 +36,7 @@ server.use(express.json());
 server.response.success = success;
 server.response.fail = fail;
 
-if (MAINTENANCE_MODE) {
-  server.use((req: Request, res: Response, next: NextFunction) => {
-    if (req.headers["x-maintenance-key"] === MAINTENANCE_KEY) {
-      return next();
-    }
-    return res.fail(HTTP_STATUS.SERVICE_UNAVAILABLE, "服务维护中");
-  });
-}
+server.use(maintenanceModeMW);
 
 server.use((req: Request, res: Response, next: NextFunction) => {
   req.userIp = (req.headers["x-forwarded-for"] as string) || req.ip;
