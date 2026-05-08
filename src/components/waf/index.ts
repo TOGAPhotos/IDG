@@ -6,6 +6,7 @@ import { RateLimitRecord, redis } from "./store.js";
 import { rules } from "./rules.js";
 import { denyRequest } from "./action.js";
 import { getWafMode, setWafMode } from "./mode.js";
+import { isLogControlPath } from "../../lib/logControlPath.js";
 
 export { setWafMode };
 
@@ -14,6 +15,10 @@ async function blockIdentifier(id: string) {
 }
 
 async function handleRateLimit(req: Request, res: Response, next: NextFunction, isSensitive: boolean) {
+    if (isLogControlPath(req.path)) {
+        return next();
+    }
+
     if (getWafMode() === WAF_MODE.BYPASS) {
         return next();
     }
