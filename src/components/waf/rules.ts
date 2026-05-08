@@ -10,7 +10,7 @@ const checkHeaders = (req: Request): number => {
             missingHeaders += 1;
         }
     }
-    return missingHeaders * 2;
+    return missingHeaders * WAF_CONFIG.MISSING_HEADER_SCORE;
 }
 
 function isSuspiciousUA(req: Request): number {
