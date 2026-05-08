@@ -13,7 +13,7 @@ export function maintenanceModeMW(req: Request, res: Response, next: NextFunctio
     return next();
   }
 
-  if (req.headers["x-maintenance-key"] === MAINTENANCE_KEY) {
+  if (MAINTENANCE_KEY.length > 0 && req.headers["x-maintenance-key"] === MAINTENANCE_KEY) {
     return next();
   }
 

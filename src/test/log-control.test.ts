@@ -170,6 +170,14 @@ describe.sequential("log control routes", () => {
     expect(normalRes.status).toBe(HTTP_STATUS.SERVICE_UNAVAILABLE);
   });
 
+  it("does not bypass maintenance mode with an empty maintenance key header", async () => {
+    setServiceMode(SERVICE_MODE.MAINTENANCE);
+
+    const res = await request(app).get("/api/v2/website").set("X-Maintenance-Key", "");
+
+    expect(res.status).toBe(HTTP_STATUS.SERVICE_UNAVAILABLE);
+  });
+
   it("allows control routes to switch back to production during maintenance without a maintenance key", async () => {
     stubCloudflareCerts();
     setServiceMode(SERVICE_MODE.MAINTENANCE);

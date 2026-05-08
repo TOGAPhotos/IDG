@@ -29,15 +29,21 @@ function getRequestRisk(req: Request): number {
     return riskLevel;
 }
 
-async function blockRecordIdentifiers(ip: string, shortTid: string | null, ipRecord: RateLimitRecord) {
+async function blockRecordIdentifiers(ip: string, shortTid: string | null, records: RateLimitRecord[]) {
     const identifiers = new Set<string>([ip]);
     if (shortTid) {
         identifiers.add(shortTid);
     }
-    for (const identifier of ipRecord.relatedIdentifiers) {
-        identifiers.add(identifier);
+    for (const record of records) {
+        for (const identifier of record.relatedIdentifiers) {
+            identifiers.add(identifier);
+        }
     }
     await Promise.all(Array.from(identifiers).map(blockIdentifier));
+}
+
+function hasRateLimitExceeded(record: RateLimitRecord, isSensitive: boolean) {
+    return record.totalLimitExceeded || (isSensitive && record.sensitiveLimitExceeded);
 }
 
 async function handleRateLimit(req: Request, res: Response, next: NextFunction, isSensitive: boolean) {
@@ -49,7 +55,7 @@ async function handleRateLimit(req: Request, res: Response, next: NextFunction, 
         return next();
     }
 
-    const ip = req.userIp || req.ip;
+    const ip = (req.userIp || req.ip)!;
     const shortTid = getShortTid(req.tId);
     const alreadyRateLimitChecked = req.rateLimitChecked === true;
     const shouldCountTotal = !alreadyRateLimitChecked;
@@ -68,9 +74,13 @@ async function handleRateLimit(req: Request, res: Response, next: NextFunction, 
 
     if (shortTid) {
         tidRecord = await RateLimitRecord.updateAtomic(shortTid, {
+            addRisk: requestRisk,
             incrementCount: shouldCountTotal,
             incrementSensitive: isSensitive,
             relatedIdentifiers: [ip],
+            applyRateLimitPenalty: true,
+            checkTotalLimit: shouldCountTotal,
+            checkSensitiveLimit: isSensitive,
         });
     }
 
@@ -82,16 +92,18 @@ async function handleRateLimit(req: Request, res: Response, next: NextFunction, 
         return denyRequest(res, next);
     }
 
-    const riskLevel = ipRecord.riskLevel;
-    const limits = getRateLimit(riskLevel);
-    Log.debug(`WAF: Req:${req.userIp}/${req.tId} Count:${ipRecord.count}/${limits.total} SensitiveCount:${ipRecord.sensitiveCount}/${limits.sensitiveAPI} Risk:${riskLevel} TidRisk:${tidRecord?.riskLevel ?? "N/A"}`);
+    const recordsToEnforce = tidRecord ? [ipRecord, tidRecord] : [ipRecord];
+    const riskLevel = Math.max(...recordsToEnforce.map((record) => record.riskLevel));
+    const ipLimits = getRateLimit(ipRecord.riskLevel);
+    const tidLimits = tidRecord ? getRateLimit(tidRecord.riskLevel) : null;
+    Log.debug(`WAF: Req:${req.userIp}/${req.tId} IPCount:${ipRecord.count}/${ipLimits.total} IPSensitiveCount:${ipRecord.sensitiveCount}/${ipLimits.sensitiveAPI} IPRisk:${ipRecord.riskLevel} TidCount:${tidRecord && tidLimits ? `${tidRecord.count}/${tidLimits.total}` : "N/A"} TidSensitiveCount:${tidRecord && tidLimits ? `${tidRecord.sensitiveCount}/${tidLimits.sensitiveAPI}` : "N/A"} TidRisk:${tidRecord?.riskLevel ?? "N/A"}`);
 
     const hardBlockRiskLimit = isSensitive
         ? Math.min(WAF_CONFIG.RISK_LIMIT_BLOCK, WAF_CONFIG.RISK_LIMIT_SENSITIVE_BLOCK)
         : WAF_CONFIG.RISK_LIMIT_BLOCK;
 
     if (riskLevel >= hardBlockRiskLimit) {
-        await blockRecordIdentifiers(ip, shortTid, ipRecord);
+        await blockRecordIdentifiers(ip, shortTid, recordsToEnforce);
 
         Log.warn(`WAF: Blocked IP ${ip} and related identifiers due to high risk level ${riskLevel}`);
 
@@ -102,7 +114,7 @@ async function handleRateLimit(req: Request, res: Response, next: NextFunction, 
         return denyRequest(res, next);
     }
 
-    if (ipRecord.totalLimitExceeded || (isSensitive && ipRecord.sensitiveLimitExceeded)) {
+    if (recordsToEnforce.some((record) => hasRateLimitExceeded(record, isSensitive))) {
         return denyRequest(res, next);
     }
 

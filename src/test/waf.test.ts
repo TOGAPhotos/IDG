@@ -84,7 +84,7 @@ describe("WAF", () => {
         expect(await redis.get("waf:block:127.0.0.1")).toBeNull();
     });
 
-    it("attributes rule risk to the IP record when a trace ID is present", async () => {
+    it("attributes rule risk to the IP and trace ID records when a trace ID is present", async () => {
         await withHeaders(request(app).get("/api/normal"), {
             "User-Agent": "curl/7.64.1",
             "X-Tid": "trace-a-span-1",
@@ -95,8 +95,27 @@ describe("WAF", () => {
 
         expect(ipRecord.riskLevel).toBeGreaterThanOrEqual(WAF_CONFIG.UA_SCORE);
         expect(ipRecord.relatedIdentifiers).toContain("trace");
-        expect(tidRecord.riskLevel).toBe(0);
+        expect(tidRecord.riskLevel).toBeGreaterThanOrEqual(WAF_CONFIG.UA_SCORE);
         expect(tidRecord.relatedIdentifiers).toContain("127.0.0.1");
+    });
+
+    it("enforces total request limits when the same trace ID rotates source IPs", async () => {
+        const limit = WAF_CONFIG.LIMITS.LOW_RISK.total;
+        const statuses: number[] = [];
+
+        for (let i = 0; i < limit + 1; i += 1) {
+            const res = await withHeaders(request(app).get("/api/normal"), {
+                "X-Test-Ip": `10.0.0.${i}`,
+                "X-Tid": "shared-span",
+            });
+            statuses.push(res.status);
+        }
+
+        const tidRecord = parseRecord(await redis.get("waf:record:shared"));
+        expect(statuses).toContain(429);
+        expect(tidRecord.count).toBe(limit + 1);
+        expect(tidRecord.totalLimitExceeded).toBe(true);
+        expect(tidRecord.riskLevel).toBe(WAF_CONFIG.RATE_LIMIT_EXCEEDED_SCORE);
     });
 
     it("accumulates IP risk when the same IP rotates trace IDs", async () => {
