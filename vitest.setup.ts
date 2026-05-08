@@ -2,6 +2,35 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env.development" });
 import { vi } from "vitest";
 
+const TEST_DATABASE_NAME = "TOGAPhotos_Dev";
+
+function getDatabaseName(databaseUrl: string): string {
+  try {
+    const parsed = new URL(databaseUrl);
+    return decodeURIComponent(parsed.pathname.replace(/^\//, ""));
+  } catch {
+    throw new Error(
+      "[test safety] DATABASE_URL is not a valid database URL. Tests are disabled.",
+    );
+  }
+}
+
+function assertSafeTestDatabase() {
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error("[test safety] DATABASE_URL is not configured. Tests are disabled.");
+  }
+
+  const databaseName = getDatabaseName(databaseUrl);
+  if (databaseName !== TEST_DATABASE_NAME) {
+    throw new Error(
+      `[test safety] Refusing to run tests against database "${databaseName || "(empty)"}". Expected "${TEST_DATABASE_NAME}".`,
+    );
+  }
+}
+
+assertSafeTestDatabase();
+
 // align env with test intent
 process.env.RUNNING_ENV = process.env.RUNNING_ENV || "DEV";
 process.env.NODE_ENV = process.env.NODE_ENV || "test";
