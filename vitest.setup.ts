@@ -32,8 +32,7 @@ function assertSafeTestDatabase() {
 assertSafeTestDatabase();
 
 // align env with test intent
-process.env.RUNNING_ENV = process.env.RUNNING_ENV || "DEV";
-process.env.NODE_ENV = process.env.NODE_ENV || "test";
+process.env.NODE_ENV = "test";
 
 // mimic production boot behavior for BigInt serialization
 // so Prisma results with BigInt can be JSON stringified in responses

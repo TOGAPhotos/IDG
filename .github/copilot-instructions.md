@@ -37,7 +37,7 @@ This project is a TypeScript/Node.js backend using Express and Prisma.
 
 - **Framework**: Vitest.
 - **Location**: `src/test/` or `*.test.ts`.
-- **Command**: `npm run test` (runs with `RUNNING_ENV=DEV`).
+- **Command**: `npm run test` (runs with `NODE_ENV=test`).
 
 ## Development Workflow
 

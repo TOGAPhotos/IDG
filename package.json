@@ -8,7 +8,7 @@
     "build": "tsc",
     "start": "node ./dist/index.js",
     "dev": "tsx watch src/index.ts --env-file=.env.development --clear-screen=false",
-    "test": "RUNNING_ENV=development vitest run --coverage",
+    "test": "NODE_ENV=test vitest run --coverage",
     "db": "npx prisma db pull && npx prisma generate",
     "hash": "tsx script/setPassword.ts",
     "reset-pwd": "tsx script/resetPassword.ts"

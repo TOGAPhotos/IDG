@@ -1,9 +1,10 @@
 const env = require('dotenv').config({path:'./.env'});
+const nodeEnv = env.parsed?.NODE_ENV || 'development';
 
 module.exports = {
   apps: [
     {
-      name: `toga-${process.env.RUNNING_ENV || 'development'}`,
+      name: `toga-${nodeEnv}`,
       script: "./dist/index.js",
       autorestart: true,
       exec_mode: "fork",

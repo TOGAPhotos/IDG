@@ -1,7 +1,45 @@
 import "dotenv/config";
 
-export const PRODUCTION_ENV =
-  (process.env.RUNNING_ENV || "PRODUCTION") === "PRODUCTION";
+export const NODE_ENV = (process.env.NODE_ENV ?? "development").trim().toLowerCase();
+
+export const PRODUCTION_ENV = NODE_ENV === "production";
+
+export const DEVELOPMENT_ENV = NODE_ENV === "development";
+
+const DEVELOPMENT_DATABASE_SUFFIX = "_Dev";
+
+function getDatabaseName(databaseUrl: string): string {
+  try {
+    const parsed = new URL(databaseUrl);
+    return decodeURIComponent(parsed.pathname.replace(/^\//, ""));
+  } catch {
+    throw new Error(
+      "[startup safety] DATABASE_URL is not a valid database URL. Refusing to start in development.",
+    );
+  }
+}
+
+function assertSafeDevelopmentDatabase() {
+  if (!DEVELOPMENT_ENV) {
+    return;
+  }
+
+  const databaseUrl = process.env.DATABASE_URL;
+  if (!databaseUrl) {
+    throw new Error(
+      "[startup safety] DATABASE_URL is not configured. Refusing to start in development.",
+    );
+  }
+
+  const databaseName = getDatabaseName(databaseUrl);
+  if (!databaseName.endsWith(DEVELOPMENT_DATABASE_SUFFIX)) {
+    throw new Error(
+      `[startup safety] Refusing to start development server against database "${databaseName || "(empty)"}". Expected a database name ending with "${DEVELOPMENT_DATABASE_SUFFIX}".`,
+    );
+  }
+}
+
+assertSafeDevelopmentDatabase();
 
 export const HTTP_PORT = Number(process.env.HTTP_PORT);
 
