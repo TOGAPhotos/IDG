@@ -14,7 +14,6 @@ CREATE TABLE `observation_log` (
     `ac_msn` VARCHAR(100) NULL,
     `ac_type` VARCHAR(255) NULL,
     `pic_type` VARCHAR(255) NULL,
-    `title` VARCHAR(120) NULL,
     `location_text` VARCHAR(255) NULL,
     `note` TEXT NULL,
     `exif` JSON NULL,

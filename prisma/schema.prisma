@@ -99,7 +99,7 @@ model photo {
   airline_id           Int?
   pic_type             String?               @db.VarChar(255)
   user_remark          String?               @db.VarChar(256)
-  upload_time          BigInt?
+  upload_time          BigInt
   exif                 Json?
   photo_time           DateTime?             @db.Date
   update_time          DateTime?             @default(now()) @db.DateTime(0)
@@ -196,7 +196,6 @@ model observation_log {
   ac_msn          String?   @db.VarChar(100)
   ac_type         String?   @db.VarChar(255)
   pic_type        String?   @db.VarChar(255)
-  title           String?   @db.VarChar(120)
   location_text   String?   @db.VarChar(255)
   note            String?   @db.Text
   exif            Json?
@@ -312,7 +311,7 @@ view accept_photo {
   pic_type             String?                      @db.VarChar(255)
   user_remark          String?                      @db.VarChar(256)
   photo_time           DateTime?                    @db.Date
-  upload_time          BigInt?
+  upload_time          BigInt
   airport_cn           String?                      @db.VarChar(255)
   airport_en           String?                      @db.VarChar(255)
   airport_icao_code    String?                      @db.VarChar(127)
@@ -347,7 +346,7 @@ view full_photo_info {
   user_remark          String?                         @db.VarChar(256)
   photo_time           DateTime?                       @db.Date
   exif                 Json?
-  upload_time          BigInt?
+  upload_time          BigInt
   screen_finished_time DateTime?                       @db.Timestamp(0)
   notify               Boolean?                        @default(false)
   airport_cn           String?                         @db.VarChar(255)
@@ -385,11 +384,51 @@ view queue_photo {
   pic_type          String?   @db.VarChar(255)
   user_remark       String?   @db.VarChar(256)
   photo_time        DateTime? @db.Date
-  upload_time       BigInt?
+  upload_time       BigInt
   airport_cn        String?   @db.VarChar(255)
   airport_en        String?   @db.VarChar(255)
   airport_icao_code String?   @db.VarChar(127)
   airport_iata_code String?   @db.VarChar(127)
+}
+
+view observation_log_info {
+  id                  Int       @default(0)
+  user_id             Int
+  visibility          String    @default("PRIVATE") @db.VarChar(16)
+  source              String    @default("MANUAL") @db.VarChar(32)
+  source_photo_id     Int?
+  queued_photo_id     Int?
+  observed_at         DateTime  @db.DateTime(0)
+  observed_date       DateTime? @db.Date
+  airport_id          Int?
+  airline_id          Int?
+  ac_reg              String?   @db.VarChar(125)
+  ac_msn              String?   @db.VarChar(100)
+  ac_type             String?   @db.VarChar(255)
+  pic_type            String?   @db.VarChar(255)
+  location_text       String?   @db.VarChar(255)
+  note                String?   @db.Text
+  exif                Json?
+  pending_info        Json?
+  metadata            Json?
+  image_raw_key       String?   @db.VarChar(255)
+  image_key           String?   @db.VarChar(255)
+  image_status        String    @default("NONE") @db.VarChar(16)
+  image_width         Int?
+  image_height        Int?
+  image_size          Int?
+  created_at          DateTime  @default(now()) @db.DateTime(0)
+  updated_at          DateTime  @default(now()) @db.DateTime(0)
+  deleted_at          DateTime? @db.DateTime(0)
+  queued_photo_status String?   @default("WAIT SCREEN") @db.VarChar(63)
+  airport_cn          String?   @db.VarChar(255)
+  airport_en          String?   @db.VarChar(255)
+  airport_icao_code   String?   @db.VarChar(127)
+  airport_iata_code   String?   @db.VarChar(127)
+  airline_cn          String?   @db.VarChar(255)
+  airline_en          String?   @db.VarChar(255)
+  airline_icao_code   String?   @db.VarChar(255)
+  airline_iata_code   String?   @db.VarChar(255)
 }
 
 enum vote_list_type {

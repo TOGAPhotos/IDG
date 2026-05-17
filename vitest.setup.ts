@@ -2,8 +2,6 @@ import dotenv from "dotenv";
 dotenv.config({ path: ".env.development" });
 import { vi } from "vitest";
 
-// align env with test intent
-process.env.RUNNING_ENV = process.env.RUNNING_ENV || "DEV";
 process.env.NODE_ENV = process.env.NODE_ENV || "test";
 
 // mimic production boot behavior for BigInt serialization
