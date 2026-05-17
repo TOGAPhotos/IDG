@@ -143,7 +143,11 @@ export default class AircraftInfoSubmission {
     if (rows[0]) {
       await prisma.$executeRawUnsafe(
         `UPDATE aircraft
-         SET msn = ?, ln = ?, airline_id = ?, air_type = ?, remark = ?
+         SET msn = COALESCE(NULLIF(?, ''), msn),
+             ln = COALESCE(NULLIF(?, ''), ln),
+             airline_id = COALESCE(?, airline_id),
+             air_type = COALESCE(NULLIF(?, ''), air_type),
+             remark = COALESCE(NULLIF(?, ''), remark)
          WHERE id = ?`,
         submission.msn,
         submission.ln,

@@ -84,6 +84,13 @@ type QueryBuildState = {
   nodeCount: number;
 };
 
+type SearchOrder = {
+  field: string;
+  column: string;
+  direction: "ASC" | "DESC";
+  orderBy: string;
+};
+
 class ObservationLogValidationError extends Error {}
 
 const VALID_VISIBILITIES = new Set(["PRIVATE", "PUBLIC"]);
@@ -753,27 +760,28 @@ function normalizeCustomValue(type: FieldType, value: unknown) {
   return value === undefined || value === null ? null : String(value);
 }
 
-function buildSearchOrder(sort?: any) {
-  const columns: Record<string, string> = {
-    id: "l.id",
-    observedAt: "l.observed_at",
-    createdAt: "l.created_at",
-    updatedAt: "l.updated_at",
-    airportId: "l.airport_id",
-    airlineId: "l.airline_id",
-    acReg: "l.ac_reg",
-    acMsn: "l.ac_msn",
-    acType: "l.ac_type",
-    picType: "l.pic_type",
-    source: "l.source",
-    imageStatus: "l.image_status",
-    queuedPhotoStatus: "l.queued_photo_status",
-  };
+const SEARCH_ORDER_COLUMNS: Record<string, string> = {
+  id: "l.id",
+  observedAt: "l.observed_at",
+  createdAt: "l.created_at",
+  updatedAt: "l.updated_at",
+  airportId: "l.airport_id",
+  airlineId: "l.airline_id",
+  acReg: "l.ac_reg",
+  acMsn: "l.ac_msn",
+  acType: "l.ac_type",
+  picType: "l.pic_type",
+  source: "l.source",
+  imageStatus: "l.image_status",
+  queuedPhotoStatus: "l.queued_photo_status",
+};
+
+function resolveSearchOrder(sort?: any): SearchOrder {
   if (sort !== undefined && sort !== null && !isPlainObject(sort)) {
     throw new ObservationLogValidationError("sort 必须是对象");
   }
   const field = String(sort?.field || "observedAt");
-  const column = columns[field];
+  const column = SEARCH_ORDER_COLUMNS[field];
   if (!column) {
     throw new ObservationLogValidationError(`不支持的排序字段: ${field}`);
   }
@@ -782,9 +790,54 @@ function buildSearchOrder(sort?: any) {
     throw new ObservationLogValidationError("排序方向必须是 asc 或 desc");
   }
   const direction = directionInput === "asc" ? "ASC" : "DESC";
-  return field === "id"
+  const orderBy = field === "id"
     ? `${column} ${direction}`
     : `${column} ${direction}, l.id ${direction}`;
+  return { field, column, direction, orderBy };
+}
+
+async function appendCursorCondition(
+  values: unknown[],
+  userId: number,
+  lastId: number,
+  order: SearchOrder,
+) {
+  if (lastId === -1) return "";
+  const idComparator = order.direction === "ASC" ? ">" : "<";
+  if (order.field === "id") {
+    values.push(lastId);
+    return `AND l.id ${idComparator} ?`;
+  }
+
+  const cursorRows = await prisma.$queryRawUnsafe<{ sort_value: unknown }[]>(
+    `SELECT ${order.column} AS sort_value
+     ${LOG_FROM}
+     WHERE l.user_id = ? AND l.deleted_at IS NULL AND l.id = ?
+     LIMIT 1`,
+    userId,
+    lastId,
+  );
+  const cursor = cursorRows[0];
+  if (!cursor) {
+    values.push(lastId);
+    return `AND l.id ${idComparator} ?`;
+  }
+
+  const sortValue = cursor.sort_value;
+  if (sortValue === null || sortValue === undefined) {
+    values.push(lastId);
+    if (order.direction === "ASC") {
+      return `AND ((${order.column} IS NULL AND l.id ${idComparator} ?) OR ${order.column} IS NOT NULL)`;
+    }
+    return `AND (${order.column} IS NULL AND l.id ${idComparator} ?)`;
+  }
+
+  const valueComparator = order.direction === "ASC" ? ">" : "<";
+  values.push(sortValue, sortValue, lastId);
+  if (order.direction === "DESC") {
+    return `AND (${order.column} ${valueComparator} ? OR ${order.column} IS NULL OR (${order.column} <=> ? AND l.id ${idComparator} ?))`;
+  }
+  return `AND (${order.column} ${valueComparator} ? OR (${order.column} <=> ? AND l.id ${idComparator} ?))`;
 }
 
 export default class ObservationLog {
@@ -846,17 +899,14 @@ export default class ObservationLog {
 
   static async list(userId: number, lastId = -1, take = 20) {
     const values: unknown[] = [userId];
-    let cursor = "";
-    if (lastId !== -1) {
-      cursor = "AND l.id < ?";
-      values.push(lastId);
-    }
+    const order = resolveSearchOrder();
+    const cursor = await appendCursorCondition(values, userId, lastId, order);
     values.push(Math.min(Math.max(take, 1), 100));
     const rows = await prisma.$queryRawUnsafe<ObservationLogRow[]>(
       `SELECT ${LOG_SELECT}
        ${LOG_FROM}
        WHERE l.user_id = ? AND l.deleted_at IS NULL ${cursor}
-       ORDER BY l.observed_at DESC, l.id DESC
+       ORDER BY ${order.orderBy}
        LIMIT ?`,
       ...values,
     );
@@ -978,16 +1028,15 @@ export default class ObservationLog {
     }
     const values: unknown[] = [userId];
     const filter = buildSearchWhere(body.where, values);
+    const order = resolveSearchOrder(body.sort);
     const take = Math.min(Math.max(Number(body.take || 20), 1), 100);
+    let cursor = "";
     if (hasOwn(body, "lastId") && body.lastId !== null && body.lastId !== undefined) {
       const lastId = Number(body.lastId);
       if (!Number.isFinite(lastId)) {
         throw new ObservationLogValidationError("lastId 无效");
       }
-      if (lastId !== -1) {
-        filter.sql += " AND l.id < ?";
-        filter.values.push(lastId);
-      }
+      cursor = await appendCursorCondition(filter.values, userId, lastId, order);
     }
     if (!Number.isFinite(take)) {
       throw new ObservationLogValidationError("take 无效");
@@ -996,8 +1045,8 @@ export default class ObservationLog {
     const rows = await prisma.$queryRawUnsafe<ObservationLogRow[]>(
       `SELECT ${LOG_SELECT}
        ${LOG_FROM}
-       WHERE l.user_id = ? AND ${filter.sql}
-       ORDER BY ${buildSearchOrder(body.sort)}
+       WHERE l.user_id = ? AND ${filter.sql} ${cursor}
+       ORDER BY ${order.orderBy}
        LIMIT ?`,
       ...filter.values,
     );

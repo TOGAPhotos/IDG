@@ -17,11 +17,13 @@ vi.mock("../lib/prisma.js", () => ({
 const { default: ObservationLog } = await import("../dto/observationLog.js");
 
 function sql() {
-  return String(prismaMock.queryRawUnsafe.mock.calls[0][0]).replace(/\s+/g, " ");
+  const calls = prismaMock.queryRawUnsafe.mock.calls;
+  return String(calls[calls.length - 1][0]).replace(/\s+/g, " ");
 }
 
 function args() {
-  return prismaMock.queryRawUnsafe.mock.calls[0].slice(1);
+  const calls = prismaMock.queryRawUnsafe.mock.calls;
+  return calls[calls.length - 1].slice(1);
 }
 
 describe("ObservationLog.search", () => {
@@ -33,6 +35,11 @@ describe("ObservationLog.search", () => {
   });
 
   it("builds nested where queries with tags, custom fields, cursor, and sort", async () => {
+    const cursorDate = new Date("2026-05-10T12:00:00.000Z");
+    prismaMock.queryRawUnsafe
+      .mockResolvedValueOnce([{ sort_value: cursorDate }])
+      .mockResolvedValueOnce([]);
+
     await ObservationLog.search(42, {
       where: {
         and: [
@@ -53,7 +60,10 @@ describe("ObservationLog.search", () => {
       lastId: 500,
     });
 
-    expect(prismaMock.queryRawUnsafe).toHaveBeenCalledTimes(1);
+    expect(prismaMock.queryRawUnsafe).toHaveBeenCalledTimes(2);
+    expect(String(prismaMock.queryRawUnsafe.mock.calls[0][0]).replace(/\s+/g, " "))
+      .toContain("SELECT l.observed_at AS sort_value FROM observation_log_info l");
+    expect(prismaMock.queryRawUnsafe.mock.calls[0].slice(1)).toEqual([42, 500]);
     expect(sql()).toContain("FROM observation_log_info l");
     expect(sql()).toContain("WHERE l.user_id = ? AND l.deleted_at IS NULL");
     expect(sql()).toContain("l.observed_at BETWEEN ? AND ?");
@@ -62,7 +72,9 @@ describe("ObservationLog.search", () => {
     expect(sql()).toContain("GROUP BY tl.log_id HAVING COUNT(DISTINCT t.name) = ?");
     expect(sql()).toContain("fv.field_id = ? AND fv.number_value >= ?");
     expect(sql()).toContain("NOT (l.image_status = ?)");
-    expect(sql()).toContain("l.id < ?");
+    expect(sql()).toContain("l.observed_at < ?");
+    expect(sql()).toContain("l.observed_at IS NULL");
+    expect(sql()).toContain("l.observed_at <=> ? AND l.id < ?");
     expect(sql()).toContain("ORDER BY l.observed_at DESC, l.id DESC LIMIT ?");
     expect(args()[0]).toBe(42);
     expect(args()[1]).toBeInstanceOf(Date);
@@ -77,9 +89,27 @@ describe("ObservationLog.search", () => {
       7,
       1000,
       "ERROR",
+      cursorDate,
       500,
       50,
     ]));
+  });
+
+  it("uses observedAt and id together for default list pagination", async () => {
+    const cursorDate = new Date("2026-05-10T12:00:00.000Z");
+    prismaMock.queryRawUnsafe
+      .mockResolvedValueOnce([{ sort_value: cursorDate }])
+      .mockResolvedValueOnce([]);
+
+    await ObservationLog.list(8, 123, 20);
+
+    expect(prismaMock.queryRawUnsafe).toHaveBeenCalledTimes(2);
+    expect(String(prismaMock.queryRawUnsafe.mock.calls[0][0]).replace(/\s+/g, " "))
+      .toContain("SELECT l.observed_at AS sort_value FROM observation_log_info l");
+    expect(prismaMock.queryRawUnsafe.mock.calls[0].slice(1)).toEqual([8, 123]);
+    expect(sql()).toContain("WHERE l.user_id = ? AND l.deleted_at IS NULL AND (l.observed_at < ? OR l.observed_at IS NULL OR (l.observed_at <=> ? AND l.id < ?))");
+    expect(sql()).toContain("ORDER BY l.observed_at DESC, l.id DESC LIMIT ?");
+    expect(args()).toEqual([8, cursorDate, cursorDate, 123, 20]);
   });
 
   it("allows an empty where object and caps take at 100", async () => {

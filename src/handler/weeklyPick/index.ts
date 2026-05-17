@@ -58,8 +58,10 @@ export default class WeeklyPickHandler {
   static async getList(req: Request, res: Response) {
     let week: Date | null;
     if (!req.query["week"]) {
-      week = new Date(Date.now() + 8 * 60 * 60 * 1000);
-      week.setUTCHours(0, 0, 0, 0);
+      week = await WeeklyPick.getLatestWeek();
+      if (!week) {
+        return res.success("查询成功", []);
+      }
     } else {
       week = parseWeek(req.query["week"]);
       if (!week) return res.fail(HTTP_STATUS.BAD_REQUEST, "week 必须为周一的 YYYY-MM-DD(东八区)");
