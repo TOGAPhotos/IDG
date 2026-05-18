@@ -1,14 +1,11 @@
-import { Redis } from "ioredis";
-import { REDIS_DB } from "./distribute.js";
-import { REDIS_DB_PASS } from "../../config.js";
+import type { Redis } from "ioredis";
+
+import { createRedis, REDIS_LOGICAL_DB } from "./client.js";
 
 export class UploadQueueCache {
   private conn: Redis;
   constructor() {
-    this.conn = new Redis({
-      db: 0,
-      password: REDIS_DB_PASS,
-    });
+    this.conn = createRedis(REDIS_LOGICAL_DB.STATE);
   }
 
   private genKey(queueId: number) {

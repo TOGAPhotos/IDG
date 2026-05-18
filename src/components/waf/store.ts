@@ -1,11 +1,8 @@
-import { Redis } from "ioredis";
-import { REDIS_DB_PASS } from "../../config.js";
+import { createRedis, REDIS_LOGICAL_DB } from "../../service/redis/client.js";
 import { WAF_CONFIG } from "./config.js";
 import Log from "../loger.js";
 
-export const redis = new Redis({
-    password: REDIS_DB_PASS || undefined
-});
+export const redis = createRedis(REDIS_LOGICAL_DB.STATE);
 
 const WAF_RECORD_UPDATE_SCRIPT = `
 local key = KEYS[1]

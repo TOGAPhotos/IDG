@@ -1,9 +1,8 @@
-import { Redis } from "ioredis";
 import Redlock, { ExecutionError, ResourceLockedError, type RedlockAbortSignal } from "redlock";
 
-import { REDIS_DB_PASS } from "../../config.js";
+import { createRedis, REDIS_LOGICAL_DB } from "./client.js";
 
-const redis = new Redis({ db: 0, password: REDIS_DB_PASS });
+const redis = createRedis(REDIS_LOGICAL_DB.STATE);
 
 const redlock = new Redlock([redis], {
   retryCount: 3,

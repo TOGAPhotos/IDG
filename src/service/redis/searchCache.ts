@@ -1,12 +1,13 @@
-import { Redis } from "ioredis";
-import { REDIS_DB_PASS } from "../../config.js";
+import type { Redis } from "ioredis";
+
+import { createRedis, REDIS_LOGICAL_DB } from "./client.js";
 
 export default class SearchCache {
   private conn: Redis;
   private prefix: string;
 
   constructor(prefix: string) {
-    this.conn = new Redis({ db: 1, password: REDIS_DB_PASS });
+    this.conn = createRedis(REDIS_LOGICAL_DB.SEARCH_CACHE);
     this.prefix = prefix;
   }
 

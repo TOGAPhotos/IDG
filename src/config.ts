@@ -49,6 +49,7 @@ export const BELL_URL = process.env.BELL_URL;
 
 export const CORS_WHITE_LIST = (process.env.CORS_WHITE_LIST || "").split(",").filter(Boolean);
 
+export const REDIS_URL = process.env.REDIS_URL?.trim() || "";
 export const REDIS_DB_PASS = process.env.REDIS_DB_PASS || "";
 
 export const TENCENTCLOUD_SECRET_ID = process.env.TENCENTCLOUD_SECRET_ID || "";
