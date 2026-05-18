@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-export const NODE_ENV = (process.env.NODE_ENV ?? "development").trim().toLowerCase();
+export const NODE_ENV = (process.env.NODE_ENV ?? "production").trim().toLowerCase();
 
 export const PRODUCTION_ENV = NODE_ENV === "production";
 
