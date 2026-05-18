@@ -1,18 +1,21 @@
 import "dotenv/config";
 
-export const NODE_ENV = (process.env.NODE_ENV ?? "production").trim().toLowerCase();
+export const NODE_ENV = (process.env.NODE_ENV ?? "development").trim().toLowerCase();
+
 export const PRODUCTION_ENV = NODE_ENV === "production";
+
 export const DEVELOPMENT_ENV = NODE_ENV === "development";
-export const TEST_ENV = NODE_ENV === "test";
 
 const DEVELOPMENT_DATABASE_SUFFIX = "_Dev";
 
-function getDatabaseName(databaseUrl: string) {
+function getDatabaseName(databaseUrl: string): string {
   try {
     const parsed = new URL(databaseUrl);
     return decodeURIComponent(parsed.pathname.replace(/^\//, ""));
   } catch {
-    throw new Error("[startup safety] DATABASE_URL is not a valid database URL. Refusing to start in development.");
+    throw new Error(
+      "[startup safety] DATABASE_URL is not a valid database URL. Refusing to start in development.",
+    );
   }
 }
 
@@ -23,12 +26,16 @@ function assertSafeDevelopmentDatabase() {
 
   const databaseUrl = process.env.DATABASE_URL;
   if (!databaseUrl) {
-    throw new Error("[startup safety] DATABASE_URL is not configured. Refusing to start in development.");
+    throw new Error(
+      "[startup safety] DATABASE_URL is not configured. Refusing to start in development.",
+    );
   }
 
   const databaseName = getDatabaseName(databaseUrl);
   if (!databaseName.endsWith(DEVELOPMENT_DATABASE_SUFFIX)) {
-    throw new Error(`[startup safety] Refusing to start development server against database "${databaseName || "(empty)"}". Expected a database name ending with "${DEVELOPMENT_DATABASE_SUFFIX}".`);
+    throw new Error(
+      `[startup safety] Refusing to start development server against database "${databaseName || "(empty)"}". Expected a database name ending with "${DEVELOPMENT_DATABASE_SUFFIX}".`,
+    );
   }
 }
 
@@ -51,9 +58,11 @@ export const TENCENTCLOUD_CDN_PKEY = process.env.TENCENTCLOUD_CDN_PKEY || "";
 export const PHOTO_COS_DOMAIN = process.env.PHOTO_COS_DOMAIN || "";
 export const PHOTO_COS_CDN_DOMAIN = process.env.PHOTO_COS_CDN_DOMAIN || "";
 
-
 export const MAINTENANCE_MODE = process.env.MAINTENANCE_MODE === "true";
 export const MAINTENANCE_KEY = process.env.MAINTENANCE_KEY || "";
+
+export const CF_ACCESS_TEAM_DOMAIN = process.env.CF_ACCESS_TEAM_DOMAIN || "";
+export const CF_ACCESS_AUD = process.env.CF_ACCESS_AUD || "";
 
 export const startConsoleStr = `
   _______ ____   _____            _____  _           _            

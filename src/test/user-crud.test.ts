@@ -121,5 +121,4 @@ afterAll(async () => {
       data: { is_deleted: true, username: `${baseUsername}_archived`, user_email: `${uniqueSuffix}-user@archived` },
     });
   }
-  await prisma.$disconnect();
 });

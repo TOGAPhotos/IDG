@@ -1,8 +1,18 @@
 declare namespace Express {
   export interface Request {
-    userIp?: string;
+    userIp: string;
     token?: { id: number } | null;
     role?: string;
+    cfAccess?: {
+      sub?: string;
+      email?: string;
+      type?: string;
+      identityNonce?: string;
+      aud?: string | string[];
+      issuer?: string;
+      expiresAt?: number;
+      issuedAt?: number;
+    };
     tId: string;
     ua: string;
     rateLimitChecked?: boolean;

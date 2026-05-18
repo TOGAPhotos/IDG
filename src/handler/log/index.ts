@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { addLogClient } from "../../components/logStream.js";
+import Log from "../../components/loger.js";
 
 export default class LogStreamHandler {
   public static async stream(req: Request, res: Response) {
@@ -10,7 +11,9 @@ export default class LogStreamHandler {
     // Disable nginx proxy buffering if present
     res.setHeader("X-Accel-Buffering", "no");
 
+    Log.info(
+      `Log stream connected via Cloudflare Access email:${req.cfAccess?.email || "UNKNOWN"} sub:${req.cfAccess?.sub || "UNKNOWN"}`,
+    );
     addLogClient(res);
   }
 }
-

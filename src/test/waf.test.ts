@@ -1,205 +1,228 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import request from 'supertest';
-import express, { Express, Request, Response, NextFunction } from 'express';
-import { WAF, SensitiveAPIWAF } from '../components/waf/index.js';
-import { redis, RateLimitRecord } from '../components/waf/store.js';
-import { WAF_CONFIG } from '../components/waf/config.js';
-import { success, fail } from '../exntend/response.js';
-import Log from '@/components/loger.js';
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import request from "supertest";
+import express, { Express, NextFunction, Request, Response } from "express";
+import { WAF_MODE } from "../config.js";
+import { WAF, SensitiveAPIWAF, setWafMode } from "../components/waf/index.js";
+import { redis, RateLimitRecord } from "../components/waf/store.js";
+import { WAF_CONFIG } from "../components/waf/config.js";
+import { success, fail } from "../exntend/response.js";
 
+const browserHeaders = {
+    "User-Agent": "Mozilla/5.0",
+    Accept: "application/json",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    Referer: "https://example.com/",
+    "Content-Type": "application/json",
+    "Sec-Fetch-Site": "same-origin",
+};
 
-vi.mock('ioredis', async () => {
-    const redis = await import('ioredis');
-    return {
-        ...redis,
+function withHeaders(req: request.Test, headers: Record<string, string> = {}) {
+    const merged = { ...browserHeaders, ...headers };
+    for (const [key, value] of Object.entries(merged)) {
+        req.set(key, value);
     }
-});
+    return req;
+}
 
-// Mock the main config to ensure WAF is enabled
-vi.mock('../config.js', async (importOriginal) => {
-    const actual = await importOriginal<typeof import('../config.js')>();
-    return {
-        ...actual,
-        WAF_CURRENT_MODE: 'BLOCK', // Ensure we are not in BYPASS
-        WAF_MODE: { BYPASS: 'BYPASS', BLOCK: 'BLOCK' },
-        LEGAL_REQ_HEADERS: ['user-agent'], // Simplified for testing
-        BACK_LIST_UA_REGEX: /curl|wget/i,
-    };
-});
+function parseRecord(data: string | null) {
+    expect(data).not.toBeNull();
+    return JSON.parse(data!);
+}
 
-describe('WAF', () => {
+function createApp() {
+    const app = express();
+    app.response.success = success;
+    app.response.fail = fail;
+
+    app.use((req: Request, _res: Response, next: NextFunction) => {
+        req.userIp = (req.headers["x-test-ip"] as string) || "127.0.0.1";
+        req.tId = (req.headers["x-tid"] as string) || "test-trace-id";
+        req.ua = req.headers["user-agent"] || "";
+        next();
+    });
+
+    app.use(WAF);
+    app.get("/api/normal", (_req: Request, res: Response) => {
+        res.status(200).json({ message: "ok" });
+    });
+    app.get("/api/sensitive", SensitiveAPIWAF, (_req: Request, res: Response) => {
+        res.status(200).json({ message: "ok" });
+    });
+
+    return app;
+}
+
+describe("WAF", () => {
     let app: Express;
 
     beforeEach(async () => {
-        vi.clearAllMocks();
+        setWafMode(WAF_MODE.BLOCK);
         await redis.flushdb();
-
-        app = express();
-
-        app.response.success = success;
-        app.response.fail = fail;
-
-        // Middleware to simulate IDG context
-        app.use((req: Request, res: Response, next: NextFunction) => {
-            req.userIp = '127.0.0.1';
-            req.tId = 'test-trace-id';
-            next();
-        });
-
-        app.use(WAF);
-        app.get('/api/normal', (req: Request, res: Response) => {
-            res.status(200).json({ message: 'ok' });
-        });
-
-        app.get('/api/sensitive', SensitiveAPIWAF, (req: Request, res: Response) => {
-            res.status(200).json({ message: 'ok' });
-        });
+        app = createApp();
     });
 
-    it('Basic test: Allow normal requests under limit', async () => {
-        const res = await request(app)
-            .get('/api/normal')
-            .set('User-Agent', 'Mozilla/5.0');
+    afterEach(() => {
+        setWafMode(WAF_MODE.MONITOR);
+    });
+
+    it("allows normal requests under the low-risk limit", async () => {
+        const res = await withHeaders(request(app).get("/api/normal"));
 
         expect(res.status).toBe(200);
-    }, { timeout: 100 });
-
-
-    it('Basic test: Reaction with suspicious User-Agent', async () => {
-        // First request with bad UA
-        await request(app)
-            .get('/api/normal')
-            .set('User-Agent', 'curl/7.64.1');
-
-        // Check if record was saved with risk
-        const recordKey = 'waf:record:test';
-        const recordStr = await redis.get(recordKey);
-        expect(recordStr).toBeDefined();
-        const record = JSON.parse(recordStr!);
-        Log.info(recordStr!);
-        expect(record.riskLevel).toBeGreaterThan(0);
-        expect(record.riskLevel).toBeGreaterThanOrEqual(WAF_CONFIG.UA_SCORE);
     });
 
-    it('Block test: exceed rate limit for low risk', async () => {
+    it("does not escalate a missing trace ID into an immediate block", async () => {
+        const res = await withHeaders(request(app).get("/api/normal"), {
+            "X-Tid": "NO_TRACE_ID",
+        });
+
+        const ipRecord = parseRecord(await redis.get("waf:record:127.0.0.1"));
+        expect(res.status).toBe(200);
+        expect(ipRecord.riskLevel).toBe(WAF_CONFIG.NO_TRACE_ID_SCORE);
+        expect(ipRecord.riskLevel).toBeLessThan(WAF_CONFIG.LIMITS.MEDIUM_RISK.threshold);
+        expect(await redis.get("waf:block:127.0.0.1")).toBeNull();
+    });
+
+    it("attributes rule risk to the IP and trace ID records when a trace ID is present", async () => {
+        await withHeaders(request(app).get("/api/normal"), {
+            "User-Agent": "curl/7.64.1",
+            "X-Tid": "trace-a-span-1",
+        });
+
+        const ipRecord = parseRecord(await redis.get("waf:record:127.0.0.1"));
+        const tidRecord = parseRecord(await redis.get("waf:record:trace"));
+
+        expect(ipRecord.riskLevel).toBeGreaterThanOrEqual(WAF_CONFIG.UA_SCORE);
+        expect(ipRecord.relatedIdentifiers).toContain("trace");
+        expect(tidRecord.riskLevel).toBeGreaterThanOrEqual(WAF_CONFIG.UA_SCORE);
+        expect(tidRecord.relatedIdentifiers).toContain("127.0.0.1");
+    });
+
+    it("enforces total request limits when the same trace ID rotates source IPs", async () => {
         const limit = WAF_CONFIG.LIMITS.LOW_RISK.total;
+        const statuses: number[] = [];
 
-        // Simulate hitting the limit
-        const record = new RateLimitRecord({ id: 'test' });
-        record.count = limit;
+        for (let i = 0; i < limit + 1; i += 1) {
+            const res = await withHeaders(request(app).get("/api/normal"), {
+                "X-Test-Ip": `10.0.0.${i}`,
+                "X-Tid": "shared-span",
+            });
+            statuses.push(res.status);
+        }
+
+        const tidRecord = parseRecord(await redis.get("waf:record:shared"));
+        expect(statuses).toContain(429);
+        expect(tidRecord.count).toBe(limit + 1);
+        expect(tidRecord.totalLimitExceeded).toBe(true);
+        expect(tidRecord.riskLevel).toBe(WAF_CONFIG.RATE_LIMIT_EXCEEDED_SCORE);
+    });
+
+    it("accumulates IP risk when the same IP rotates trace IDs", async () => {
+        const statuses: number[] = [];
+        const attempts = Math.ceil(WAF_CONFIG.RISK_LIMIT_BLOCK / WAF_CONFIG.UA_SCORE) + 1;
+
+        for (let i = 0; i < attempts; i += 1) {
+            const res = await withHeaders(request(app).get("/api/normal"), {
+                "User-Agent": "curl/7.64.1",
+                "X-Tid": `rotating${i}-span`,
+            });
+            statuses.push(res.status);
+        }
+
+        const ipRecord = parseRecord(await redis.get("waf:record:127.0.0.1"));
+        expect(statuses).toContain(429);
+        expect(ipRecord.riskLevel).toBeGreaterThanOrEqual(WAF_CONFIG.RISK_LIMIT_BLOCK);
+        expect(await redis.get("waf:block:127.0.0.1")).toBe("1");
+    });
+
+    it("does not hard block after only a few suspicious user-agent requests", async () => {
+        const attemptsBeforeMediumRisk = Math.floor(
+            (WAF_CONFIG.LIMITS.MEDIUM_RISK.threshold - 1) / WAF_CONFIG.UA_SCORE,
+        );
+
+        for (let i = 0; i < attemptsBeforeMediumRisk; i += 1) {
+            const res = await withHeaders(request(app).get("/api/normal"), {
+                "User-Agent": "curl/7.64.1",
+                "X-Tid": `brief${i}-span`,
+            });
+            expect(res.status).toBe(200);
+        }
+
+        const ipRecord = parseRecord(await redis.get("waf:record:127.0.0.1"));
+        expect(ipRecord.riskLevel).toBeLessThan(WAF_CONFIG.LIMITS.MEDIUM_RISK.threshold);
+        expect(await redis.get("waf:block:127.0.0.1")).toBeNull();
+    });
+
+    it("does not lose counts during concurrent requests from the same IP", async () => {
+        const limit = WAF_CONFIG.LIMITS.LOW_RISK.total;
+        const responses = await Promise.all(
+            Array.from({ length: limit + 1 }, (_value, index) =>
+                withHeaders(request(app).get("/api/normal"), {
+                    "X-Tid": `concurrent-${index}-span`,
+                }),
+            ),
+        );
+
+        const ipRecord = parseRecord(await redis.get("waf:record:127.0.0.1"));
+        expect(ipRecord.count).toBe(limit + 1);
+        expect(responses.some((res) => res.status === 429)).toBe(true);
+        expect(ipRecord.totalLimitExceeded).toBe(true);
+        expect(ipRecord.riskLevel).toBe(WAF_CONFIG.RATE_LIMIT_EXCEEDED_SCORE);
+        expect(await redis.get("waf:block:127.0.0.1")).toBeNull();
+    });
+
+    it("does not double count total requests when SensitiveAPIWAF runs after WAF", async () => {
+        const res = await withHeaders(request(app).get("/api/sensitive"));
+
+        const ipRecord = parseRecord(await redis.get("waf:record:127.0.0.1"));
+        expect(res.status).toBe(200);
+        expect(ipRecord.count).toBe(1);
+        expect(ipRecord.sensitiveCount).toBe(1);
+    });
+
+    it("blocks sensitive APIs when the sensitive count limit is exceeded without double counting total requests", async () => {
+        const record = new RateLimitRecord({ id: "127.0.0.1" });
+        record.sensitiveCount = WAF_CONFIG.LIMITS.LOW_RISK.sensitive;
         await record.save();
 
-        // Next request should be blocked
-        const res = await request(app)
-            .get('/api/normal')
-            .set('User-Agent', 'Mozilla/5.0');
+        const res = await withHeaders(request(app).get("/api/sensitive"));
+
+        const ipRecord = parseRecord(await redis.get("waf:record:127.0.0.1"));
+        expect(res.status).toBe(429);
+        expect(ipRecord.count).toBe(1);
+        expect(ipRecord.sensitiveCount).toBe(WAF_CONFIG.LIMITS.LOW_RISK.sensitive + 1);
+        expect(ipRecord.sensitiveLimitExceeded).toBe(true);
+        expect(ipRecord.riskLevel).toBe(WAF_CONFIG.SENSITIVE_RATE_LIMIT_EXCEEDED_SCORE);
+        expect(await redis.get("waf:block:127.0.0.1")).toBeNull();
+    });
+
+    it("writes a block key when sensitive API risk reaches the sensitive hard-block threshold", async () => {
+        const record = new RateLimitRecord({ id: "127.0.0.1" });
+        record.riskLevel = WAF_CONFIG.RISK_LIMIT_SENSITIVE_BLOCK;
+        await record.save();
+
+        const res = await withHeaders(request(app).get("/api/sensitive"));
 
         expect(res.status).toBe(429);
+        expect(await redis.get("waf:block:127.0.0.1")).toBe("1");
     });
 
-    it('Block test: sensitive APIs', async () => {
-        const limit = WAF_CONFIG.LIMITS.LOW_RISK.sensitive;
+    it("persists latest IP and trace ID state before denying an already blocked request", async () => {
+        await redis.setex("waf:block:127.0.0.1", WAF_CONFIG.BLOCK_DURATION_MS / 1000, "1");
 
-        // Simulate hitting the sensitive limit
-        const record = new RateLimitRecord({ id: 'test' });
-        record.sensitiveCount = limit;
-        await record.save();
+        const res = await withHeaders(request(app).get("/api/normal"), {
+            "User-Agent": "curl/7.64.1",
+            "X-Tid": "blocked-span",
+        });
 
-        const res = await request(app)
-            .get('/api/sensitive')
-            .set('User-Agent', 'Mozilla/5.0');
-
+        const ipRecord = parseRecord(await redis.get("waf:record:127.0.0.1"));
+        const tidRecord = parseRecord(await redis.get("waf:record:blocked"));
         expect(res.status).toBe(429);
+        expect(ipRecord.count).toBe(1);
+        expect(ipRecord.riskLevel).toBeGreaterThanOrEqual(WAF_CONFIG.UA_SCORE);
+        expect(ipRecord.relatedIdentifiers).toContain("blocked");
+        expect(tidRecord.count).toBe(1);
+        expect(tidRecord.relatedIdentifiers).toContain("127.0.0.1");
     });
-
-    // it('should block immediately if risk level is very high (Medium Risk Threshold for Sensitive)', async () => {
-    //     // Simulate high risk history
-    //     const record = new RateLimitRecord();
-    //     record.riskLevel = WAF_CONFIG.LIMITS.MEDIUM_RISK.threshold;
-    //     await redis.set('waf:record:127.0.0.1', JSON.stringify(record));
-
-    //     // Sensitive endpoint should block immediately due to risk
-    //     const res = await request(app)
-    //         .get('/api/sensitive')
-    //         .set('User-Agent', 'Mozilla/5.0');
-
-    //     expect(res.status).toBe(403);
-    // });
-
-    it('should ban IP (set block key) when risk exceeds BLOCK limit', async () => {
-        // Simulate near block level risk
-        const record = new RateLimitRecord({ id: '127.0.0.1' });
-        record.riskLevel = WAF_CONFIG.RISK_LIMIT_BLOCK - 10; // Just below
-        await record.save();
-
-        // Send a request that adds risk (e.g., missing headers or bad UA) to push over edge
-        // Or just simulate the logic flow where risk accumulates.
-        // Let's force a high risk addition via a bad UA
-        await request(app)
-            .get('/api/normal')
-            .set('User-Agent', 'curl/7.64.1'); // Adds UA_SCORE (20)
-
-        // Now check if block key exists
-        expect(await redis.get('waf:block:127.0.0.1')).toBe('1');
-    });
-
-    // it('should link Trace ID and IP risk levels', async () => {
-    //     // 1. Request with Trace ID A from IP 1
-    //     // 2. Request with Trace ID A from IP 2 -> Should inherit risk/block status
-
-    //     // Simulate existing record for Trace ID with high risk
-    //     const tid = 'shared-tid';
-    //     const tidRecord = new RateLimitRecord({ id: tid });
-    //     tidRecord.riskLevel = 50;
-    //     await tidRecord.save();
-
-    //     // Setup app to use this TID
-    //     const appWithTid = express();
-    //     appWithTid.use((req: Request, res: Response, next: NextFunction) => {
-    //         req.userIp = '192.168.1.100'; // New IP
-    //         req.tId = `${tid}-span-1`;
-    //         next();
-    //     });
-    //     appWithTid.get('/api/normal', WAF, (req, res) => res.send('ok'));
-
-    //     await request(appWithTid)
-    //         .get('/api/normal')
-    //         .set('User-Agent', 'Mozilla/5.0');
-
-    //     // The new IP record should have picked up the risk from the TID
-    //     const ipRecordData = await redis.get('waf:record:192.168.1.100');
-    //     expect(ipRecordData).toBeDefined();
-    //     const ipRecord = JSON.parse(ipRecordData!);
-    //     // It takes the max, so it should be at least 50
-    //     expect(ipRecord.riskLevel).toBeGreaterThanOrEqual(50);
-    // });
-
-    // it('should bypass WAF when mode is BYPASS', async () => {
-    //     // Temporarily change config
-    //     // Note: Since we mocked the module, we might need to rely on how the implementation reads it.
-    //     // If the implementation imports the value directly, changing the mock return for a specific test is tricky with ESM mocks in Vitest 
-    //     // without `vi.doMock` and dynamic imports or resetting modules.
-    //     // However, for this generated test suite, we'll assume the standard flow. 
-    //     // If we really need to test bypass, we'd usually set the env var before import or use a getter.
-    //     // Given the static import in index.ts: `import { WAF_CURRENT_MODE } ...`, it's hard to change at runtime.
-    //     // We will skip this specific test case implementation here to avoid complexity, 
-    //     // or we would need to restructure the mock setup to allow variable changes.
-    // });
-
-    // it('should decay risk over time', async () => {
-    //     const record = new RateLimitRecord();
-    //     record.riskLevel = 50;
-    //     record.lastActive = Date.now() - WAF_CONFIG.RISK_DECAY_TIME_MS - 1000; // Older than decay time
-    //     await redis.set('waf:record:127.0.0.1', JSON.stringify(record));
-
-    //     await request(app)
-    //         .get('/api/normal')
-    //         .set('User-Agent', 'Mozilla/5.0');
-
-    //     const updatedRecordStr = await redis.get('waf:record:127.0.0.1');
-    //     const updatedRecord = JSON.parse(updatedRecordStr!);
-    //     // Should have decayed by RISK_DECAY_AMOUNT (10)
-    //     // Initial 50 -> Decayed to 40 -> Added 0 (normal req) -> Result 40
-    //     expect(updatedRecord.riskLevel).toBe(40);
-    // });
 });

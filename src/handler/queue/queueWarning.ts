@@ -3,7 +3,7 @@ import MailTemp from "../../service/mail/mailTemp.js";
 import bell from "../../components/bell.js";
 import Log from "../../components/loger.js";
 
-const FIVE_DAYS_MS = 5 * 24 * 60 * 60 * 1000;
+const DAYS_IN_MS = 7 * (24 * 60 * 60 * 1000);
 
 export async function QueueWarningNotice() {
 
@@ -22,7 +22,7 @@ export async function QueueWarningNotice() {
     },
   });
 
-  const threshold = BigInt(Date.now() - FIVE_DAYS_MS);
+  const threshold = BigInt(Date.now() - DAYS_IN_MS);
   let stalePhotos = allUnreviewedInQueue
     .filter((p) => p.upload_time !== null && p.upload_time < threshold)
     .map((p) => ({
@@ -48,7 +48,6 @@ export async function QueueWarningNotice() {
     },
   });
 
-  // Grayscale testing: Log the recipients and only send to admin if in development environment
   Log.info(`QueueWarningNotice: Found ${recipients.join(", ")} as recipients for ${stalePhotos.length} stale photos`);
   recipients.push({ user_email: "admin@togaphotos.com", username: "Admin" });
 
@@ -59,7 +58,6 @@ export async function QueueWarningNotice() {
 
   const sendResults = await Promise.allSettled(
     recipients
-      .filter((u) => u.user_email === "admin@togaphotos.com")
       .map((u) =>
         MailTemp.QueueWarning(u.user_email!, {
           count: stalePhotoCount,
@@ -77,6 +75,6 @@ export async function QueueWarningNotice() {
 
   await bell(
     "审核队列积压提醒",
-    `当前有 ${stalePhotoCount} 张照片在队列中超过5天未审核，已通知 ${recipients.length - failCount} 位审核员。`
+    `当前有 ${stalePhotoCount} 张照片在队列中超过7天未审核，已通知 ${recipients.length - failCount} 位审核员。`
   );
 }

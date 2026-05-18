@@ -1,0 +1,45 @@
+name: Auto PR to Dev
+
+on:
+  push:
+    branches:
+      - "feat/**"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: auto-pr-to-dev-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  open-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create pull request to dev
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH_NAME: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          existing_pr="$(gh pr list \
+            --repo "${{ github.repository }}" \
+            --state open \
+            --base dev \
+            --head "$BRANCH_NAME" \
+            --json number \
+            --jq '.[0].number // empty')"
+
+          if [ -n "$existing_pr" ]; then
+            echo "Open PR already exists: #$existing_pr"
+            exit 0
+          fi
+
+          gh pr create \
+            --repo "${{ github.repository }}" \
+            --base dev \
+            --head "$BRANCH_NAME" \
+            --title "Auto PR: $BRANCH_NAME" \
+            --body "Automated PR from \`$BRANCH_NAME\` to \`dev\`."
