@@ -13,7 +13,9 @@ function parseWeek(v: unknown): Date | null {
   if (typeof v !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return null;
   const d = new Date(v + "T00:00:00.000Z");
   if (isNaN(d.getTime())) return null;
-  return formatWeek(d) === v ? d : null;
+  if (formatWeek(d) !== v) return null;
+  if (d.getUTCDay() !== 1) return null;
+  return d;
 }
 
 function formatWeek(d: Date): string {
@@ -29,21 +31,13 @@ function parsePhotoId(v: unknown): number | null {
 }
 
 type AcceptPhoto = Awaited<ReturnType<typeof prisma.accept_photo.findMany>>[number];
+type Pick = Awaited<ReturnType<typeof WeeklyPick.getByWeek>>[number];
 
-async function buildResponse(week: Date, photoMap?: Map<number, AcceptPhoto>) {
-  const picks = await WeeklyPick.getByWeek(week);
-  if (picks.length === 0) return [];
-
-  if (!photoMap) {
-    const photos = await prisma.accept_photo.findMany({
-      where: { id: { in: picks.map((p) => p.photo_id) } },
-    });
-    photoMap = new Map(photos.map((p) => [p.id, p]));
-  }
-
+function mergePicksAndPhotos(picks: Pick[], photos: AcceptPhoto[]) {
+  const photoMap = new Map(photos.map((p) => [p.id, p]));
   return picks
     .map((p) => {
-      const photo = photoMap!.get(p.photo_id);
+      const photo = photoMap.get(p.photo_id);
       if (!photo) return null;
       return {
         ...photo,
@@ -63,16 +57,29 @@ export default class WeeklyPickHandler {
   @UrlCache(3 * 60, WEEKLY_PICKS_CACHE_GROUP)
   static async getList(req: Request, res: Response) {
     let week: Date | null;
-    if (req.query["week"]) {
-      week = parseWeek(req.query["week"]);
-      if (!week) return res.fail(HTTP_STATUS.BAD_REQUEST, "week 格式应为 YYYY-MM-DD");
-    } else {
+    if (!req.query["week"]) {
       week = await WeeklyPick.getLatestWeek();
+      if (!week) {
+        return res.success("查询成功", []);
+      }
+    } else {
+      week = parseWeek(req.query["week"]);
+      if (!week) return res.fail(HTTP_STATUS.BAD_REQUEST, "week 必须为周一的 YYYY-MM-DD(东八区)");
     }
-    if (!week) return res.success("查询成功", []);
+    const day = week.getUTCDay();
+    if (day !== 1) {
+      week = new Date(week.getTime() - ((day + 6) % 7) * 24 * 60 * 60 * 1000);
+    }
 
-    const result = await buildResponse(week);
-    res.success("查询成功", result);
+    const picks = await WeeklyPick.getByWeek(week);
+    if (picks.length === 0) {
+      return res.success("查询成功", []);
+    }
+    const photos = await prisma.accept_photo.findMany({
+      where: { id: { in: picks.map((p) => p.photo_id) } },
+    });
+
+    res.success("查询成功", mergePicksAndPhotos(picks, photos));
   }
 
   @UrlCache(3 * 60, WEEKLY_PICKS_CACHE_GROUP)
@@ -83,7 +90,7 @@ export default class WeeklyPickHandler {
 
   static async upsertItem(req: Request, res: Response) {
     const week = parseWeek(req.params["week"]);
-    if (!week) return res.fail(HTTP_STATUS.BAD_REQUEST, "week 格式应为 YYYY-MM-DD");
+    if (!week) return res.fail(HTTP_STATUS.BAD_REQUEST, "week 必须为周一的 YYYY-MM-DD(东八区)");
 
     const photoId = parsePhotoId(req.params["photoId"]);
     if (!photoId) return res.fail(HTTP_STATUS.BAD_REQUEST, "photo_id 非法");
@@ -146,7 +153,7 @@ export default class WeeklyPickHandler {
 
   static async deleteItem(req: Request, res: Response) {
     const week = parseWeek(req.params["week"]);
-    if (!week) return res.fail(HTTP_STATUS.BAD_REQUEST, "week 格式应为 YYYY-MM-DD");
+    if (!week) return res.fail(HTTP_STATUS.BAD_REQUEST, "week 必须为周一的 YYYY-MM-DD(东八区)");
 
     const photoId = parsePhotoId(req.params["photoId"]);
     if (!photoId) return res.fail(HTTP_STATUS.BAD_REQUEST, "photo_id 非法");
@@ -185,7 +192,7 @@ export default class WeeklyPickHandler {
 
   static async reorder(req: Request, res: Response) {
     const week = parseWeek(req.params["week"]);
-    if (!week) return res.fail(HTTP_STATUS.BAD_REQUEST, "week 格式应为 YYYY-MM-DD");
+    if (!week) return res.fail(HTTP_STATUS.BAD_REQUEST, "week 必须为周一的 YYYY-MM-DD(东八区)");
 
     const orderingRaw = req.body?.ordering;
     if (!Array.isArray(orderingRaw)) {
@@ -232,7 +239,10 @@ export default class WeeklyPickHandler {
     }
 
     invalidateUrlCache(WEEKLY_PICKS_CACHE_GROUP);
-    const result = await buildResponse(week);
-    res.success("保存成功", result);
+    const picks = await WeeklyPick.getByWeek(week);
+    const photos = await prisma.accept_photo.findMany({
+      where: { id: { in: picks.map((p) => p.photo_id) } },
+    });
+    res.success("保存成功", mergePicksAndPhotos(picks, photos));
   }
 }

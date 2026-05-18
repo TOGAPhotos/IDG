@@ -6,6 +6,7 @@ import "dotenv/config";
 import MessageQueueConsumer from "../messageQueue/consume.js";
 import HandlerError from "../messageQueue/error.js";
 import Photo from "../../dto/photo.js";
+import ObservationLog from "../../dto/observationLog.js";
 
 type textConfig = {
   fontSize: number;
@@ -21,6 +22,12 @@ type watermarkConfig = {
 type CopyrightOverlayConfig =
   | InstanceType<typeof FileCopyrightOverlayConfig>
   | InstanceType<typeof PhotoCopyrightOverlayConfig>;
+
+type ObservationLogImageNormalizeConfig = {
+  logId: number;
+  inputFile: string;
+  outputFile: string;
+};
 
 export class FileCopyrightOverlayConfig {
   public readonly inputFile: string;
@@ -160,6 +167,15 @@ export class ImageProcess {
     return canvas.toBuffer("image/png");
   }
 
+  private static async streamToBuffer(stream: any) {
+    const chunks: Buffer[] = [];
+    return new Promise<Buffer>((resolve, reject) => {
+      stream.on("data", (chunk) => chunks.push(Buffer.from(chunk)));
+      stream.on("error", reject);
+      stream.on("end", () => resolve(Buffer.concat(chunks)));
+    });
+  }
+
   static async copyrightOverlay(config: CopyrightOverlayConfig) {
     Log.debug(`ImageProcess start input:${config.inputFile} -> output:${config.outputFile}`);
     if ( "photoId" in config && !config.photoId) {
@@ -205,17 +221,47 @@ export class ImageProcess {
       throw new HandlerError(`process failed file:${config.inputFile} err:${(e as Error).message}`);
     }
   }
+
+  static async observationLogImageNormalize(config: ObservationLogImageNormalizeConfig) {
+    Log.debug(`ImageProcess observation log start input:${config.inputFile} -> output:${config.outputFile}`);
+    try {
+      const downloadStream = ImageProcess.cos.streamDownload(config.inputFile);
+      const inputBuffer = await ImageProcess.streamToBuffer(downloadStream);
+      const { data, info } = await sharp(inputBuffer)
+        .rotate()
+        .resize({
+          width: 1920,
+          height: 1920,
+          fit: "inside",
+          withoutEnlargement: true,
+        })
+        .jpeg({ quality: 90 })
+        .withMetadata()
+        .toBuffer({ resolveWithObject: true });
+
+      await ImageProcess.cos.upload(config.outputFile, data);
+      await ObservationLog.markImageComplete(config.logId, info.width, info.height, data.byteLength);
+      Log.info(`ImageProcess observation log success log:${config.logId}`);
+    } catch (e) {
+      await ObservationLog.markImageError(config.logId);
+      Log.error(`ImageProcess observation log failed log:${config.logId} err:${(e as Error).message}`);
+      throw new HandlerError(`observation log normalize failed log:${config.logId} err:${(e as Error).message}`);
+    }
+  }
 }
 
 const mq = new MessageQueueConsumer("imageProcess");
 Log.info("ImageProcess worker consumer start");
 mq.consume(async (msg) => {
   Log.debug(`ImageProcess queue message:${msg.content.toString()}`);
-  const { task, params }: { task: string; params: CopyrightOverlayConfig } =
+  const { task, params }: { task: string; params: CopyrightOverlayConfig | ObservationLogImageNormalizeConfig } =
     JSON.parse(msg.content.toString());
   switch (task) {
     case "T1-copyrightOverlay":
-      await ImageProcess.copyrightOverlay(params);
+      await ImageProcess.copyrightOverlay(params as CopyrightOverlayConfig);
+      break;
+    case "T2-observationLogImageNormalize":
+      await ImageProcess.observationLogImageNormalize(params as ObservationLogImageNormalizeConfig);
       break;
     default:
       throw new HandlerError("unknown task type");

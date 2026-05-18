@@ -1,6 +1,6 @@
 import "dotenv/config";
 
-export const NODE_ENV = (process.env.NODE_ENV ?? "development").trim().toLowerCase();
+export const NODE_ENV = (process.env.NODE_ENV ?? "production").trim().toLowerCase();
 
 export const PRODUCTION_ENV = NODE_ENV === "production";
 
@@ -55,6 +55,7 @@ export const TENCENTCLOUD_SECRET_ID = process.env.TENCENTCLOUD_SECRET_ID || "";
 export const TENCENTCLOUD_SECRET_KEY = process.env.TENCENTCLOUD_SECRET_KEY || "";
 export const TENCENTCLOUD_CDN_PKEY = process.env.TENCENTCLOUD_CDN_PKEY || "";
 
+export const PHOTO_COS_DOMAIN = process.env.PHOTO_COS_DOMAIN || "";
 export const PHOTO_COS_CDN_DOMAIN = process.env.PHOTO_COS_CDN_DOMAIN || "";
 
 export const MAINTENANCE_MODE = process.env.MAINTENANCE_MODE === "true";
@@ -89,7 +90,15 @@ export const enum WAF_MODE {
   BLOCK
 }
 
-export const WAF_CURRENT_MODE: WAF_MODE =
-  process.env.WAF_MODE === "BYPASS" ? WAF_MODE.BYPASS :
-    process.env.WAF_MODE === "MONITOR" ? WAF_MODE.MONITOR :
-      PRODUCTION_ENV ? WAF_MODE.BLOCK : WAF_MODE.MONITOR;
+export const WAF_CURRENT_MODE: WAF_MODE = (() => {
+  switch (process.env.WAF_MODE?.trim().toUpperCase()) {
+    case "BYPASS":
+      return WAF_MODE.BYPASS;
+    case "MONITOR":
+      return WAF_MODE.MONITOR;
+    case "BLOCK":
+      return WAF_MODE.BLOCK;
+    default:
+      return PRODUCTION_ENV ? WAF_MODE.BLOCK : WAF_MODE.MONITOR;
+  }
+})();

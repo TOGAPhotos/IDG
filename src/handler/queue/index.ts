@@ -6,6 +6,8 @@ import User from "../../dto/user.js";
 import { HTTP_STATUS } from "../../types/http_code.js";
 import Log from "../../components/loger.js";
 import Photo from "../../dto/photo.js";
+import ObservationLog from "../../dto/observationLog.js";
+import AircraftInfoSubmission from "../../dto/aircraftInfoSubmission.js";
 
 export default class QueueHandler {
   static uploadQueueCache = new UploadQueueCache();
@@ -29,7 +31,11 @@ export default class QueueHandler {
     }
 
     const result = await UploadQueue.getById(queueId);
-    return res.success("查询成功", result);
+    const pendingAircraftInfoSubmission = await AircraftInfoSubmission.hasBlockingPendingForPhoto(result);
+    return res.success("查询成功", {
+      ...result,
+      pendingAircraftInfoSubmission,
+    });
   }
 
   static async getQueueTop(req: Request, res: Response) {
@@ -151,6 +157,18 @@ export default class QueueHandler {
     } else {
       return res.fail(HTTP_STATUS.BAD_REQUEST, "错误请求");
     }
+
+    if (finishScreen && screenData.result === "ACCEPT") {
+      const blockingSubmission = await AircraftInfoSubmission.hasBlockingPendingForPhoto(queuePhoto);
+      if (blockingSubmission) {
+        return res.fail(
+          HTTP_STATUS.CONFLICT,
+          "该图片引用的航空器信息仍在审核中，无法最终通过",
+          { submission: blockingSubmission },
+        );
+      }
+    }
+
     await UploadQueue.update(queueId, screenData);
     if (finishScreen) {
       await UploadQueue.update(queueId, {
@@ -166,6 +184,13 @@ export default class QueueHandler {
           free_priority_queue: { increment: queuePhoto.queue === 'PRIORITY' ? 1 : 0 }
         }),
       ]);
+      if (screenData.result === "ACCEPT") {
+        try {
+          await ObservationLog.createOrLinkFromAcceptedPhoto(queueId);
+        } catch (e) {
+          Log.error(`ObservationLog auto create failed photo:${queueId} err:${(e as Error).message}`);
+        }
+      }
     }
     return res.success("success", { id: queueId, ...screenData });
   }

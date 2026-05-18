@@ -17,6 +17,9 @@ import DirectMessageHandler from "../handler/dm/index.js";
 import ScreenerHandler from "../handler/user/screener.js";
 import WeeklyPickHandler from "../handler/weeklyPick/index.js";
 import { SensitiveAPIWAF } from "../components/waf/index.js";
+import ObservationLogHandler from "../handler/observationLog/index.js";
+import ObservationLogFieldHandler from "../handler/observationLog/fields.js";
+import AircraftInfoSubmissionHandler from "../handler/info/aircraftInfoSubmission.js";
 
 const router = Router();
 
@@ -34,6 +37,7 @@ router.get("/weekly-picks/weeks", WeeklyPickHandler.getWeeks);
 router.get("/weekly-picks", WeeklyPickHandler.getList);
 router.get("/search", PhotoHandler.search);
 router.post("/search/advanced", SensitiveAPIWAF, PhotoHandler.advancedSearch);
+router.get("/observation-logs/:id", ObservationLogHandler.get);
 
 router.get("/airport", AirportHandler.search);
 router.get("/airport/:id", AirportHandler.get);
@@ -49,9 +53,29 @@ router.get("/airtype/:id", AirtypeHandler.get);
 router.get("/notam", NotamHandler.get);
 
 router.use(Per.isLoginMW);
+router.put("/cos/observation-log", ObservationLogHandler.updateObjectStatus);
+
 router.get("/users", Per.isAdminMW, UserHandler.getUserList);
 router.put("/user/:id", UserHandler.update);
 router.delete("/user/:id", Per.isAdminMW, UserHandler.delete);
+
+router.post("/observation-logs", Per.checkUserStatusMW, ObservationLogHandler.create);
+router.get("/observation-logs", ObservationLogHandler.list);
+router.post("/observation-logs/search", ObservationLogHandler.search);
+router.post("/observation-logs/stats", ObservationLogHandler.stats);
+router.put("/observation-logs/:id", ObservationLogHandler.update);
+router.delete("/observation-logs/:id", ObservationLogHandler.delete);
+router.post("/observation-logs/:id/image-upload", ObservationLogHandler.imageUpload);
+router.post("/observation-logs/:id/queue-upload", Per.checkUserStatusMW, ObservationLogHandler.queueUpload);
+
+router.get("/observation-log-fields", ObservationLogFieldHandler.list);
+router.post("/observation-log-fields", Per.checkUserStatusMW, ObservationLogFieldHandler.create);
+router.put("/observation-log-fields/:id", ObservationLogFieldHandler.update);
+router.delete("/observation-log-fields/:id", ObservationLogFieldHandler.delete);
+
+router.post("/aircraft-info-submissions", Per.checkUserStatusMW, AircraftInfoSubmissionHandler.create);
+router.get("/aircraft-info-submissions", AircraftInfoSubmissionHandler.list);
+router.put("/aircraft-info-submissions/:id", Per.isStaffMW, AircraftInfoSubmissionHandler.review);
 
 router.put("/weekly-picks/:week/order", Per.isAdminMW, WeeklyPickHandler.reorder);
 router.put("/weekly-picks/:week/:photoId", Per.isSeniorScreenerMW, WeeklyPickHandler.upsertItem);

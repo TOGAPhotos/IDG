@@ -10,8 +10,16 @@
     "dev": "tsx watch src/index.ts --env-file=.env.development --clear-screen=false",
     "test": "NODE_ENV=test vitest run --coverage",
     "db": "npx prisma db pull && npx prisma generate",
+    "db:generate": "npx prisma generate",
+    "db:migrate:status": "npx prisma migrate status",
+    "db:migrate:status:dev": "DOTENV_CONFIG_PATH=.env.development DOTENV_CONFIG_OVERRIDE=true npx prisma migrate status",
+    "db:migrate:status:prod": "DOTENV_CONFIG_PATH=.env DOTENV_CONFIG_OVERRIDE=true npx prisma migrate status",
+    "db:migrate:dev": "DOTENV_CONFIG_PATH=.env.development DOTENV_CONFIG_OVERRIDE=true npx prisma migrate dev",
+    "db:migrate:deploy": "npx prisma migrate deploy",
+    "db:migrate:deploy:prod": "DOTENV_CONFIG_PATH=.env DOTENV_CONFIG_OVERRIDE=true npx prisma migrate deploy",
     "hash": "tsx script/setPassword.ts",
-    "reset-pwd": "tsx script/resetPassword.ts"
+    "reset-pwd": "tsx script/resetPassword.ts",
+    "backfill:observation-logs": "tsx script/backfillObservationLogs.ts"
   },
   "keywords": [],
   "author": "",

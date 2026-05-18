@@ -86,61 +86,61 @@ model notam {
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model photo {
-  id                   Int                  @id @unique(map: "photo_pk_2") @default(autoincrement())
-  status               String?              @default("WAIT SCREEN") @db.VarChar(63)
-  queue                String?              @db.VarChar(10)
-  upload_user_id       Int?
-  storage_status       photo_storage_status @default(WAIT)
-  ac_reg               String?              @db.VarChar(125)
-  ac_msn               String?              @db.VarChar(100)
-  ac_type              String?              @db.VarChar(255)
+  id                   Int                   @id @unique(map: "photo_pk_2") @default(autoincrement())
+  status               String                @default("WAIT SCREEN") @db.VarChar(63)
+  queue                String                @db.VarChar(10)
+  upload_user_id       Int
+  storage_status       photo_storage_status? @default(WAIT)
+  ac_reg               String?               @db.VarChar(125)
+  ac_msn               String?               @db.VarChar(100)
+  ac_type              String?               @db.VarChar(255)
   airport_id           Int?
-  airline              String?              @db.VarChar(125)
+  airline              String?               @db.VarChar(125)
   airline_id           Int?
-  pic_type             String?              @db.VarChar(255)
-  user_remark          String?              @db.VarChar(256)
-  upload_time          BigInt?
+  pic_type             String?               @db.VarChar(255)
+  user_remark          String?               @db.VarChar(256)
+  upload_time          BigInt
   exif                 Json?
-  photo_time           DateTime?            @db.Date
-  update_time          DateTime?            @default(now()) @db.DateTime(0)
+  photo_time           DateTime?             @db.Date
+  update_time          DateTime?             @default(now()) @db.DateTime(0)
   watermark            Json?
-  message              String?              @db.VarChar(256)
+  message              String?               @db.VarChar(256)
   screener_1           Int?
   screener_2           Int?
   need_screener_2      Boolean?
-  screen_finished_time DateTime?            @db.Timestamp(0)
-  notify               Boolean?             @default(false)
-  result               String               @default("REJECT") @db.VarChar(255)
-  reason               String?              @db.VarChar(512)
-  screener_message     String?              @db.VarChar(256)
-  is_delete            Boolean?             @default(false)
+  screen_finished_time DateTime?             @db.Timestamp(0)
+  notify               Boolean?              @default(false)
+  result               String                @default("REJECT") @db.VarChar(255)
+  reason               String?               @db.VarChar(512)
+  screener_message     String?               @db.VarChar(256)
+  is_delete            Boolean?              @default(false)
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 model user {
-  id                  Int       @id @unique(map: "user_pk_2") @default(autoincrement())
-  user_email          String?   @db.VarChar(120)
-  username            String?   @db.VarChar(50)
-  password            String?   @db.VarChar(256)
-  role                String?   @default("USER") @db.VarChar(255)
-  status              String?   @default("NORMAL") @db.VarChar(255)
-  passing_rate        Int?      @default(0) @db.TinyInt
-  total_queue         Int?      @default(10) @db.TinyInt
-  free_queue          Int?      @default(10) @db.TinyInt
-  priority_queue      Int?      @db.TinyInt
-  free_priority_queue Int?      @default(0)
-  total_photo         Int?      @default(0)
-  create_time         DateTime? @default(dbgenerated("(now())")) @db.DateTime(0)
-  update_time         DateTime? @default(dbgenerated("(now())")) @db.DateTime(0)
+  id                  Int      @id @unique(map: "user_pk_2") @default(autoincrement())
+  user_email          String   @db.VarChar(120)
+  username            String   @db.VarChar(50)
+  password            String   @db.VarChar(256)
+  role                String   @default("USER") @db.VarChar(255)
+  status              String   @default("NORMAL") @db.VarChar(255)
+  passing_rate        Int?     @default(0) @db.TinyInt
+  total_queue         Int      @default(10) @db.TinyInt
+  free_queue          Int      @default(10) @db.TinyInt
+  priority_queue      Int?     @db.TinyInt
+  free_priority_queue Int?     @default(0)
+  total_photo         Int      @default(0)
+  create_time         DateTime @default(dbgenerated("(now())")) @db.DateTime(0)
+  update_time         DateTime @default(dbgenerated("(now())")) @db.DateTime(0)
   suspension_date     Int?
-  email_verify        Int?      @db.TinyInt
-  email_verify_token  String?   @db.VarChar(150)
-  allow_toga_use      Boolean?  @default(true)
-  allow_third_use     Boolean?  @default(false)
+  email_verify        Int?     @db.TinyInt
+  email_verify_token  String?  @db.VarChar(150)
+  allow_toga_use      Boolean? @default(true)
+  allow_third_use     Boolean? @default(false)
   airport_id          Int?
   cover_photo_id      Int?
-  screening_email     Boolean?  @default(true)
-  is_deleted          Boolean?  @default(false)
+  screening_email     Boolean? @default(true)
+  is_deleted          Boolean  @default(false)
 }
 
 model vote_list {
@@ -181,85 +181,196 @@ model weekly_pick {
   @@index([week_start], map: "idx_week")
 }
 
+model observation_log {
+  id              Int       @id @default(autoincrement())
+  user_id         Int
+  visibility      String    @default("PRIVATE") @db.VarChar(16)
+  source          String    @default("MANUAL") @db.VarChar(32)
+  source_photo_id Int?      @unique(map: "uniq_observation_log_source_photo")
+  queued_photo_id Int?      @unique(map: "uniq_observation_log_queued_photo")
+  observed_at     DateTime  @db.DateTime(0)
+  observed_date   DateTime? @db.Date
+  airport_id      Int?
+  airline_id      Int?
+  ac_reg          String?   @db.VarChar(125)
+  ac_msn          String?   @db.VarChar(100)
+  ac_type         String?   @db.VarChar(255)
+  pic_type        String?   @db.VarChar(255)
+  location_text   String?   @db.VarChar(255)
+  note            String?   @db.Text
+  exif            Json?
+  pending_info    Json?
+  metadata        Json?
+  image_raw_key   String?   @db.VarChar(255)
+  image_key       String?   @db.VarChar(255)
+  image_status    String    @default("NONE") @db.VarChar(16)
+  image_width     Int?
+  image_height    Int?
+  image_size      Int?
+  created_at      DateTime  @default(now()) @db.DateTime(0)
+  updated_at      DateTime  @default(now()) @updatedAt @db.DateTime(0)
+  deleted_at      DateTime? @db.DateTime(0)
+
+  @@index([user_id, observed_at], map: "idx_observation_log_user_observed")
+  @@index([user_id, source], map: "idx_observation_log_user_source")
+  @@index([user_id, ac_reg], map: "idx_observation_log_user_reg")
+  @@index([user_id, airport_id], map: "idx_observation_log_user_airport")
+  @@index([user_id, airline_id], map: "idx_observation_log_user_airline")
+}
+
+model observation_log_field {
+  id          Int      @id @default(autoincrement())
+  user_id     Int
+  field_key   String   @db.VarChar(64)
+  label       String   @db.VarChar(80)
+  value_type  String   @db.VarChar(16)
+  options     Json?
+  unit        String?  @db.VarChar(32)
+  is_archived Boolean  @default(false)
+  created_at  DateTime @default(now()) @db.DateTime(0)
+  updated_at  DateTime @default(now()) @updatedAt @db.DateTime(0)
+
+  @@unique([user_id, field_key], map: "uniq_observation_log_field_user_key")
+  @@index([user_id, is_archived], map: "idx_observation_log_field_user_archived")
+}
+
+model observation_log_field_value {
+  id           Int       @id @default(autoincrement())
+  log_id       Int
+  field_id     Int
+  text_value   String?   @db.Text
+  number_value Float?
+  date_value   DateTime? @db.DateTime(0)
+  bool_value   Boolean?
+  select_value String?   @db.VarChar(120)
+  created_at   DateTime  @default(now()) @db.DateTime(0)
+  updated_at   DateTime  @default(now()) @updatedAt @db.DateTime(0)
+
+  @@unique([log_id, field_id], map: "uniq_observation_log_field_value")
+  @@index([field_id, select_value], map: "idx_observation_log_field_select")
+  @@index([field_id, number_value], map: "idx_observation_log_field_number")
+  @@index([field_id, date_value], map: "idx_observation_log_field_date")
+  @@index([field_id, bool_value], map: "idx_observation_log_field_bool")
+}
+
+model observation_log_tag {
+  id         Int      @id @default(autoincrement())
+  user_id    Int
+  name       String   @db.VarChar(60)
+  created_at DateTime @default(now()) @db.DateTime(0)
+
+  @@unique([user_id, name], map: "uniq_observation_log_tag_user_name")
+}
+
+model observation_log_tag_link {
+  log_id Int
+  tag_id Int
+
+  @@id([log_id, tag_id])
+  @@index([tag_id], map: "idx_observation_log_tag_link_tag")
+}
+
+model aircraft_info_submission {
+  id             Int       @id @default(autoincrement())
+  create_user    Int
+  status         String    @default("WAITING") @db.VarChar(16)
+  reg            String    @db.VarChar(63)
+  msn            String?   @db.VarChar(20)
+  ln             String?   @db.VarChar(20)
+  airline_id     Int?
+  air_type       String?   @db.VarChar(25)
+  remark         String?   @db.VarChar(256)
+  review_message String?   @db.VarChar(256)
+  reviewer_id    Int?
+  created_at     DateTime  @default(now()) @db.DateTime(0)
+  updated_at     DateTime  @default(now()) @updatedAt @db.DateTime(0)
+  reviewed_at    DateTime? @db.DateTime(0)
+  is_delete      Boolean   @default(false)
+
+  @@index([status, created_at], map: "idx_aircraft_info_submission_status")
+  @@index([create_user, status], map: "idx_aircraft_info_submission_user_status")
+  @@index([reg], map: "idx_aircraft_info_submission_reg")
+}
+
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view accept_photo {
-  id                   Int                         @unique @default(0)
-  upload_user_id       Int?
-  storage_status       accept_photo_storage_status @default(WAIT)
-  username             String?                     @db.VarChar(50)
-  ac_type              String?                     @db.VarChar(255)
-  ac_reg               String?                     @db.VarChar(125)
-  ac_msn               String?                     @db.VarChar(100)
+  id                   Int                          @unique @default(0)
+  upload_user_id       Int
+  storage_status       accept_photo_storage_status? @default(WAIT)
+  username             String?                      @db.VarChar(50)
+  ac_type              String?                      @db.VarChar(255)
+  ac_reg               String?                      @db.VarChar(125)
+  ac_msn               String?                      @db.VarChar(100)
   airline_id           Int?
-  airline_cn           String?                     @db.VarChar(255)
-  airline_en           String?                     @db.VarChar(255)
-  airline_icao_code    String?                     @db.VarChar(255)
-  airline_iata_code    String?                     @db.VarChar(255)
+  airline_cn           String?                      @db.VarChar(255)
+  airline_en           String?                      @db.VarChar(255)
+  airline_icao_code    String?                      @db.VarChar(255)
+  airline_iata_code    String?                      @db.VarChar(255)
   airport_id           Int?
-  pic_type             String?                     @db.VarChar(255)
-  user_remark          String?                     @db.VarChar(256)
-  photo_time           DateTime?                   @db.Date
-  upload_time          BigInt?
-  airport_cn           String?                     @db.VarChar(255)
-  airport_en           String?                     @db.VarChar(255)
-  airport_icao_code    String?                     @db.VarChar(127)
-  airport_iata_code    String?                     @db.VarChar(127)
+  pic_type             String?                      @db.VarChar(255)
+  user_remark          String?                      @db.VarChar(256)
+  photo_time           DateTime?                    @db.Date
+  upload_time          BigInt
+  airport_cn           String?                      @db.VarChar(255)
+  airport_en           String?                      @db.VarChar(255)
+  airport_icao_code    String?                      @db.VarChar(127)
+  airport_iata_code    String?                      @db.VarChar(127)
   exif                 Json?
-  screen_finished_time DateTime?                   @db.Timestamp(0)
+  screen_finished_time DateTime?                    @db.Timestamp(0)
 }
 
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view full_photo_info {
-  id                   Int                            @unique @default(0)
-  storage_status       full_photo_info_storage_status @default(WAIT)
-  status               String?                        @default("WAIT SCREEN") @db.VarChar(63)
-  queue                String?                        @db.VarChar(10)
-  message              String?                        @db.VarChar(256)
+  id                   Int                             @unique @default(0)
+  storage_status       full_photo_info_storage_status? @default(WAIT)
+  status               String                          @default("WAIT SCREEN") @db.VarChar(63)
+  queue                String                          @db.VarChar(10)
+  message              String?                         @db.VarChar(256)
   watermark            Json?
   screener_1           Int?
   screener_2           Int?
   need_screener_2      Boolean?
-  result               String                         @default("REJECT") @db.VarChar(255)
-  reason               String?                        @db.VarChar(512)
-  screener_message     String?                        @db.VarChar(256)
-  upload_user_id       Int?
-  username             String?                        @db.VarChar(50)
-  ac_type              String?                        @db.VarChar(255)
-  ac_reg               String?                        @db.VarChar(125)
-  ac_msn               String?                        @db.VarChar(100)
+  result               String                          @default("REJECT") @db.VarChar(255)
+  reason               String?                         @db.VarChar(512)
+  screener_message     String?                         @db.VarChar(256)
+  upload_user_id       Int
+  username             String?                         @db.VarChar(50)
+  ac_type              String?                         @db.VarChar(255)
+  ac_reg               String?                         @db.VarChar(125)
+  ac_msn               String?                         @db.VarChar(100)
   airline_id           Int?
   airport_id           Int?
-  pic_type             String?                        @db.VarChar(255)
-  user_remark          String?                        @db.VarChar(256)
-  photo_time           DateTime?                      @db.Date
+  pic_type             String?                         @db.VarChar(255)
+  user_remark          String?                         @db.VarChar(256)
+  photo_time           DateTime?                       @db.Date
   exif                 Json?
-  upload_time          BigInt?
-  screen_finished_time DateTime?                      @db.Timestamp(0)
-  notify               Boolean?                       @default(false)
-  airport_cn           String?                        @db.VarChar(255)
-  airport_en           String?                        @db.VarChar(255)
-  airport_icao_code    String?                        @db.VarChar(127)
-  airport_iata_code    String?                        @db.VarChar(127)
-  airline_cn           String?                        @db.VarChar(255)
-  airline_en           String?                        @db.VarChar(255)
-  airline_icao_code    String?                        @db.VarChar(255)
-  airline_iata_code    String?                        @db.VarChar(255)
+  upload_time          BigInt
+  screen_finished_time DateTime?                       @db.Timestamp(0)
+  notify               Boolean?                        @default(false)
+  airport_cn           String?                         @db.VarChar(255)
+  airport_en           String?                         @db.VarChar(255)
+  airport_icao_code    String?                         @db.VarChar(127)
+  airport_iata_code    String?                         @db.VarChar(127)
+  airline_cn           String?                         @db.VarChar(255)
+  airline_en           String?                         @db.VarChar(255)
+  airline_icao_code    String?                         @db.VarChar(255)
+  airline_iata_code    String?                         @db.VarChar(255)
 }
 
 /// The underlying view does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 /// This view or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
 view queue_photo {
   id                Int       @unique @default(0)
-  status            String?   @default("WAIT SCREEN") @db.VarChar(63)
-  queue             String?   @db.VarChar(10)
+  status            String    @default("WAIT SCREEN") @db.VarChar(63)
+  queue             String    @db.VarChar(10)
   message           String?   @db.VarChar(256)
   screener_1        Int?
   screener_2        Int?
   reason            String?   @db.VarChar(512)
   screener_message  String?   @db.VarChar(256)
-  upload_user_id    Int?
+  upload_user_id    Int
   username          String?   @db.VarChar(50)
   ac_type           String?   @db.VarChar(255)
   ac_reg            String?   @db.VarChar(125)
@@ -273,11 +384,51 @@ view queue_photo {
   pic_type          String?   @db.VarChar(255)
   user_remark       String?   @db.VarChar(256)
   photo_time        DateTime? @db.Date
-  upload_time       BigInt?
+  upload_time       BigInt
   airport_cn        String?   @db.VarChar(255)
   airport_en        String?   @db.VarChar(255)
   airport_icao_code String?   @db.VarChar(127)
   airport_iata_code String?   @db.VarChar(127)
+}
+
+view observation_log_info {
+  id                  Int       @default(0)
+  user_id             Int
+  visibility          String    @default("PRIVATE") @db.VarChar(16)
+  source              String    @default("MANUAL") @db.VarChar(32)
+  source_photo_id     Int?
+  queued_photo_id     Int?
+  observed_at         DateTime  @db.DateTime(0)
+  observed_date       DateTime? @db.Date
+  airport_id          Int?
+  airline_id          Int?
+  ac_reg              String?   @db.VarChar(125)
+  ac_msn              String?   @db.VarChar(100)
+  ac_type             String?   @db.VarChar(255)
+  pic_type            String?   @db.VarChar(255)
+  location_text       String?   @db.VarChar(255)
+  note                String?   @db.Text
+  exif                Json?
+  pending_info        Json?
+  metadata            Json?
+  image_raw_key       String?   @db.VarChar(255)
+  image_key           String?   @db.VarChar(255)
+  image_status        String    @default("NONE") @db.VarChar(16)
+  image_width         Int?
+  image_height        Int?
+  image_size          Int?
+  created_at          DateTime  @default(now()) @db.DateTime(0)
+  updated_at          DateTime  @default(now()) @db.DateTime(0)
+  deleted_at          DateTime? @db.DateTime(0)
+  queued_photo_status String?   @default("WAIT SCREEN") @db.VarChar(63)
+  airport_cn          String?   @db.VarChar(255)
+  airport_en          String?   @db.VarChar(255)
+  airport_icao_code   String?   @db.VarChar(127)
+  airport_iata_code   String?   @db.VarChar(127)
+  airline_cn          String?   @db.VarChar(255)
+  airline_en          String?   @db.VarChar(255)
+  airline_icao_code   String?   @db.VarChar(255)
+  airline_iata_code   String?   @db.VarChar(255)
 }
 
 enum vote_list_type {

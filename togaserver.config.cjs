@@ -1,5 +1,5 @@
-const env = require('dotenv').config({path:'./.env'});
-const nodeEnv = env.parsed?.NODE_ENV || 'development';
+require('dotenv').config({path:'./.env'});
+const nodeEnv = (process.env.NODE_ENV || 'production').trim().toLowerCase();
 
 module.exports = {
   apps: [
@@ -10,6 +10,9 @@ module.exports = {
       exec_mode: "fork",
       max_memory_restart: "500M",
       watch: false,
+      env: {
+        NODE_ENV: nodeEnv,
+      },
     },
   ],
 };
